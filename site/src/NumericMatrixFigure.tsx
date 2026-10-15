@@ -26,8 +26,8 @@ function MatrixGlyph({matrix,color,show=false,label}:{matrix:Matrix;color:string
 }
 
 function MatrixToggle({matrix,color,label,name}:{matrix:Matrix;color:string;label:string;name:string}){
- const [revealed,setRevealed]=useParameter(name,false,r=>r==='1',v=>v?'1':'0'),language=useLanguage();
- return <button type="button" name={name} form="visual-actions" value={revealed?'1':'0'} className="numeric-matrix-toggle" data-limb={label.replaceAll('_','')} aria-label={`${label.replaceAll('_','')} ${language==='ja'?'値':'values'}`} aria-pressed={revealed} onClick={()=>setRevealed(!revealed)} style={{color:textInk(color)}}><MatrixGlyph matrix={matrix} color={color} label={label} show={revealed}/></button>;
+ const [revealed,setRevealed]=useParameter(name,true,r=>r==='1',v=>v?'1':'0'),language=useLanguage();
+ return <button type="button" name={name} form="visual-actions" value={revealed?'1':'0'} className="numeric-matrix-toggle" data-values={matrix.map(r=>r.map(String).join(',')).join(';')} data-limb={label.replaceAll('_','')} aria-label={`${label.replaceAll('_','')} ${language==='ja'?'値':'values'}`} aria-pressed={revealed} onClick={()=>setRevealed(!revealed)} style={{color:textInk(color)}}><MatrixGlyph matrix={matrix} color={color} label={label} show/></button>;
 }
 
 export function NumericMatrixFigure({plan,result,kind,selected,onSelect,c}:{plan:Plan;result:Result;kind:string;selected:number;onSelect:(index:number)=>void;c?:Construction}){
@@ -46,6 +46,7 @@ export function NumericMatrixFigure({plan,result,kind,selected,onSelect,c}:{plan
   const color=directColor(visual,plan.products[indices[0]].a,plan.products[indices[0]].b),terms=indices.map(directTerm).join('+');
   return `${group?'+':''}${weight===1?'':texColor(color,power13(weight))}${indices.length>1?`\\left(${terms}\\right)`:terms}`;
  }):plan.products.map((p,i)=>`${i?'+':''}${texColor(coefficientColor(visual,i),`${p.numerator<0?'('+p.numerator+')':p.numerator===1?'':p.numerator}T_{${i}}`)}`);
+ const concrete=direct?groups.map(({weight,indices},group)=>`${group?'+':''}${weight===1?'':power13(weight)}\\left(${indices.map(index=>scaledMatrixTex(result.products[index],4n)).join('+')}\\right)`):plan.products.map((p,i)=>`${i?'+':''}(${p.numerator})${scaledMatrixTex(result.products[i],4n)}`);
  const operation=plan.modulus?'\\equiv':'=',denominator=plan.denominator===1?'':plan.modulus?`${plan.denominator}^{-1}`:`\\frac{1}{${plan.denominator}}`;
  const term=plan.products[selected];
  const glyphWidth=(matrix:Matrix)=>{
@@ -56,9 +57,9 @@ export function NumericMatrixFigure({plan,result,kind,selected,onSelect,c}:{plan
  return <div className="numeric-matrix-figure" data-fp4-scale="2">
  <div className="numeric-source-rows">
  {(['A','B'] as const).map(side=><div className="numeric-source-row" key={side} data-source-side={side}>
- <MathText tex={`${side}${operation}${texColor(FP4_SCALE_COLOR,'2')}\\Bigl(`}/>
+ <MathText tex={`${side}=${scaledMatrixTex(result.input[side],1n)}${operation}${texColor(FP4_SCALE_COLOR,'2')}\\Bigl(`}/>
  {plan.weights[side].map((weight,i)=><span className="numeric-source-term" key={i}>
- {i>0&&<MathText tex="+"/>}{weight!==1&&<MathText tex={texColor(limbColor(side,i),power13(weight))}/>}
+ {i>0&&<MathText tex="+"/>}{weight!==1&&<MathText tex={texColor(limbColor(side,i),direct?power13(weight):String(weight))}/>}
  <MatrixToggle matrix={(side==='A'?result.la:result.lb)[i]} color={limbColor(side,i)} label={`${side}_${i}`} name={`example_limb_values_${kind}_${side}${i}`}/>
  </span>)}<MathText tex={`\\Bigr)${plan.modulus?`\\pmod{${plan.modulus}}`:''}`}/>
  </div>)}
@@ -68,8 +69,8 @@ export function NumericMatrixFigure({plan,result,kind,selected,onSelect,c}:{plan
  {direct&&<>{plan.weights.B.map((_,j)=><span key={`B${j}`} data-numeric-axis={`B${j}`} className="numeric-product-axis" style={{gridRow:1,gridColumn:j+2,color:textInk(limbColor('B',j))}}><MathText tex={`B_{${j}}`}/></span>)}{plan.weights.A.map((_,i)=><span key={`A${i}`} data-numeric-axis={`A${i}`} className="numeric-product-axis" style={{gridRow:i+2,gridColumn:1,color:textInk(limbColor('A',i))}}><MathText tex={`A_{${i}}`}/></span>)}</>}
  {plan.products.map((p,index)=>{
   const color=coefficientColor(visual,index),ai=plan.planes.A[p.a].findIndex(Boolean),bi=plan.planes.B[p.b].findIndex(Boolean),isSelected=selected===index;
-  return <button key={index} type="button" name={'example_product_'+kind} value={index} data-numeric-product={index} data-product-color={color} data-product-index={index} aria-pressed={isSelected} onClick={()=>onSelect(index)} style={{gridRow:direct?ai+2:undefined,gridColumn:direct?bi+2:undefined,borderColor:color,borderWidth:isSelected?3:2,background:productFillColor(visual,index)}}>
-  <span className="numeric-plane-matrices"><MatrixGlyph matrix={result.fa[p.a]} color={direct?limbColor('A',ai):color} show={isSelected}/><span data-numeric-times><MathText tex={'\\times'}/></span><MatrixGlyph matrix={result.fb[p.b]} color={direct?limbColor('B',bi):color} show={isSelected}/></span>
+  return <button key={index} type="button" name={'example_product_'+kind} value={index} data-numeric-product={index} data-product-color={color} data-product-index={index} data-plane-a={result.fa[p.a].map(r=>r.map(String).join(',')).join(';')} data-plane-b={result.fb[p.b].map(r=>r.map(String).join(',')).join(';')} data-value={result.products[index].map(r=>r.map(String).join(',')).join(';')} aria-pressed={isSelected} onClick={()=>onSelect(index)} style={{gridRow:direct?ai+2:undefined,gridColumn:direct?bi+2:undefined,borderColor:color,borderWidth:isSelected?3:2,background:productFillColor(visual,index)}}>
+  <span className="numeric-plane-matrices"><MatrixGlyph matrix={result.fa[p.a]} color={direct?limbColor('A',ai):color} show/><span data-numeric-times><MathText tex={'\\times'}/></span><MatrixGlyph matrix={result.fb[p.b]} color={direct?limbColor('B',bi):color} show/></span>
   <span className="numeric-product-formula"><MathText tex={direct?directTerm(index):`T_{${index}}=(${planeTex('A',p.a)})(${planeTex('B',p.b)})`}/></span>
   <span className="numeric-product-result"><MathText tex={`${direct?directTerm(index):`T_{${index}}`}=${scaledMatrixTex(result.products[index],4n)}`}/></span>
   </button>;
@@ -90,6 +91,10 @@ export function NumericMatrixFigure({plan,result,kind,selected,onSelect,c}:{plan
  <GroupBrace side="right" size={Math.max(72,reconstruction.length*38)}/>
  </div>
  {plan.modulus>0&&<MathText tex={`\\pmod{${plan.modulus}}`}/>}
+ <div className="numeric-concrete-reconstruction" data-concrete-reconstruction={kind}>
+ <div className="numeric-brace-formula"><MathText tex={`${operation}${texColor(FP4_SCALE_COLOR,'2^2')}${denominator}`}/><GroupBrace side="left" size={Math.max(72,concrete.length*50)}/><div className="numeric-reconstruction-rows">{concrete.map((tex,i)=><div key={i} data-concrete-row={i}><MathText tex={tex}/></div>)}</div><GroupBrace side="right" size={Math.max(72,concrete.length*50)}/></div>
+ <MathText tex={`${operation}${scaledMatrixTex(result.reconstructed,1n)}${plan.modulus?`\\pmod{${plan.modulus}}`:''}`}/>
+ </div>
  </div>
  </div>
  <div className="numeric-row paper-scroll numeric-selected" data-fp4-product-scale="4"><MathText tex={`${texColor(FP4_SCALE_COLOR,'2^2')}\\left(${scaledMatrixTex(result.fa[term.a])}\\right)\\left(${scaledMatrixTex(result.fb[term.b])}\\right)=${scaledMatrixTex(result.products[selected],1n)}`}/></div>

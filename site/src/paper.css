@@ -150,3 +150,8 @@ foreignObject:has(.math){overflow:visible}
 .plane-value-slots [data-diff=removed] .mord{text-decoration:line-through;text-decoration-thickness:1px}
 .plane-set-controls label{flex-wrap:wrap;max-width:100%;min-width:0}
 .plane-set-controls select{max-width:100%;min-width:0}
+
+.paper-app summary[data-section-depth="1"],.paper-app #numberline>summary{font-size:22px;font-weight:700}
+.paper-app summary[data-section-depth]:not([data-section-depth="1"]){font-weight:600}
+.paper-app summary[data-section-depth]>h1,.paper-app summary[data-section-depth]>h2,.paper-app summary[data-section-depth]>h3{font-size:inherit;font-weight:inherit}
+.paper-app summary[data-section-depth="1"]::after{font-size:inherit;font-weight:inherit}

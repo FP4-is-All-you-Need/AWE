@@ -1,16 +1,17 @@
 import {test,expect,type Page} from '@playwright/test';
+
 async function thinPaths(page:Page){
- const braces=page.locator('[data-group-brace]');await expect(braces).toHaveCount(4);
+ const braces=page.locator('[data-group-brace]');await expect(braces).toHaveCount(8);
  const paths=await braces.locator('path').evaluateAll(nodes=>nodes.map(n=>({stroke:getComputedStyle(n).strokeWidth,fill:getComputedStyle(n).fill,vector:n.getAttribute('vector-effect'),color:getComputedStyle(n).stroke,parentColor:getComputedStyle(n.closest('[data-group-brace]')!).color})));
  for(const p of paths){expect(Number.parseFloat(p.stroke)).toBe(1.1);expect(p.fill).toBe('none');expect(p.vector).toBe('non-scaling-stroke');expect(p.color).toBe(p.parentColor);}
  await expect(braces.first().locator('.brace-metric')).toHaveCSS('visibility','hidden');
 }
 
-test('tall braces retain their font boxes and colors with constant thin strokes',async({page})=>{
+test('symbolic and concrete braces use constant thin strokes',async({page})=>{
  await page.goto('/?lang=en');await page.locator('[data-group-brace]').first().waitFor();await page.evaluate(()=>document.fonts.ready);await thinPaths(page);
  const geometry=await page.locator('[data-group-brace]').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect(),c=getComputedStyle(n);return {width:r.width,height:r.height,color:c.color,weight:c.fontWeight};}));
- expect(geometry).toHaveLength(4);
- for(const box of geometry){expect(box.width).toBeGreaterThan(0);expect(box.height).toBeGreaterThan(box.width);expect(box.weight).toBe('400');}
+ expect(geometry).toHaveLength(8);
+ for(const g of geometry){expect(g.width).toBeGreaterThan(0);expect(g.height).toBeGreaterThan(0);expect(g.weight).toBe('400');}
  for(const kind of ['base13','awe'])await page.locator(`[data-matrix-diagram=${kind}]`).screenshot({path:`build/screens/braces-after-${kind}.png`});
  await page.locator('[data-matrix-diagram=awe] [data-numeric-reconstruction-row="1"]').click();await expect(page.locator('[data-matrix-diagram=awe] [data-numeric-product="1"]')).toHaveAttribute('aria-pressed','true');await thinPaths(page);
 });

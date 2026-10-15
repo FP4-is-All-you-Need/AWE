@@ -1,15 +1,15 @@
 import {test,expect} from '@playwright/test';
 
-const limbColors=['rgb(194, 24, 91)','rgb(136, 68, 153)','rgb(74, 83, 168)'];
-const degreeColors=[...limbColors,'rgb(2, 119, 189)','rgb(0, 151, 167)'];
+const limbInk=['rgb(135, 17, 63)','rgb(98, 49, 111)','rgb(56, 63, 127)'];
+const cellColors=['rgb(194, 24, 91)','rgb(74, 83, 168)','rgb(0, 137, 123)','rgb(136, 68, 153)','rgb(0, 151, 167)','rgb(124, 179, 66)','rgb(2, 119, 189)','rgb(67, 160, 71)','rgb(158, 157, 36)'];
 const coloredSymbols=async(formula:import('@playwright/test').Locator)=>formula.locator('.katex-html [style]').evaluateAll(nodes=>nodes.filter(node=>(node as HTMLElement).style.color).map(node=>({text:node.textContent?.replace(/[\s\u200b]/g,''),color:getComputedStyle(node).color})));
 
-test('base13 limb colors connect source matrices, direct products and reconstruction degree colors',async({page})=>{
+test('base13 keeps its limb and cell colors when concrete values are shown',async({page})=>{
  await page.goto('/?lang=ja');const base=page.locator('[data-matrix-diagram=base13]');
  await expect(base.locator('[data-numeric-product]')).toHaveCount(9);
  for(let i=0;i<3;i++)for(const side of ['A','B']){
   const color=await base.locator(`[data-source-side=${side}] [data-limb=${side}${i}]`).evaluate(node=>getComputedStyle(node).color);
-  expect(color).toBe(limbColors[i]);
+  expect(color).toBe(limbInk[i]);
   const axis=base.locator(`[data-numeric-axis=${side}${i}]`);
   await expect(axis).toContainText(`${side}${i}`);
   expect(await axis.evaluate(node=>getComputedStyle(node).color)).toBe(color);
@@ -17,23 +17,20 @@ test('base13 limb colors connect source matrices, direct products and reconstruc
  for(let i=0;i<3;i++)for(let j=0;j<3;j++){
   const index=i*3+j,degree=i+j,tile=base.locator(`[data-numeric-product="${index}"]`);
   const glyphColors=await tile.locator('.numeric-plane-matrices .numeric-matrix-glyph').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).color));
-  expect(glyphColors).toEqual([limbColors[i],limbColors[j]]);
+  expect(glyphColors).toEqual([limbInk[i],limbInk[j]]);
   const symbols=await coloredSymbols(tile.locator('.numeric-product-formula'));
-  expect(symbols).toContainEqual({text:`A${i}`,color:limbColors[i]});
-  expect(symbols).toContainEqual({text:`B${j}`,color:limbColors[j]});
-  expect(await tile.evaluate(node=>getComputedStyle(node).borderTopColor)).toBe(degreeColors[degree]);
-  const pale='rgb('+degreeColors[degree].match(/\d+/g)!.map(n=>Math.round(Number(n)*.30+255*.70)).join(', ')+')';
+  expect(symbols).toContainEqual({text:`A${i}`,color:limbInk[i]});
+  expect(symbols).toContainEqual({text:`B${j}`,color:limbInk[j]});
+  expect(await tile.evaluate(node=>getComputedStyle(node).borderTopColor)).toBe(cellColors[index]);
+  const pale='rgb('+cellColors[index].match(/\d+/g)!.map(n=>Math.round(Number(n)*.30+255*.70)).join(', ')+')';
   expect(await tile.evaluate(node=>getComputedStyle(node).backgroundColor)).toBe(pale);
   const row=base.locator(`[data-numeric-reconstruction-row="${degree}"]`);
   const reconstruction=await coloredSymbols(row);
-  expect(reconstruction).toContainEqual({text:`A${i}`,color:limbColors[i]});
-  expect(reconstruction).toContainEqual({text:`B${j}`,color:limbColors[j]});
+  expect(reconstruction).toContainEqual({text:`A${i}`,color:limbInk[i]});
+  expect(reconstruction).toContainEqual({text:`B${j}`,color:limbInk[j]});
   await tile.click();await expect(row).toHaveAttribute('aria-pressed','true');
-  expect(await row.evaluate(node=>getComputedStyle(node).borderTopColor)).toBe(degreeColors[degree]);
-  if(degree>0){
-   const fragments=degree===1?['13']:['1',`3${degree}`];
-   for(const text of fragments)expect(reconstruction).toContainEqual({text,color:degreeColors[degree]});
-  }
+  expect(await row.evaluate(node=>getComputedStyle(node).borderTopColor)).toBe(cellColors[index]);
+
  }
 });
 
@@ -65,10 +62,10 @@ test('slide-style FP4 matrix decomposition reveals correctly scaled limbs and pr
  await expect(base.locator('[data-fp4-scale]')).toHaveAttribute('data-fp4-scale','2');
  await expect(base.locator('[data-source-side=A] [data-limb]')).toHaveCount(3);
  const first=base.locator('[data-limb=A0]');
- await expect(first).toHaveAttribute('aria-pressed','false');
+ await expect(first).toHaveAttribute('aria-pressed','true');
  await expect(first.locator('[data-matrix-rows]')).toHaveAttribute('data-matrix-rows','2');
  await expect(first.locator('[data-matrix-columns]')).toHaveAttribute('data-matrix-columns','2');
- await expect(first).toContainText('·');await first.click();
+ await expect(first).not.toContainText('·');await first.click();await first.click();
  await expect(first).toHaveAttribute('aria-pressed','true');
  const entries=await first.locator('[data-entry-value]').evaluateAll(nodes=>nodes.map(n=>({value:n.getAttribute('data-entry-value'),text:n.textContent})));
  expect(entries.every(e=>e.value===e.text)).toBe(true);
