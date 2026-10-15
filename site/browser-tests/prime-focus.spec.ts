@@ -1,0 +1,10 @@
+import {test,expect} from '@playwright/test';
+const id='awemps2_bcf56be798e6e87fa023964c76889cb177e2b5133d57217eb9cf9d9f66b9c5a1';
+for(const lang of ['en','ja'])for(const width of [1440,390])test(`periodic table separates selected weight from focused card ${lang} ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto(`/?lang=${lang}&b=53&modset_id=${id}`);const t=page.locator('.prime-table');await expect(t.locator('[data-prime-modulus="343"]')).toHaveAttribute('data-in-set','true',{timeout:15000});
+ const selected=await t.locator('[data-prime-outline]').evaluateAll(ns=>ns.map(n=>n.getAttribute('data-prime-outline')).sort());await t.locator('[data-prime-modulus="343"]').click();await expect(t.locator('[data-prime-weight-card]')).toHaveCount(5);
+ const used=t.locator('[data-prime-weight-card][data-used=true]');await expect(used).toHaveCount(1);const usedId=await used.getAttribute('data-prime-weight-card');const other=t.locator('[data-prime-weight-card][data-used=false]').first();await other.locator('[data-tile-id]').click();await expect(other).toHaveAttribute('data-focused','true');await expect(used).toHaveAttribute('data-focused','false');await expect(used).toHaveAttribute('data-prime-weight-card',usedId!);
+ await expect(other.locator('[data-selection-role=focus]')).toContainText(lang==='en'?'focus':'表示中');await expect(other.locator('[data-selection-role=selected]')).toHaveCount(0);await expect(used.locator('.prime-card-used')).toHaveText('✓');
+ expect(await t.locator('[data-prime-outline]').evaluateAll(ns=>ns.every(n=>n.getAttribute('stroke')==='#C2185B'))).toBe(true);await expect(t.locator('[data-prime-focus="343"]')).toHaveAttribute('stroke','#1A1A1A');
+ await t.locator('[data-prime-modulus="73"]').click();expect(await t.locator('[data-prime-outline]').evaluateAll(ns=>ns.map(n=>n.getAttribute('data-prime-outline')).sort())).toEqual(selected);await expect(t.locator('[data-prime-focus="73"]')).toHaveCount(1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

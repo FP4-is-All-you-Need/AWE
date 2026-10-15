@@ -1,0 +1,9 @@
+import {test,expect} from '@playwright/test';
+for(const lang of ['en','ja'])test(`two modulus sets use outer and inner highlights ${lang}`,async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/?lang='+lang);const t=page.locator('.prime-table'),select=t.locator('[name=prime_compare]');await expect(select).toBeVisible();
+ const verify=async()=>{const id=await select.inputValue(),expected=(await select.locator(`option[value="${id}"]`).getAttribute('data-moduli'))!.split(',').map(Number);const shown=await t.locator('[data-prime-modulus]').evaluateAll(ns=>ns.map(n=>Number(n.getAttribute('data-prime-modulus'))));const actual=await t.locator('[data-prime-compare-outline]').evaluateAll(ns=>ns.map(n=>Number(n.getAttribute('data-prime-compare-outline'))));expect(actual.sort((a,b)=>a-b)).toEqual(expected.filter(m=>shown.includes(m)).sort((a,b)=>a-b));expect(await t.locator('[data-prime-compare-outline]').evaluateAll(ns=>ns.every(n=>n.getAttribute('stroke')==='#ED964F'&&Number(n.getAttribute('x'))>0))).toBe(true);};
+ await verify();expect(await t.locator('[data-in-set=true][data-in-comparison=true]').count()).toBeGreaterThan(0);expect(await t.locator('[data-in-set=false][data-in-comparison=true], [data-in-set=true][data-in-comparison=false]').count()).toBeGreaterThan(0);
+ const ids=await select.locator('option').evaluateAll(ns=>ns.map(n=>(n as HTMLOptionElement).value).filter(v=>v!=='none'));await select.selectOption(ids[ids.length-1]);await verify();await page.reload();await expect(select).toHaveValue(ids[ids.length-1]);await verify();
+ await t.locator('[data-prime-modulus="343"]').click();await verify();await expect(t.locator('[data-prime-weight-card]')).toHaveCount(5);
+ await select.selectOption('none');await expect(t.locator('[data-prime-compare-outline]')).toHaveCount(0);
+});

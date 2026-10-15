@@ -1,0 +1,41 @@
+.contents-shell{font-size:14px;color:#1A1A1A}
+.contents-toggle{position:fixed;left:8px;top:7px;z-index:102;width:34px;height:30px;padding:0;background:#FFFFFF;color:#1A1A1A;border:1px solid #1A1A1A;border-radius:0;box-shadow:none;font-size:20px;line-height:1;cursor:pointer}
+.contents-panel{position:fixed;left:0;top:0;bottom:0;width:var(--contents-width,260px);z-index:101;box-sizing:border-box;padding:45px 12px 16px;background:#FFFFFF;border-right:1px solid #1A1A1A;overflow-y:auto;overflow-x:hidden;font-size:14px}
+.contents-heading{font-size:14px;font-weight:600;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid #9E9E9E}
+.contents-panel ol{list-style:none;padding:0;margin:0}
+.contents-panel ol ol{margin-left:10px;padding-left:7px;border-left:2px solid #4A53A8}
+.contents-panel li{margin:0;padding:0}
+.contents-panel button[data-contents-target]{display:block;width:100%;border:0;border-left:3px solid transparent;border-radius:0;box-shadow:none;text-align:left;padding:5px 4px;background:#FFFFFF;color:#1A1A1A;font-size:14px;line-height:1.4;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.contents-panel button[data-contents-target]:hover{background:#E2F1F8}
+.contents-panel button[aria-current=location]{border-left-color:#884499;background:#E2F1F8;font-weight:600}
+.contents-resize{position:fixed;top:0;bottom:0;left:calc(var(--contents-width,260px) - 5px);width:10px;cursor:ew-resize;touch-action:none;z-index:103}
+.contents-resize:focus-visible{outline:2px solid #0288D1;outline-offset:-3px}
+.contents-overlay{display:none}
+.contents-open .paper-app{padding-left:calc(var(--contents-width,260px) + 12px)}
+html:not(.contents-open) .paper-app{padding-top:44px}
+@media(max-width:767px){
+ .contents-open .paper-app{padding-left:12px;padding-top:44px}
+ .contents-panel{max-width:calc(100vw - 34px)}
+ .contents-overlay{display:block;position:fixed;inset:0;z-index:100;padding:0;border:0;border-radius:0;background:rgba(26,26,26,.22);box-shadow:none}
+ .contents-resize{left:min(calc(var(--contents-width,260px) - 5px),calc(100vw - 39px))}
+}
+
+.settings-section{margin:0 0 5px}.settings-section>summary{font-size:18px;font-weight:700}.settings-section details[data-section=precision]>summary{font-size:16px;font-weight:600}.settings-section details[data-section=precision]{margin:0;border-left:2px solid #4A53A8;padding-left:5px}
+.contents-panel ol ol ol{border-left-color:#0288D1}
+
+/* Generated numbering stays outside textContent, so observers read only labels. */
+.contents-panel [data-section-number]::before,.paper-app summary[data-section-number]::after{content:attr(data-section-number);display:inline-block;box-sizing:border-box;min-width:var(--section-number-width);width:var(--section-number-width);padding-right:.5ch;text-align:right;font-size:14px;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";font-weight:400;white-space:nowrap}
+.paper-app summary[data-section-number]>h1,.paper-app summary[data-section-number]>h2,.paper-app summary[data-section-number]>h3{display:inline}
+.contents-panel button[data-contents-target]{display:flex;align-items:baseline;gap:0}
+.contents-panel button[data-contents-target]::before{flex:none}
+
+.paper-app summary[data-section-number]{display:flex;align-items:baseline;flex-wrap:wrap}
+.paper-app summary[data-section-number]::before{order:-2;flex:none}
+.paper-app summary[data-section-number]::after{order:-1;flex:none}
+
+/* Keep each formula intact, including subscripts, within the numbered label. */
+.contents-label{min-width:0;overflow-wrap:normal}
+.contents-label .math{white-space:nowrap;max-width:none;padding:0;font-size:14px;line-height:1.4}
+
+.contents-label.contents-formula{white-space:nowrap;flex:none}
+.contents-panel ol ol ol ol{margin-left:0;padding-left:2px}

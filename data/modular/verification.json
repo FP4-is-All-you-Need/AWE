@@ -1,0 +1,1 @@
+{"checks":[{"residue_pairs":1044794,"sets":80,"solutions":82,"valid":true}],"counts":{"constructions":82,"residue_pairs":1044794,"sets":80},"date":"2026-10-11","files":[{"path":"catalog.json","sha256":"58aa9dd7acad3a8a2fbb2d68cd92ad7f903f4358adc5a577ca26fb73fa00a6c9"}],"kind":"modular","methods":[{"count":82,"method":"full_pairs","verifier_version":"1.0.0"}],"schema_version":2}

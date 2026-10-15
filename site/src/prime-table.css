@@ -1,0 +1,39 @@
+.prime-table { min-width:0; }
+.prime-table-legend { display:flex;flex-wrap:wrap;gap:6px 16px;padding:6px 0;font-size:16px; }
+.prime-used-key { border:2px solid #C2185B;padding:0 4px; }
+.prime-table-figure { width:100%;min-width:0;background:#FFFFFF;color:#1A1A1A;overflow-x:auto; }
+.prime-table-figure > svg { display:block;max-width:none;background:#FFFFFF; }
+.prime-table-figure [data-prime-modulus] { cursor:pointer; }
+.prime-table-figure [data-prime-modulus] text { fill:#1A1A1A; }
+.prime-table-figure [data-prime-used] { fill:#C2185B; }
+.prime-variants { display:flex;flex-wrap:wrap;gap:3px;margin:3px 0; }
+.prime-variants button { border:1px solid #1A1A1A;padding:1px 5px;min-height:26px;font-size:14px;border-radius:0;box-shadow:none; }
+.prime-variants button[data-used-variant="true"] { border:3px solid #C2185B;padding:0 3px; }
+.prime-variants button[aria-pressed="true"] { outline:2px solid #1A1A1A;outline-offset:1px; }
+.prime-other { display:flex;gap:8px;flex-wrap:wrap;padding:4px 0;font-size:16px; }
+.prime-inspection { margin-top:6px;min-width:0; }
+.prime-inspection select { max-width:100%; }
+
+.prime-missing-key { color:#6E6E6E;background:#FFFFFF;border:1px solid #6E6E6E;padding:0 4px; }
+.prime-table-figure [data-recorded="false"] [data-prime-number] { fill:#6E6E6E; }
+
+.prime-intro { margin:2px 0;font-size:16px; }
+.prime-set-history table { width:100%;table-layout:fixed;font-size:16px; }
+.prime-set-history th,.prime-set-history td { overflow-wrap:anywhere;padding:3px;text-align:left; }
+.prime-set-history th:last-child { width:45%; }
+
+.prime-table-surface { position:relative; }
+.prime-table-surface > svg { display:block;max-width:none;background:#FFFFFF; }
+.prime-weight-cards { display:flex;flex-wrap:wrap;align-content:start;align-items:start;gap:8px;overflow:auto;background:#FFFFFF; }
+.prime-weight-card { flex:0 0 180px;position:relative; }
+.prime-weight-card .law-row { border:1px solid #1A1A1A;padding:2px; }
+.prime-card-used { position:absolute;right:4px;bottom:4px;color:#C2185B; }
+
+.prime-compare-key{border:2px solid #ED964F;padding:0 4px;background:#FFFFFF}
+.prime-compare-control{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:3px 0}
+.prime-compare-control select{max-width:100%;min-width:0}
+
+.prime-used-key{background:#F7E5ED}
+.prime-focus-key{border:2px dashed #1A1A1A;padding:0 4px;background:#FFFFFF}
+.prime-weight-card[data-used="true"]{outline:2px solid #C2185B;outline-offset:1px}
+.prime-card-used{background:#F7E5ED;padding:0 3px}

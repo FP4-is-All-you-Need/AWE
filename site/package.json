@@ -1,0 +1,28 @@
+{
+  "name": "awe-explorer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "build:preview": "AWE_PREVIEW=1 npm run build",
+    "build:pages": "python3 ../tools/pages_artifact.py prepare && AWE_PUBLIC=1 npm run build && python3 ../tools/pages_artifact.py audit"
+  },
+  "dependencies": {
+    "katex": "0.19.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@types/katex": "0.16.8",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  }
+}

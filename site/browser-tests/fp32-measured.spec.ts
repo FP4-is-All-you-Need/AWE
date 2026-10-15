@@ -1,0 +1,33 @@
+import {test,expect} from '@playwright/test';
+const id='awems1_9c2e7facfd1d66e7dd39f7f24172717768991f8c76837922c172b3d8ae70d80f';
+for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP32 measured modulus list and details ${width} ${lang}`,async({page})=>{
+ test.setTimeout(120000);await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ const data=await (await page.request.get('/modular/fp32.json')).json();const set=data.sets[0];
+ await page.goto('/?lang='+lang);await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(18);
+ await page.locator('[name=precision]').selectOption('fp32');await expect(page.locator('[name=b]')).toHaveValue('24');
+ const tiles=page.locator('.paper-lane [data-tile-id]');await expect(tiles).toHaveCount(12);
+ expect(await tiles.evaluateAll(ns=>ns.map(n=>n.getAttribute('data-tile-id')))).toEqual(set.solution_ids);
+ for(const tile of await tiles.all())await expect(tile).toBeVisible();
+ await expect(page.locator('.paper-lane h1')).toContainText(lang==='en'?'28 products':'28積');
+ await expect(page.locator('.paper-lane h1')).toContainText('A 24 / B 24');
+ await expect(page.locator('.paper-lane [data-set-usage]')).toContainText(lang==='en'?'Used in measurements':'測定で使用');
+ await tiles.nth(6).click();await expect(page.locator('.paper-lane [data-expansion]')).toHaveAttribute('data-expansion',set.solution_ids[6]);
+ await expect(page.locator('.paper-lane [data-limb-weights]')).toContainText('1,6');
+ await expect(page.locator('[data-section=modset-catalog]')).toHaveJSProperty('open',true);
+ await expect(page.locator(`[data-saved-modset="${id}"] [data-set-usage]`)).toContainText(lang==='en'?'Used in measurements':'測定で使用');
+ await page.locator('[name=modset_id]').selectOption(id);await tiles.nth(11).click();
+ await page.reload();await expect(page.locator('[name=b]')).toHaveValue('24');await expect(page.locator('[name=crt]')).toHaveValue('1');
+ await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(12);
+ await expect(page.locator('.paper-lane [data-expansion]')).toHaveAttribute('data-expansion',set.solution_ids[11]);
+ await expect(page.locator('[data-section=modset-catalog]')).toHaveJSProperty('open',true);await expect(page.locator('[name=modset_id]')).toHaveValue(id);
+ await page.locator('[name=K]').fill('9181');await expect(page.locator(`[name=modset_id] option[value="${id}"]`)).toHaveCount(0);
+ await page.locator('[name=K]').fill('8192');await page.locator('[name=precision]').selectOption('fp64');
+ await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(18);
+ await expect(page.locator('[data-comparison-lane][open]')).toHaveCount(3);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
+});
+test('server serves measured FP32 JSON and default FP32 list',async({page})=>{
+ await page.goto('/?b=24&crt=1');await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(12);
+ const r=await page.request.get('/modular/fp32.json');expect(r.status()).toBe(200);expect((await r.json()).sets[0].id).toBe(id);
+});

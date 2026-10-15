@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-12",
+  "method": "drawing source execution and final PDF comparison; saved numerical field projection",
+  "verifier_sha256": "477d2d03a7bd6a03d30c18a7e7d2bfb51016e3f99d23f32e80e13df902a5ce3e",
+  "source_sha256": "d17ab0b6c877fb6644f5e5e35a87174a4563f665b64ae931ee029daa0dbb7106",
+  "counts": {
+    "widths": 34,
+    "sets": 108,
+    "tile_occurrences": 2386,
+    "distinct_visual_ids": 103,
+    "source_drawing_rows": 68,
+    "source_drawing_tiles": 1581
+  },
+  "figures": {
+    "figure1": {
+      "sha256": "776bd15f729eab462bc02248376c862a04212bc4504f4f50a95f3526c1a21f8a",
+      "plot_rerun": true,
+      "rerun_pagebox_matches": true,
+      "rerun_text_matches": true,
+      "rerun_pixel_mean_absolute_difference": 0.0,
+      "rerun_pixel_channels_different_fraction": 0.0
+    },
+    "figure3": {
+      "sha256": "928536be7b78bf40ae309c7a25329c1827455d5df88706cf5fa97d4cced62e69",
+      "plot_rerun": true,
+      "rerun_pagebox_matches": true,
+      "rerun_text_matches": true,
+      "rerun_pixel_mean_absolute_difference": 0.16531897102946239,
+      "rerun_pixel_channels_different_fraction": 0.012650632039742265
+    },
+    "figure2": {
+      "source_sha256": "5f39aba837afa66b4ccadc9616771e7ad3ce1b02599d59db4a83b17a0e67b5cf",
+      "pagebox_matches": true,
+      "text_matches": true,
+      "mean_absolute_channel_difference": 0.0,
+      "pixel_channels_different_fraction": 0.0,
+      "plot_rerun": true
+    },
+    "figure4": {
+      "plot_rerun": false,
+      "reference": "final_pdf_vector_extraction",
+      "cells": 289,
+      "missing_prerequisites": "Generation inputs are not included.",
+      "palette_check_sha256": "d1681a1d3bad944aa49da99a5ed7796200f5b65e38575c985b469bdb94f31cc2",
+      "palette": {
+        "direct": "#9464CB",
+        "reduced": "#ED964F",
+        "crt": "#DC92AE"
+      },
+      "legend_labels": [
+        "Base-13 limbs: direct products",
+        "AWE: fewer products via weights",
+        "CRT (AWE per modulus)",
+        "AWE count obtained by lifting",
+        "reconstruction denominator 2",
+        "Pale: more products than\nthe other method"
+      ]
+    }
+  },
+  "construction_verification": "This is a display projection audit, not a new mathematical verification or search.",
+  "verifier_sources": {
+    "figure_web_data.py": "477d2d03a7bd6a03d30c18a7e7d2bfb51016e3f99d23f32e80e13df902a5ce3e",
+    "figure_svg_bounds.py": "f81c33a57efcf33ad2334a5f618a6b77ddbc395a58c46af9e34f0dfbd1b98901"
+  },
+  "files": [
+    {
+      "path": "encoding-examples.json",
+      "sha256": "8dc0308493d7b79c362abf0c9504a853a8da7c53dedc34d75b7c832fe634dd33"
+    },
+    {
+      "path": "figure1.json",
+      "sha256": "307b5099448e39ad810a2c9d76b0f6bda8ba27f1ba26cd375887f52eaf16893c"
+    },
+    {
+      "path": "figure2.json",
+      "sha256": "345d29eced80261004d0653a7904ef4b653d41848091c2644eaeb3e1bb555b95"
+    },
+    {
+      "path": "figure3.json",
+      "sha256": "7d1158ffd3e788448dd0c103176502ff70c1bdfd4d6e451500366e0a751fa19b"
+    },
+    {
+      "path": "figure4.json",
+      "sha256": "a71f09b33251230d13ce16328b69baa8c90f8e9660b668c9830276073a2eec07"
+    },
+    {
+      "path": "joint-examples-measurements.json",
+      "sha256": "a81dc3f7d83f29a19c35dbd155065b45ee8798cbb8a7c441275a0bab8c4c072e"
+    },
+    {
+      "path": "joint-examples.json",
+      "sha256": "83d2f3d2d0104ff7525c88d56c9950e0cd1c71ec228749edc873a1fcb0d65761"
+    },
+    {
+      "path": "laws-51.json",
+      "sha256": "f94b5c049ce7b2c5c9387c2390ab94f9ba277a71c7bf4b9e0362875d6239f5dc"
+    },
+    {
+      "path": "laws-52.json",
+      "sha256": "9dc948a82f77e3bdd35890b7f4f6e18d786b9b685cb8a9e0dd7def86ee0e282c"
+    },
+    {
+      "path": "laws-53.json",
+      "sha256": "9dca6ac0d942e5fb6e994ecec25df33afaec85ed36400fbb07915b8c4c0c5431"
+    },
+    {
+      "path": "laws-54.json",
+      "sha256": "3e7c52f538a6a23f6327690e2b7a125c63b0204cace5d52ac045236b96f5154c"
+    },
+    {
+      "path": "laws-55.json",
+      "sha256": "c6ec39dda94861637b5c5f3830064c706403e47c3b9bdd9d3839b1ea021ef667"
+    },
+    {
+      "path": "laws-56.json",
+      "sha256": "e0fbb290d70020d8a0dfae1a9f8eb7d29cf7a61887a611a5a29308d39054ed65"
+    },
+    {
+      "path": "laws-57.json",
+      "sha256": "e647045cbffa419508453be3d72cccf771898649e238be52a75180a9957fa98a"
+    },
+    {
+      "path": "laws-58.json",
+      "sha256": "22efc5f733e9847a4339e7285492ca44f628fa69522641ce03cac52447c676c6"
+    },
+    {
+      "path": "laws-59.json",
+      "sha256": "d4c93ac2a979d3e103625876822d955009f489dd5096065a5273d4d5bd43b7c4"
+    },
+    {
+      "path": "laws-60.json",
+      "sha256": "f04d67078debb8fb3eda30e3f9ace3b765568737d5e45a991d4ed15846c32faf"
+    },
+    {
+      "path": "laws-61.json",
+      "sha256": "afdad0442b08deba31f2418c9420a31856020e9e555b0f7e5228f61f8bdd7a34"
+    },
+    {
+      "path": "laws-62.json",
+      "sha256": "dbd4e832180765be02f2da482a58710ec3ba2ab3c28729a44941577697e6b417"
+    },
+    {
+      "path": "laws-63.json",
+      "sha256": "1ce17c61e7491a0e05b4cfcb81b028196443777c97b6efe68c9e966916b90a95"
+    },
+    {
+      "path": "laws-64.json",
+      "sha256": "413beb31c1812400c27ff20758217cd42fc648e90853445a048781f925c5bf41"
+    },
+    {
+      "path": "laws-65.json",
+      "sha256": "c5cf8ad928eaebb6fcb57306d16f240a12cbd11dcf40702cf54b00ea2924006f"
+    },
+    {
+      "path": "laws-66.json",
+      "sha256": "efb55a2852c1991bfc5691abacd0d69f275e2f6dc2f234cc1a55c8caa5c21fc9"
+    },
+    {
+      "path": "laws-67.json",
+      "sha256": "0cd63bd65abec87cef075c0d5f1d258c1cdbae5f2706490a02ac2475442516c6"
+    },
+    {
+      "path": "laws-68.json",
+      "sha256": "d2d6e2faec060f44c854652f3da2ed301909eae5067dc4d79ae3c5cbb89ab882"
+    },
+    {
+      "path": "laws-69.json",
+      "sha256": "8665b85e58c7250ac67c21f164ab90181db452c9b358243c74a2ee6b122f12b4"
+    },
+    {
+      "path": "laws-70.json",
+      "sha256": "85d2806799ce7cc4f2de3907ff0a1ae3ee03234b51cd69449bace8ab7fe103af"
+    },
+    {
+      "path": "laws-71.json",
+      "sha256": "53da7ec7574d90aa8f6a4219fa9f253f307fb591c9f09d47ef4e473020376c79"
+    },
+    {
+      "path": "laws-72.json",
+      "sha256": "125885534460cadb326996a1ab6438d6da1ab680aede96e95de47aa557b4c07b"
+    },
+    {
+      "path": "laws-73.json",
+      "sha256": "db4861a25c17a53b49dfc3972a28614fe022b0a7eb0671cc7c3e8161dfcb4a07"
+    },
+    {
+      "path": "laws-74.json",
+      "sha256": "c3b5e38cc80659936ad6fd53ee7143f39b959c7e9bb7c49a78289ec9faae2eac"
+    },
+    {
+      "path": "laws-75.json",
+      "sha256": "17db066abfd55e8ee09708bd084a8639de61f0ad7a01276d43729fe3c8f780b5"
+    },
+    {
+      "path": "laws-76.json",
+      "sha256": "b10fdb3635f525ae67e7b3fe9c2d92c8ac7820032db5055fb70b4a7b12db3b02"
+    },
+    {
+      "path": "laws-77.json",
+      "sha256": "20afc6c73c9ec2db7ad6901c41c00cad7b8e965804f89ec95d379c09c7cc45db"
+    },
+    {
+      "path": "laws-78.json",
+      "sha256": "570423fb8c9a32ed3a10b4fa88ceddd6ad27fb6ae2700ca70e37c809540a83c2"
+    },
+    {
+      "path": "laws-79.json",
+      "sha256": "1f0d4d2ccdf5535cb717e502d6567fb383935e58f7576fa84a308f73c4e7b12c"
+    },
+    {
+      "path": "laws-80.json",
+      "sha256": "d3c3fe79f83c7cc5ca032f386d70ec16c8ce0c75526cc703c514567f7973a7c8"
+    },
+    {
+      "path": "laws-81.json",
+      "sha256": "bb59a0af4ea6e1abeaa329b3ded9ca5936ebf18b8fe83208a01db987a3b56746"
+    },
+    {
+      "path": "laws-82.json",
+      "sha256": "81decb1e169c8eae6d8945a999aa8096c0dba5e224608f2e48d574c32fb57dac"
+    },
+    {
+      "path": "laws-83.json",
+      "sha256": "6f008f5f9391f20cb43cb1270f243be8717e84ebb4a60cf6bcab31457837b416"
+    },
+    {
+      "path": "laws-84.json",
+      "sha256": "17bbd60af75a7d8ca934b065a3a42d7ac3d3a31ea0a47dca0997e2c19642c4bf"
+    },
+    {
+      "path": "laws.json",
+      "sha256": "777832eda960874fbac6b6e3203baacde60a47fb0ec1514b952130ff396bac96"
+    },
+    {
+      "path": "modsets.json",
+      "sha256": "e166184c767a5386e34cae673a605e0fea5485b8f7cba85da3968d0dba58cfc8"
+    },
+    {
+      "path": "numeric-example.json",
+      "sha256": "8793348bfab1d352fbab74d2cc3a153451d89e7a99f913ffce98f46a6307058e"
+    }
+  ]
+}

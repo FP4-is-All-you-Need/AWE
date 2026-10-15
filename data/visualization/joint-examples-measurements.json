@@ -1,0 +1,21 @@
+{
+  "measured_at": "2026-10-11T15:29:54.692928+00:00",
+  "verifier_sha256": "8949032309bb46069bc4a7725b41cfcdadfddb2a153d1571c61e0e7962478bc2",
+  "output_sha256": "83d2f3d2d0104ff7525c88d56c9950e0cd1c71ec228749edc873a1fcb0d65761",
+  "constructions": 4,
+  "saved_tuples_checked": 946,
+  "coefficient_identities": "exact",
+  "tuple_checks": [
+    "weighted_value",
+    "plane_storage_set"
+  ],
+  "coverage_basis": "keys_present_in_saved_lut",
+  "missing_counts": [
+    26,
+    2,
+    24,
+    26
+  ],
+  "pair_enumeration": false,
+  "alternatives_complete": false
+}

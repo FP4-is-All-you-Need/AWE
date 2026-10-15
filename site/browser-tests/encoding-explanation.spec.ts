@@ -1,0 +1,12 @@
+import {test,expect} from '@playwright/test';
+const id='awe1_1656e4b7feacd47cbaa916a1ab39ffcdaf195a7de5d6093418e13e4d0c5e4136';
+for(const lang of ['en','ja'])test(`plane exclusion displays the simultaneous encoding diff ${lang}`,async({page})=>{
+ test.setTimeout(180000);await page.emulateMedia({reducedMotion:'reduce'});await page.goto(`/?crt=0&b=6&integer_id=${id}&lang=${lang}`);const detail=page.locator('.integer-detail .construction-detail');await detail.locator('details[data-section^="flow."] > summary').click();const sets=detail.locator('[data-plane-sets=A]');await expect(sets).toHaveAttribute('data-plane-sets-complete','true');
+ await expect(sets.locator('[data-alternative-explanation]')).toContainText(lang==='ja'?'同時に変わります':'at once');await expect(sets.locator('[data-plane-alternatives]')).toHaveCount(0);
+ await sets.locator('[name=plane_remove_value][value="0:8"]').click();await expect(sets.locator('[data-plane-diff="0"] [data-value="8"]')).toHaveAttribute('data-diff','removed');
+ expect(await sets.locator('[data-plane-set="0"]').getAttribute('data-values')).not.toMatch(/(^|,)8(,|$)/);expect(Number(await sets.locator('[data-encoding-changed]').getAttribute('data-encoding-changed'))).toBeGreaterThan(0);
+ await page.reload();await expect(detail).toBeVisible({timeout:30000});await expect(sets.locator('[data-plane-diff="0"] [data-value="8"]')).toHaveAttribute('data-diff','removed');await sets.screenshot({path:`build/screens/encoding-diff-five-${lang}.png`});
+ await sets.locator('[name=plane_diff_reset]').click();await expect(sets.locator('[data-plane-diff="0"] [data-value="8"]')).toHaveAttribute('data-diff','same');
+ await page.goto('/?lang='+lang);await page.locator('.prime-table [data-prime-modulus="79"]').click();await page.locator('[name=prime_construction]').selectOption('awem1_005e636d56084de5f49919b0207cf0574d7ef77a9bc3905aefc9b5e6957e16a4');const md=page.locator('.prime-inspection .construction-detail');await md.locator('details[data-section*="flow."] > summary').click();const ms=md.locator('[data-plane-sets=A]');await expect(ms).toHaveAttribute('data-plane-sets-complete','true');
+ await ms.locator('[name=plane_remove_value][value="0:-3"]').click();await expect(ms.locator('[data-diff=removed]')).not.toHaveCount(0);await expect(ms.locator('[data-diff=added]')).not.toHaveCount(0);await ms.screenshot({path:`build/screens/encoding-diff-mod79-${lang}.png`});await expect(ms.locator('.katex-error')).toHaveCount(0);
+});

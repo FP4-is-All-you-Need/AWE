@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fromInteger,type Construction} from '../src/visual.ts';
+import {measurePlaneDistribution,setTex} from '../src/planeDistribution.ts';
+const five=fromInteger(JSON.parse(fs.readFileSync('../data/solutions/16.json','utf8')).find((s:any)=>s.id.endsWith('e4136')));
+const r=JSON.parse(fs.readFileSync('../data/visualization/joint-examples.json','utf8')).references.find((r:any)=>r.weights.join(',')==='1,5,27');
+const six={id:'joint_'+r.id,modulus:0,weights:{A:r.weights,B:r.weights},planes:{A:r.planes,B:r.planes},products:r.products.map((p:any)=>({...p,numerator:p.coefficient,group:null})),denominator:r.denominator,saved_encoding:{A:r.encoding,B:r.encoding},encoding_domain:r.domain} as Construction;
+const paper=fromInteger(JSON.parse(fs.readFileSync('../data/solutions/d3.json','utf8')).find((s:any)=>s.id==='awe1_d323a4454c50d58cb90ee4d3d062025fe616b2f994dfb6d7d579615c4858161d'));
+const out=[five,paper,six].map(c=>({id:c.id,weights:c.weights,planes:c.planes,products:c.products.length,sides:Object.fromEntries((['A','B'] as const).map(side=>{const result=measurePlaneDistribution(c,side);return [side,{...result,sets:result.planes.map(p=>setTex(p.values))}];}))}));
+const output=process.argv[2]??'../build/sets0020/results.json';
+fs.mkdirSync(path.dirname(output),{recursive:true});
+fs.writeFileSync(output,JSON.stringify(out,null,2)+'\n');
+for(const r of out)console.log(r.id,JSON.stringify(r.sides.A.sets),r.sides.A.planes.map(p=>p.extra));

@@ -1,0 +1,198 @@
+[
+  {
+    "source_sha256": "69e81573120f8fa1afb04c93015bc59174d35e10c0f9f74ffcc04b303c3d5171",
+    "position": 1,
+    "construction": {
+      "schema_version": 1,
+      "kind": "integer",
+      "weights": {
+        "A": [
+          13,
+          2
+        ],
+        "B": [
+          13,
+          2
+        ]
+      },
+      "planes": {
+        "A": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "B": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "products": [
+        {
+          "a": 0,
+          "b": 0,
+          "numerator": 143
+        },
+        {
+          "a": 1,
+          "b": 1,
+          "numerator": -22
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "numerator": 26
+        }
+      ],
+      "denominator": 1,
+      "domain": {
+        "A": [
+          -128,
+          127
+        ],
+        "B": [
+          -128,
+          127
+        ]
+      },
+      "limb_sets": {
+        "A": [
+          "E4M3_integer",
+          "2xE2M1"
+        ],
+        "B": [
+          "E4M3_integer",
+          "2xE2M1"
+        ]
+      },
+      "plane_sets": {
+        "A": [
+          "E4M3_integer",
+          "2xE2M1",
+          "E4M3_integer"
+        ],
+        "B": [
+          "E4M3_integer",
+          "2xE2M1",
+          "E4M3_integer"
+        ]
+      }
+    }
+  },
+  {
+    "source_sha256": "69e81573120f8fa1afb04c93015bc59174d35e10c0f9f74ffcc04b303c3d5171",
+    "position": 2,
+    "construction": {
+      "schema_version": 1,
+      "kind": "integer",
+      "weights": {
+        "A": [
+          13,
+          5
+        ],
+        "B": [
+          13,
+          5
+        ]
+      },
+      "planes": {
+        "A": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "B": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "products": [
+        {
+          "a": 0,
+          "b": 0,
+          "numerator": 104
+        },
+        {
+          "a": 1,
+          "b": 1,
+          "numerator": -40
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "numerator": 65
+        }
+      ],
+      "denominator": 1,
+      "domain": {
+        "A": [
+          -128,
+          127
+        ],
+        "B": [
+          -128,
+          127
+        ]
+      },
+      "limb_sets": {
+        "A": [
+          "E4M3_integer",
+          "2xE2M1"
+        ],
+        "B": [
+          "E4M3_integer",
+          "2xE2M1"
+        ]
+      },
+      "plane_sets": {
+        "A": [
+          "E4M3_integer",
+          "2xE2M1",
+          "E4M3_integer"
+        ],
+        "B": [
+          "E4M3_integer",
+          "2xE2M1",
+          "E4M3_integer"
+        ]
+      }
+    }
+  }
+]

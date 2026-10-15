@@ -1,0 +1,11 @@
+import {useContext,useState} from 'react';
+import {MathText} from './PaperFigures.tsx';
+import {Expansion} from './Expansion.tsx';
+import {HoleContext} from './HoleContext.tsx';
+import type {Construction} from './visual.ts';
+export type JointRecord={id:string;weights:number[];planes:number[][];products:{a:number;b:number;coefficient:number}[];denominator:number;domain:number[];holes:number[];share:number;encoding:Record<string,number[]>;source_sha256:string;correction?:Construction['correction']};
+export function jointConstruction(r:JointRecord):Construction{return {id:'joint_'+r.id,modulus:0,weights:{A:r.weights,B:r.weights},planes:{A:r.planes,B:r.planes},products:r.products.map(p=>({a:p.a,b:p.b,numerator:p.coefficient,group:null})),denominator:r.denominator,shape:'差の面',faces_a:r.planes.length,faces_b:r.planes.length,holes:{count:r.holes.length,share:r.share},hole_values:r.holes,carry:!!r.correction,correction:r.correction,block_shift:false,source_sha256:r.source_sha256,saved_encoding:{A:r.encoding,B:r.encoding},encoding_domain:r.domain};}
+export function JointComparison({records}:{records:JointRecord[]}){
+ const {max}=useContext(HoleContext),[selected,setSelected]=useState(new URLSearchParams(location.search).get('joint_id')??'');const visible=records.filter(r=>r.share*100<=max);const current=visible.find(r=>r.id===selected);
+ return <details data-section="hole-comparison" className="joint-comparison"><summary>8×8：穴・面の制約（{visible.length}件）</summary><div className="integer-choices">{visible.map(r=><button key={r.id} type="button" form="visual-actions" name="joint_id" value={r.id} aria-pressed={selected===r.id} onClick={()=>{setSelected(r.id);const q=new URLSearchParams(location.search);q.set('joint_id',r.id);history.replaceState(null,'','?'+q.toString());}}><MathText tex={'w=('+r.weights.join(',')+')'}/><span>{r.products.length}積・面 A {r.planes.length} / B {r.planes.length}・穴 {100*r.share}%</span><span>穴の値：{r.holes.join(', ')}</span>{r.planes.some(p=>p.some(n=>Math.abs(n)>1))&&<span>面：3倍制約</span>}{r.correction&&<span>近い値へずらす ±{r.correction.max_abs_shift}</span>}</button>)}</div>{!visible.length&&<p>未収録</p>}{current&&<Expansion key={current.id} c={jointConstruction(current)}/>}</details>;
+}

@@ -1,0 +1,724 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "data_version": {
+      "const": "0.1.0"
+    },
+    "solutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "const": 1
+          },
+          "weights": {
+            "type": "object",
+            "properties": {
+              "A": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "minItems": 1,
+                "maxItems": 16
+              },
+              "B": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "minItems": 1,
+                "maxItems": 16
+              }
+            },
+            "required": [
+              "A",
+              "B"
+            ],
+            "additionalProperties": false
+          },
+          "limb_sets": {
+            "type": "object",
+            "properties": {
+              "A": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "2xE2M1",
+                    "E4M3_integer"
+                  ],
+                  "description": "Storage sets are defined by the verifier: {\"2xE2M1\":[-12,-8,-6,-4,-3,-2,-1,0,1,2,3,4,6,8,12],\"E4M3_integer\":[-448,-416,-384,-352,-320,-288,-256,-240,-224,-208,-192,-176,-160,-144,-128,-120,-112,-104,-96,-88,-80,-72,-64,-60,-56,-52,-48,-44,-40,-36,-32,-30,-28,-26,-24,-22,-20,-18,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,20,22,24,26,28,30,32,36,40,44,48,52,56,60,64,72,80,88,96,104,112,120,128,144,160,176,192,208,224,240,256,288,320,352,384,416,448]}"
+                },
+                "minItems": 1,
+                "maxItems": 16
+              },
+              "B": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "2xE2M1",
+                    "E4M3_integer"
+                  ],
+                  "description": "Storage sets are defined by the verifier: {\"2xE2M1\":[-12,-8,-6,-4,-3,-2,-1,0,1,2,3,4,6,8,12],\"E4M3_integer\":[-448,-416,-384,-352,-320,-288,-256,-240,-224,-208,-192,-176,-160,-144,-128,-120,-112,-104,-96,-88,-80,-72,-64,-60,-56,-52,-48,-44,-40,-36,-32,-30,-28,-26,-24,-22,-20,-18,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,20,22,24,26,28,30,32,36,40,44,48,52,56,60,64,72,80,88,96,104,112,120,128,144,160,176,192,208,224,240,256,288,320,352,384,416,448]}"
+                },
+                "minItems": 1,
+                "maxItems": 16
+              }
+            },
+            "required": [
+              "A",
+              "B"
+            ],
+            "additionalProperties": false
+          },
+          "planes": {
+            "type": "object",
+            "properties": {
+              "A": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "minItems": 1,
+                  "maxItems": 16,
+                  "contains": {
+                    "not": {
+                      "const": 0
+                    }
+                  }
+                },
+                "minItems": 1,
+                "maxItems": 256
+              },
+              "B": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "minItems": 1,
+                  "maxItems": 16,
+                  "contains": {
+                    "not": {
+                      "const": 0
+                    }
+                  }
+                },
+                "minItems": 1,
+                "maxItems": 256
+              }
+            },
+            "required": [
+              "A",
+              "B"
+            ],
+            "additionalProperties": false
+          },
+          "plane_sets": {
+            "type": "object",
+            "properties": {
+              "A": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "2xE2M1",
+                    "E4M3_integer"
+                  ],
+                  "description": "Storage sets are defined by the verifier: {\"2xE2M1\":[-12,-8,-6,-4,-3,-2,-1,0,1,2,3,4,6,8,12],\"E4M3_integer\":[-448,-416,-384,-352,-320,-288,-256,-240,-224,-208,-192,-176,-160,-144,-128,-120,-112,-104,-96,-88,-80,-72,-64,-60,-56,-52,-48,-44,-40,-36,-32,-30,-28,-26,-24,-22,-20,-18,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,20,22,24,26,28,30,32,36,40,44,48,52,56,60,64,72,80,88,96,104,112,120,128,144,160,176,192,208,224,240,256,288,320,352,384,416,448]}"
+                },
+                "minItems": 1,
+                "maxItems": 256
+              },
+              "B": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "2xE2M1",
+                    "E4M3_integer"
+                  ],
+                  "description": "Storage sets are defined by the verifier: {\"2xE2M1\":[-12,-8,-6,-4,-3,-2,-1,0,1,2,3,4,6,8,12],\"E4M3_integer\":[-448,-416,-384,-352,-320,-288,-256,-240,-224,-208,-192,-176,-160,-144,-128,-120,-112,-104,-96,-88,-80,-72,-64,-60,-56,-52,-48,-44,-40,-36,-32,-30,-28,-26,-24,-22,-20,-18,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,18,20,22,24,26,28,30,32,36,40,44,48,52,56,60,64,72,80,88,96,104,112,120,128,144,160,176,192,208,224,240,256,288,320,352,384,416,448]}"
+                },
+                "minItems": 1,
+                "maxItems": 256
+              }
+            },
+            "required": [
+              "A",
+              "B"
+            ],
+            "additionalProperties": false
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "a": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "b": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "numerator": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "a",
+                "b",
+                "numerator"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 1024
+          },
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "position": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "source_sha256",
+                "position"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^awem1_[0-9a-f]{64}$"
+          },
+          "kind": {
+            "const": "modular"
+          },
+          "modulus": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 2000
+          },
+          "denominator": {
+            "const": 1
+          },
+          "encoding": {
+            "type": "object",
+            "properties": {
+              "A": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "minItems": 1,
+                  "maxItems": 16
+                },
+                "minItems": 2,
+                "maxItems": 2000
+              },
+              "B": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "minItems": 1,
+                  "maxItems": 16
+                },
+                "minItems": 2,
+                "maxItems": 2000
+              }
+            },
+            "required": [
+              "A",
+              "B"
+            ],
+            "additionalProperties": false
+          },
+          "verified": {
+            "type": "object",
+            "properties": {
+              "method": {
+                "const": "full_pairs"
+              },
+              "identity": {
+                "const": "modulo_p"
+              },
+              "encoding": {
+                "const": "all_residues"
+              },
+              "n_pairs": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "n_residues": {
+                "type": "object",
+                "properties": {
+                  "A": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 2000
+                  },
+                  "B": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 2000
+                  }
+                },
+                "required": [
+                  "A",
+                  "B"
+                ],
+                "additionalProperties": false
+              },
+              "verifier_version": {
+                "const": "1.0.0"
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "method",
+              "identity",
+              "encoding",
+              "n_pairs",
+              "n_residues",
+              "verifier_version",
+              "date"
+            ],
+            "additionalProperties": false
+          },
+          "accumulation": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "const": "separate_products_then_exact_integer_reconstruction"
+              },
+              "product_bounds": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "minItems": 1,
+                "maxItems": 1024
+              },
+              "max_k": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "model",
+              "product_bounds",
+              "max_k"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "schema_version",
+          "weights",
+          "limb_sets",
+          "planes",
+          "plane_sets",
+          "products",
+          "provenance",
+          "id",
+          "kind",
+          "modulus",
+          "denominator",
+          "encoding",
+          "verified",
+          "accumulation"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "sets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "const": 1
+          },
+          "kind": {
+            "const": "modular_set"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^awems1_[0-9a-f]{64}$"
+          },
+          "magnitude_bits": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "k": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "solution_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^awem1_[0-9a-f]{64}$"
+            },
+            "minItems": 1,
+            "maxItems": 256
+          },
+          "verification": {
+            "type": "object",
+            "properties": {
+              "moduli": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 2000
+                },
+                "minItems": 1,
+                "maxItems": 256
+              },
+              "products": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "faces": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "max_abs_operand": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "modulus_product": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "output_bound": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "crt_max_k": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "max_k": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "integer_encoding": {
+                "const": "euclidean_remainder_then_complete_residue_table"
+              },
+              "reconstruction": {
+                "const": "centered_crt"
+              },
+              "verifier_version": {
+                "const": "1.0.0"
+              }
+            },
+            "required": [
+              "moduli",
+              "products",
+              "faces",
+              "max_abs_operand",
+              "modulus_product",
+              "output_bound",
+              "crt_max_k",
+              "max_k",
+              "integer_encoding",
+              "reconstruction",
+              "verifier_version"
+            ],
+            "additionalProperties": false
+          },
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "source_sha256"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 256
+          }
+        },
+        "required": [
+          "schema_version",
+          "kind",
+          "id",
+          "magnitude_bits",
+          "k",
+          "solution_ids",
+          "verification",
+          "provenance"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 10000
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "records": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256
+          }
+        },
+        "required": [
+          "sha256",
+          "records"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 256
+    },
+    "intake": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "copies": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "declarations": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "scope_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "pool": {
+                  "enum": [
+                    "unspecified",
+                    "current_forms",
+                    "extension"
+                  ]
+                },
+                "table_check": {
+                  "enum": [
+                    "unspecified",
+                    "passed",
+                    "failed",
+                    "unsupported_output_width",
+                    "not_applicable"
+                  ]
+                },
+                "selection": {
+                  "const": "saved_selection"
+                },
+                "selection_index_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "scope_id",
+                "pool",
+                "table_check",
+                "selection"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "status": {
+            "enum": [
+              "accepted",
+              "quarantined"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "required": [
+          "source_sha256",
+          "copies",
+          "declarations",
+          "status",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "search_scopes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          {
+            "source_sha256": "a6cdad60b3805b2e2700ce5814a7208cc58478b545a8148502a07d584eb78c9b",
+            "declaration_status": "source_declared_not_independently_exhausted",
+            "global_exhaustiveness_claimed": false,
+            "enumeration": {
+              "modulus_interval": [
+                2,
+                225
+              ],
+              "limbs": 2,
+              "weights_rule": "[1,w], 0 <= w < p",
+              "face_families": [
+                "direct",
+                "three_products_one_linear_face"
+              ],
+              "u_interval": [
+                1,
+                3
+              ],
+              "v_values": [
+                -3,
+                -2,
+                -1,
+                1,
+                2,
+                3
+              ],
+              "conditions": [
+                "gcd(u,abs(v))=1",
+                "gcd(abs(u*v),p)=1"
+              ],
+              "encoding": "same_complete_residue_table_on_both_sides",
+              "representatives": "one_table_per_componentwise_pareto_face_maximum"
+            },
+            "additional_source_families": [
+              "existing_witnesses",
+              "unequal_side_tables",
+              "partial_residue_tables_with_block_shift",
+              "three_limb_five_product_witnesses",
+              "correlation_bounds"
+            ],
+            "k_partition_choices": [
+              1,
+              2,
+              4
+            ],
+            "not_globally_enumerated": [
+              "arbitrary_limb_count",
+              "unbounded_moduli",
+              "nonunit_leading_weight",
+              "all_bilinear_decompositions",
+              "all_block_shift_algorithms",
+              "all_tables_with_same_face_bounds",
+              "all_unequal_side_tables",
+              "arbitrary_three_limb_direct_forms",
+              "one_face_correction_schedules"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "data_version",
+    "solutions",
+    "sets",
+    "sources"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:awe:schema:modular-catalog:1",
+  "title": "Verified modular constructions and supplied CRT selections",
+  "dependentRequired": {
+    "intake": [
+      "search_scopes"
+    ],
+    "search_scopes": [
+      "intake"
+    ]
+  }
+}

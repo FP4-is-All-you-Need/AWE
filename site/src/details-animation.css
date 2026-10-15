@@ -1,0 +1,7 @@
+.animated-details{box-sizing:border-box}
+.animated-details[data-details-animating="true"]{overflow:hidden}
+.animated-details>summary{list-style:none}
+.animated-details>summary::-webkit-details-marker{display:none}
+.animated-details>summary::before{content:'▶';display:inline-block;margin-right:.5em;transform:rotate(0deg);transition:transform 180ms ease-out!important;font-size:.75em}
+.animated-details[data-details-expanded="true"]>summary::before{transform:rotate(90deg)}
+@media(prefers-reduced-motion:reduce){.animated-details>summary::before{transition:none!important}}

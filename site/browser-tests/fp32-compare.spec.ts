@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';
+for(const lang of ['en','ja'])for(const width of [1440,390])test(`all FP32 sets can be compared and inspected ${lang} ${width}`,async({page})=>{
+ test.setTimeout(180000);await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});
+ const data=await(await page.request.get('/modular/fp32-history.json')).json(),ids=data.sets.map((s:any)=>s.id).sort();expect(ids).toHaveLength(16);
+ await page.goto('/?lang='+lang);const table=page.locator('.prime-table'),select=table.locator('[name=prime_compare]');
+ await expect(select.locator('option[data-format=FP32]')).toHaveCount(16);
+ const check=async(id:string)=>{await select.selectOption(id);const set=data.sets.find((s:any)=>s.id===id);await expect.poll(()=>table.locator('[data-prime-compare-outline],[data-prime-other-comparison]').evaluateAll(ns=>ns.map(n=>Number(n.getAttribute('data-prime-compare-outline')??n.getAttribute('data-prime-other-comparison'))).sort((a,b)=>a-b))).toEqual([...set.verification.moduli].sort((a:number,b:number)=>a-b));};
+ for(const id of ids)await check(id);
+ await page.locator('[name=precision]').selectOption('fp32');await expect(page.locator('.fp32-sets [data-fp32-group]')).toHaveCount(16);
+ expect(await select.locator('option[data-format=FP32]').evaluateAll(ns=>ns.map(n=>(n as HTMLOptionElement).value).sort())).toEqual(ids);
+ await expect(page.locator('[data-comparison-lane]')).toHaveCount(16);
+ const target=data.sets.find((s:any)=>s.magnitude_bits===21&&s.k===4096);await check(target.id);
+ await page.reload();await expect(select).toHaveValue(target.id);await expect(page.locator('[name=precision]')).toHaveValue('fp32');
+ const row=page.locator(`[data-comparison-lane="${target.id}"]`);await row.locator(':scope>summary').click();
+ await expect(row.locator('[data-tile-id]')).toHaveCount(target.solution_ids.length);await row.locator('[data-tile-id]').first().click();
+ await expect(row.locator('[data-expansion]')).toHaveAttribute('data-expansion',target.solution_ids[0]);
+ const controls=page.locator('details[data-section=tile-controls]');await controls.locator(':scope>summary').click();await expect(controls.locator('[name=view]')).toHaveValue(target.id);
+ await controls.locator('[name=view]').selectOption('main');await controls.locator('[name=view]').selectOption(target.id);await expect(row).toHaveAttribute('open','');await page.reload();await expect(row.locator('[data-expansion]')).toBeVisible();
+ await expect(page.locator('.crt-flow [data-crt-mod]')).toHaveCount(target.solution_ids.length);
+ const modulus=target.verification.moduli[0];await table.locator(`[data-prime-modulus="${modulus}"]`).click();await expect(table.locator('[data-prime-weight-card]')).not.toHaveCount(0);await expect(table.locator('.prime-inspection [data-expansion]')).toBeVisible();
+ await table.locator('summary').first().scrollIntoViewIfNeeded();await page.screenshot({path:`build/screens/fp32-compare-${lang}-${width}.png`});
+ await table.screenshot({path:`build/screens/fp32-compare-table-${lang}-${width}.png`});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await expect(page.locator('.katex-error')).toHaveCount(0);
+ await page.locator('[name=precision]').selectOption('fp64');await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(18);await expect(page.locator('.paper-lane [data-expansion]')).toBeVisible();await expect(select.locator('option[data-format=FP32]')).toHaveCount(16);
+});

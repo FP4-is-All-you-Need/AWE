@@ -1,0 +1,10 @@
+import {base13Products} from '../../site/src/base13Reference.ts';
+import fs from 'node:fs';
+import {mergeModularCatalogs} from '../../site/src/modular.ts';
+import {connect,pool,inFilter,holePercent} from '../../site/src/visual.ts';
+const load=(p:string)=>JSON.parse(fs.readFileSync('site/dist/'+p,'utf8'));
+const modular=mergeModularCatalogs(['catalog','powers','fp32'].map(n=>load('modular/'+n+'.json'))),saved=connect(load('visualization/modsets.json'),modular),all=pool(saved,modular);
+const pct=[1,5,10];const counts=(xs:any[])=>pct.map(p=>xs.filter(c=>inFilter(c,p)).length);
+const integerRows=load('search/index.json').groups.flatMap((g:any)=>load(g.path));
+const joints=load('visualization/joint-examples.json').references;
+console.log(JSON.stringify({integer:[3,5,8,9,12,25,54].map(w=>({width:w,counts:pct.map(p=>integerRows.filter((r:any)=>r[1]>=w&&r[2]>=w&&!r[12]&&(r[9]===null||r[9]>=8192)&&r[5]<=base13Products(w,w)).length+(w<=8?joints.filter((j:any)=>j.share*100<=p&&j.products.length<=base13Products(w,w)).length:0))})),joint:joints.map((r:any)=>({id:r.id,weights:r.weights,rate:r.share*100,counts:pct.map(p=>r.share*100<=p)})),total:all.length,counts:counts(all),moduli:[7,8,73,101,103,121,125,343,512,625,729,1331,2197,2401].map(m=>({m,total:all.filter(c=>c.modulus===m).length,counts:counts(all.filter(c=>c.modulus===m))})),sets:[2,4,7,8,11,24,53,78].map(b=>({b,canonical:pct.map(p=>modular.sets.filter(s=>s.magnitude_bits>=b&&BigInt(s.verification.max_k)>=8192n).filter(s=>s.solution_ids.every(id=>inFilter(all.find(c=>c.id===id)!,p))).length),saved:pct.map(p=>saved.widths.find(w=>w.bits===b)?.rows.filter(r=>r.mods.every(c=>inFilter(c,p))).length??0)})),removed:all.filter(c=>inFilter(c,10)&&!inFilter(c,1)).map(c=>({id:c.id,modulus:c.modulus,products:c.products.length,weights:c.weights,rate:holePercent(c)}))},null,2));

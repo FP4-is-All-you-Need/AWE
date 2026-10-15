@@ -1,0 +1,28 @@
+import {compactBlocks} from './compactBlocks.ts';
+import {PaperCompact} from './PaperCompact.tsx';
+import {blockPairs} from './limbOrder.ts';
+import {Formula,MathText} from './PaperFigures.tsx';
+import {productBaseColor,coefficientColor,productCells,productFillOpacity,productFillColor} from './compact.ts';
+import type {Construction} from './visual.ts';
+export function CompactExpansion({c,selected,onSelect}:{c:Construction;selected:number|null;onSelect:(i:number)=>void}){
+ const paper=compactBlocks(c);
+ const found=blockPairs(c),blocks=found&&[...found.A,...found.B].every(p=>Math.abs(p[0]-p[1])===1)?found:null;
+ const direct=c.products.flatMap((_,k)=>productCells(c,k).length===1?[k]:[]),mixed=c.products.flatMap((_,k)=>productCells(c,k).length!==1?[[k]]:[]),groups=[...(direct.length?[direct]:[]),...mixed],cell=72,gap=Math.max(90,cell*.17/.25),left=cell*.40/.25,top=72,n=c.weights.B.length,m=c.weights.A.length,panel=n*cell+gap,width=left+(groups.length+1)*panel,height=top+m*cell+135;
+ return <>{paper?<PaperCompact c={c} blocks={paper} selected={selected} onSelect={onSelect}/>:<svg data-expansion={c.id} data-compact-expansion="true" width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-label="全項と直接積と面の積をまとめた格子">
+ {[null,...groups].map((group,g)=>{const x=left+g*panel,mixedGroup=group!==null&&group!==direct;return <g key={g} data-compact-grid={g}>
+ {g>0&&<Formula x={x-gap+4} y={top+m*cell/2-18} w={gap-54} h={40} tex={g===1?(c.modulus?'\\equiv':'='):'+'} size={24}/>}
+ <Formula x={x} y={2} w={n*cell} h={40} tex={group?`\\sum_{t\\in\\{${group.join(',')}\\}}c_{t}T_{t}`:`${c.denominator===1?'':c.denominator}AB`} size={18}/>
+ {c.weights.B.map((w,j)=><Formula key={j} x={x+j*cell} y={top-29} w={cell} h={28} tex={String(w)} size={18}/>)}
+ {c.weights.A.map((w,i)=><Formula key={i} x={x-48} y={top+i*cell+20} w={46} h={30} tex={String(w)} size={18}/>)}
+ {c.weights.B.flatMap((wb,j)=>c.weights.A.map((wa,i)=>{const entries=group?.flatMap(k=>productCells(c,k).filter(t=>t.i===i&&t.j===j).map(t=>({...t,k})))??[],selectedHere=entries.some(t=>t.k===selected),term=entries.find(t=>t.k===selected)??entries[0],color=term?coefficientColor(c,term.k):'#1A1A1A',cancelled=mixedGroup&&entries.length===1&&entries[0].n!==null&&entries[0].n<0n&&direct.some(k=>productCells(c,k).some(t=>t.i===i&&t.j===j)),value=group?(entries.some(t=>t.n===null)?null:entries.reduce((s,t)=>s+t.n!,0n)):(c.modulus?BigInt(c.denominator)*BigInt(wa)*BigInt(wb)%BigInt(c.modulus):BigInt(c.denominator)*BigInt(wa)*BigInt(wb));
+ return <g key={i+','+j} role={entries.length?'button':undefined} tabIndex={entries.length?0:undefined} aria-label={entries.length?`積 ${entries.map(t=>t.k+1).join(', ')}`:undefined} aria-pressed={selectedHere} onClick={()=>{if(entries.length)onSelect(entries[(entries.findIndex(t=>t.k===selected)+1)%entries.length].k);}} onKeyDown={e=>{if(entries.length&&(e.key==='Enter'||e.key===' ')){e.preventDefault();onSelect(entries[(entries.findIndex(t=>t.k===selected)+1)%entries.length].k);}}} data-compact-cell={`${g}:${i}:${j}`}>
+ <rect x={x+j*cell} y={top+i*cell} width={cell} height={cell} fill={term?productBaseColor(c,term.k):'#1A1A1A'} fillOpacity={entries.length?productFillOpacity(c,term!.k):group||value===0n?0:.061} stroke="#9E9E9E" strokeWidth=".65"/>
+ {cancelled&&<line data-cancelled-term={`P_${i}${j}`} x1={x+j*cell+9} y1={top+(i+1)*cell-9} x2={x+(j+1)*cell-9} y2={top+i*cell+9} stroke={color} strokeWidth="2"/>}
+ {(entries.length||(!group&&value!==0n))&&<><Formula x={x+j*cell} y={top+i*cell+9} w={cell} h={29} tex={cancelled?`${value===-1n?'-':value}P_{${i}${j}}`:`a_{${i}}b_{${j}}`} size={cancelled?14:19} color={cancelled?color:undefined}/>{!cancelled&&<Formula x={x+j*cell} y={top+i*cell+39} w={cell} h={30} tex={`\\times ${value??'?'}`} size={14}/>}</>}
+ {selectedHere&&<rect x={x+j*cell+2} y={top+i*cell+2} width={cell-4} height={cell-4} fill="none" stroke={color} strokeWidth="3"/>}</g>;
+ }))}
+ {group?.map(k=>{const points=productCells(c,k);if(!points.length)return null;const xs=points.map(p=>p.j),ys=points.map(p=>p.i);return <rect key={k} x={x+Math.min(...xs)*cell+3} y={top+Math.min(...ys)*cell+3} width={(Math.max(...xs)-Math.min(...xs)+1)*cell-6} height={(Math.max(...ys)-Math.min(...ys)+1)*cell-6} fill="none" stroke={coefficientColor(c,k)} strokeWidth={selected===k?3:2} pointerEvents="none"/>;})}
+ {group&&mixedGroup&&group.map(k=>{const p=c.products[k],linear=(v:number[]|undefined,letter:string)=>v===undefined?'?':v.flatMap((value,i)=>value?[`${value<0?'-':'+'}${Math.abs(value)===1?'':Math.abs(value)}${letter}_{${i}}`]:[]).join('').replace(/^\+/,'')||'0';return <Formula key={k} x={x} y={top+m*cell+14} w={n*cell} h={100} tex={`c_{${k}}T_{${k}}=${p.numerator??'?'}(${linear(c.planes?.A[p.a],'a')})(${linear(c.planes?.B[p.b],'b')})`} size={14} color={coefficientColor(c,k)}/>;})}
+ {blocks&&[...blocks.B.slice(1).map((pair,k)=><line key={'a'+k} x1={x+Math.min(...pair)*cell} x2={x+Math.min(...pair)*cell} y1={top} y2={top+m*cell} stroke="#1A1A1A" strokeWidth="1.5" pointerEvents="none"/>),...blocks.A.slice(1).map((pair,k)=><line key={'b'+k} x1={x} x2={x+n*cell} y1={top+Math.min(...pair)*cell} y2={top+Math.min(...pair)*cell} stroke="#1A1A1A" strokeWidth="1.5" pointerEvents="none"/>)]}
+ </g>;})}</svg>}<div className="compact-products">{c.products.map((p,i)=><button type="button" form="visual-actions" name="compact_product" value={i} key={i} data-coefficient={p.numerator??'?'} data-compact-product={i} aria-pressed={selected===i} onClick={()=>onSelect(i)} style={{border:`${selected===i?3:2}px solid ${coefficientColor(c,i)}`,background:productFillColor(c,i)}}><MathText tex={`c_{${i}}T_{${i}}=${p.numerator??'?'}T_{${i}}`}/></button>)}</div></>;
+}

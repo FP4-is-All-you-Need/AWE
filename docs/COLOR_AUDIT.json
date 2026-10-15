@@ -1,0 +1,23 @@
+{
+  "before": {
+    "records": 184844,
+    "affected": 184844,
+    "violations": 4809722,
+    "types": {
+      "duplicate": 1172101,
+      "contrast": 3637621
+    },
+    "examples": {
+      "awe1_1656e4b7feacd47cbaa916a1ab39ffcdaf195a7de5d6093418e13e4d0c5e4136": 35
+    }
+  },
+  "after": {
+    "records": 184844,
+    "affected": 0,
+    "violations": 0,
+    "types": {},
+    "examples": {
+      "awe1_1656e4b7feacd47cbaa916a1ab39ffcdaf195a7de5d6093418e13e4d0c5e4136": 0
+    }
+  }
+}

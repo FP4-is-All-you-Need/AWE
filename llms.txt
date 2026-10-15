@@ -1,0 +1,40 @@
+# AWE exact construction catalog
+
+This catalog describes exact mathematical constructions for integer matrix products using FP4 products. It contains no performance measurements. Site: https://fp4-is-all-you-need.github.io/AWE/
+
+## Data
+
+- [Version and SHA-256 shard index](index.json)
+- [Solution JSON Schema](schema/solution.schema.json)
+- [Index JSON Schema](schema/index.schema.json)
+- [Compact search metadata](search/index.json)
+
+Use `index.json` as the root of trust: pin its SHA-256 and data_version from an explicitly chosen repository commit. Verify every referenced SHA-256 before parsing. `complete` concerns declared selected input arrays, not completeness of mathematical search or support for every source format.
+
+Within the current input collection, to find a minimum-product construction covering integer widths A and B, read the search index via the hash in index.json. Select groups with width_a >= A and width_b >= B; exclude mixed=true unless mixed storage is intended. Read matching groups with hash verification. Rows are arrays; the search index lists columns. Sort by r and then id. Retrieve an ID awe1_<hash> from solutions/<first two hash characters>.json using its hash in index.json. Counts and minimum product counts apply only to the current input collection, a partial copy of existing results. Missing records do not establish nonexistence, even within a listed width. Do not run new searches to fill gaps.
+
+Widths refer to symmetric ranges [-(2^(M-1)-1), 2^(M-1)-1]. Read domain for exact bounds. `verified.n_pairs` is actual pair enumeration; `n_pairs_proven` is the size of the domain proved by complete encoding plus an exact bilinear identity. Methods distinguish `full_pairs`, `exhaustive_encoding_and_bilinear_identity`, and `coverage_proof_and_bilinear_identity`. The third method requires a machine-checked construction rule and coverage certificate; its checker is not yet implemented and such inputs remain quarantined. An unsupported method never establishes verification. `accumulation.max_k` is a sufficient bound for separately accumulated products with 24-bit integer precision, followed by exact reconstruction.
+
+## Python and figures
+
+Install the local package with `python -m pip install .`. It has no runtime dependency. Use `Catalog(data_directory_or_https_base, version=..., index_sha256=...)`, then `find(a=8,b=8)`, `get(id)`, and `verify(solution)`. A CLI is available as `python -m awe_catalog`.
+
+`awe --data DATA --version VERSION --index-sha256 HASH find --a 8 --b 8 --limit 1`
+
+Use the same prefix followed by `svg ID --output figure.svg`, `tikz ID --output figure.tex`, `matplotlib ID --output figure.py`, or `example ID --a 7 --b -3`. Figure files contain exact cell contributions, plane linear combinations and reconstruction coefficients. The matplotlib source requires matplotlib to render; TikZ source requires a TeX installation with TikZ.
+
+Use `constants ID --output constants.json` to export verified numeric construction data with the version, index hash and immutable ID for an implementing library. This does not configure any GPU kernel.
+
+Two supplied modular sets are now available through the modular reference in index.json; negative results remain pending. Unsupported input formats are excluded; do not interpret them as nonexistent constructions.
+
+## Modular constructions
+
+Follow index.json.modular and then modular/index.json, checking both SHA-256 references, to read modular/catalog.json. The schema is schema/modular.schema.json. Solutions have IDs awem1_<hash>; sets have IDs awems1_<hash>. magnitude_bits M means |A|,|B| <= 2^M-1. This differs from integer widths. Filter magnitude_bits >= requested bits and verification.max_k >= K (parse decimal strings as integers), then rank by products * product_cost + faces * plane_cost, products, ID. Minimum counts apply only to the current input collection.
+
+Each modular solution is checked for a polynomial congruence modulo p, complete per-side residue encoding and all p^2 residue pairs (method full_pairs). Set verification checks pairwise coprimality, P > 2*K*(2^M-1)^2 and separate-product accumulation bounds; reconstruction uses exact integers and centered CRT. These are not integer polynomial equalities or enumeration of all 53-bit integer pairs.
+
+Python: Catalog.find_modular(bits=53,k=16384), get_modular(id), verify_modular_set(id). CLI: find-modular, get-modular, verify-modular-set; per-modulus IDs support verify-modular, example-modular, svg-modular, tikz-modular and matplotlib-modular. Do not send modular records to the integer-only browser import or tier board.
+
+The root input_inventory reference describes input content hashes and duplicate copies, not solutions. Modular intake preserves source selection/table-check labels separately from independent acceptance; search_scopes contains hash-pinned source declarations, not a proof of global exhaustive search. Resolve solution provenance through intake declarations to these scopes.
+
+Verification summaries are available as verification.json (integers) and modular/verification.json (residues and sets). They list checked file hashes, counts, mathematical methods, verification dates and verifier versions. Local ingestion checks produce these records; their consistency alone does not replace mathematical verification. See README for rechecking a checkout without original search inputs.

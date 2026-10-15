@@ -1,0 +1,60 @@
+[
+  {
+    "source_sha256": "a6cdad60b3805b2e2700ce5814a7208cc58478b545a8148502a07d584eb78c9b",
+    "declaration_status": "source_declared_not_independently_exhausted",
+    "global_exhaustiveness_claimed": false,
+    "enumeration": {
+      "modulus_interval": [
+        2,
+        225
+      ],
+      "limbs": 2,
+      "weights_rule": "[1,w], 0 <= w < p",
+      "face_families": [
+        "direct",
+        "three_products_one_linear_face"
+      ],
+      "u_interval": [
+        1,
+        3
+      ],
+      "v_values": [
+        -3,
+        -2,
+        -1,
+        1,
+        2,
+        3
+      ],
+      "conditions": [
+        "gcd(u,abs(v))=1",
+        "gcd(abs(u*v),p)=1"
+      ],
+      "encoding": "same_complete_residue_table_on_both_sides",
+      "representatives": "one_table_per_componentwise_pareto_face_maximum"
+    },
+    "additional_source_families": [
+      "existing_witnesses",
+      "unequal_side_tables",
+      "partial_residue_tables_with_block_shift",
+      "three_limb_five_product_witnesses",
+      "correlation_bounds"
+    ],
+    "k_partition_choices": [
+      1,
+      2,
+      4
+    ],
+    "not_globally_enumerated": [
+      "arbitrary_limb_count",
+      "unbounded_moduli",
+      "nonunit_leading_weight",
+      "all_bilinear_decompositions",
+      "all_block_shift_algorithms",
+      "all_tables_with_same_face_bounds",
+      "all_unequal_side_tables",
+      "arbitrary_three_limb_direct_forms",
+      "one_face_correction_schedules"
+    ]
+  }
+]
