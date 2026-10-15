@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:awe:schema:board:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "solutions", "tiers"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"const": "awe_board"},
+    "solutions": {"type": "array", "maxItems": 20, "items": {"$ref": "urn:awe:schema:solution:1"}},
+    "tiers": {
+      "type": "object", "additionalProperties": false,
+      "required": ["S", "A", "B"],
+      "properties": {"S": {"$ref": "#/$defs/tier"}, "A": {"$ref": "#/$defs/tier"}, "B": {"$ref": "#/$defs/tier"}}
+    }
+  },
+  "$defs": {"tier": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "pattern": "^awe1_[0-9a-f]{64}$"}}}
+}
