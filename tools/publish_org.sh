@@ -7,8 +7,8 @@ if [[ ${1:-} != --publish || $# != 1 ]]; then
 fi
 : "${AWE_PUBLISH_TREE:?Set the approved full Git tree ID}"
 [[ $AWE_PUBLISH_TREE =~ ^[0-9a-f]{40}$ ]] || { echo 'Use a full Git tree ID' >&2; exit 1; }
-: "${AWE_PUBLISH_NAME:=AWE authors}"
-: "${AWE_PUBLISH_EMAIL:=awe@users.noreply.github.com}"
+: "${AWE_PUBLISH_NAME:=meme-dayo}"
+: "${AWE_PUBLISH_EMAIL:=107521440+meme-dayo@users.noreply.github.com}"
 for command in git gh npm python3 tar nice taskset; do command -v "$command" >/dev/null; done
 release_root=$(git -C "$(dirname "$0")/.." rev-parse --show-toplevel)
 [[ $(git -C "$release_root" branch --show-current) == release-org ]] || { echo 'Check out release-org first' >&2; exit 1; }

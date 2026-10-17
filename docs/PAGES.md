@@ -42,7 +42,7 @@ to the full Git tree ID recorded at approval; the script stops if the current tr
 differs. Do not derive this value from HEAD at publication time. The exported commit
 is fixed before any network operations.
 
-The default author and committer are `AWE authors <awe@users.noreply.github.com>`.
+The default author and committer are `meme-dayo <107521440+meme-dayo@users.noreply.github.com>`.
 `AWE_PUBLISH_NAME` and `AWE_PUBLISH_EMAIL` can override them.
 
 The script exports the `release-org` tree into a new repository with one commit on
