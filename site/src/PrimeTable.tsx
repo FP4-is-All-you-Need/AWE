@@ -1,3 +1,4 @@
+import {usePeriodicFormat} from './PeriodicFormat.tsx';
 import {useId,useMemo,useState} from 'react';
 import {LawRow,MathText} from './PaperFigures.tsx';
 import {Expansion} from './Expansion.tsx';
@@ -6,7 +7,7 @@ import {type Construction,type Lane} from './visual.ts';
 import {useParameter} from './parameters.ts';
 import {useLanguage} from './i18n.tsx';
 import {useMeasuredWidth} from './useMeasuredWidth.ts';
-import {formCells,primeTableData,weightVariants,type FormCell,type PrimeForm,type PrimeSet,type PrimeTab} from './primeTable.ts';
+import {formCells,primeTableData,weightVariants,type FormCell,type PrimeForm,type PrimeSet} from './primeTable.ts';
 import './prime-table.css';
 
 const SET_LABEL:Record<string,string>={'2xE2M1':'FP4 (2×E2M1)','8xE2M3':'FP6 (8×E2M3)','16xE3M2':'FP6 (16×E3M2)'};
@@ -29,11 +30,11 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
  const en=useLanguage()==='en',[openedModulus,setOpenedModulus]=useState<number|null>(null),[openedId,setOpenedId]=useState('');
  const glowId='prime-selected-'+useId().replace(/[^a-zA-Z0-9_-]/g,'');
  const all=useMemo(()=>[...new Map([...records,...(lane?.mods??[])].map(c=>[c.id,c])).values()],[records,lane]);
- const [tab,setTab]=useParameter<PrimeTab>('prime_set','fp4',r=>r==='fp6'?'fp6':'fp4');
+ const {tab,setTab,valueSet}=usePeriodicFormat();
  const [withForms,setWithForms]=useParameter('prime_forms',true,r=>r!=='0',v=>v?'1':'0');
  const [withHoles,setWithHoles]=useParameter('prime_holes',true,r=>r!=='0',v=>v?'1':'0');
  const saved=useMemo(()=>primeTableData(all,sets).byModulus,[all,sets]);
- const formsBy=useMemo(()=>forms&&withForms?formCells(forms,tab,withHoles,saved):new Map<number,FormCell>(),[forms,withForms,tab,withHoles,saved]);
+ const formsBy=useMemo(()=>forms&&withForms?formCells(forms.filter(f=>f.value_set===valueSet||f.value_set==='2xE2M1'),tab,withHoles,saved):new Map<number,FormCell>(),[forms,withForms,tab,withHoles,saved,valueSet]);
  const table=useMemo(()=>primeTableData(all,sets,formsBy),[all,sets,formsBy]),measured=useMeasuredWidth();
  const shownForm=(m:number)=>{const f=formsBy.get(m);return f&&(f.hole_free||f.holes)?f:undefined;};
  const formTitle=(m:number)=>{const f=shownForm(m);if(!f)return '';const b=f.hole_free??f.holes!;return ` · ${en?'single construction':'単独の法の構成'} ${b.products}${en?' products':'積'}${f.hole_free?'':en?' (holes)':'(穴あり)'}`;};
