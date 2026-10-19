@@ -7,13 +7,13 @@
 | 精度・bit・K | selection / precision, b, K | 同名 |
 | A/B別範囲 | selection / same_inputs, precision_b, b_b | 同名、same_inputsは1/0 |
 | 幅の組 | widths / input_ma, input_mb | 同名 |
-| 選択する段・タイル | tile / view, slot | 同名、slotは0始まり |
+| 比較する組・構成の番号 | tile / view, slot | 同名、slotは0始まり |
 | 非被覆率 | coverage / hole_pct_max | 同名、単位%、小数可 |
 | 右の候補 | candidates / prime, same_modulus | 同名、prime=0は全て、same_modulusは1/0 |
-| 手動入替え | visual_actions / replacement_id | replace=段ID:slot:構成ID（複数可） |
+| 手動入替え | visual_actions / replacement_id | replace=組ID:slot:構成ID（複数可） |
 | 行列のサイズ | matrix.構成ID / matrix_m, matrix_n, matrix_k | matrix_m, matrix_n, K |
 | 費用 | cost / cost_product, cost_plane, cost_add, cost_correction, cost_frequency, cost_modulus, cost_output | 同名。空欄は未設定 |
-| 費用の条件 | cost / cost_addition_model, cost_model, cost_stage_項, cost_overlap_段 | 同名。段0は直列、段1〜3が同時実行、重なり率は0〜1 |
+| 費用の条件 | cost / cost_addition_model, cost_model, cost_stage_項, cost_overlap_実行段階の番号 | 同名。実行段階0は直列、実行段階1〜3が同時実行、重なり率は0〜1 |
 | 費用欄の行列サイズ | cost / cost_m, cost_n, cost_k | matrix_m, matrix_n, K |
 | 展開の積・値の帯 | expansion.構成ID / product_index, plane_values | product_index.構成ID（0始まり）、plane_values.構成ID（1/0） |
 | 構成の符号化 | encoding.構成ID / encode_value, encode_side, encode_zoom | 各name.構成ID。data-url-keyにも明記 |
@@ -22,6 +22,8 @@
 | 整数構成の選択 | visual_actions / integer_id, include_mixed | 同名、include_mixedは1/0 |
 | 穴あり比較 | visual_actions / joint_id | 同名 |
 | 精度の帯の基準 | 精度選択に連動 | precision_basis（任意bへ変更しても直前の形式を保持） |
+| 周期表の層 | prime_layers / prime_set, prime_forms, prime_holes | 同名。prime_setはfp4/fp6、prime_formsとprime_holesは1/0 |
+| 単独の法の構成の一覧 | forms_filters / forms_m, forms_set, forms_holefree, forms_page | 同名。forms_setはその値の集合で成り立つ構成、forms_pageは1始まりの表示（URLは0始まり） |
 | 節の開閉 | details / data-section | open.節ID=1または0 |
 
 各スライダーのnameは対応する数値欄のnameに`_range`を足す。Kスライダーの位置はlog2(K)で、URLと数値欄の値はK自体。図のクリックは同じ選択状態を更新する。URLだけでは別のブラウザに利用者が読み込んだ構成の本体を運べないため、本体を含むJSON/JSONLも共有する。

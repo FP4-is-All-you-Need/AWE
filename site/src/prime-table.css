@@ -37,3 +37,15 @@
 .prime-focus-key{border:2px dashed #1A1A1A;padding:0 4px;background:#FFFFFF}
 .prime-weight-card[data-used="true"]{outline:2px solid #C2185B;outline-offset:1px}
 .prime-card-used{background:#F7E5ED;padding:0 3px}
+
+.prime-layer-controls{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;margin:3px 0;font-size:16px}
+.prime-layer-controls select{max-width:100%;min-width:0}
+.prime-beyond{margin-top:6px;font-size:16px}
+.prime-beyond > summary{margin:2px 0}
+.prime-beyond-cells{display:flex;flex-wrap:wrap;gap:3px}
+.prime-beyond-cells button{display:flex;flex-direction:column;align-items:center;min-width:60px;padding:2px 4px;border:.5px solid #1A1A1A;border-radius:0;background:#FFFFFF;color:#1A1A1A;box-shadow:none;font-size:14px;line-height:1.2}
+.prime-beyond-cells button[aria-pressed="true"]{outline:2.5px dashed #1A1A1A;outline-offset:-3px}
+.prime-beyond-number{font-family:KaTeX_Main,serif;font-size:16px}
+.prime-forms table{width:100%;table-layout:fixed;font-size:16px}
+.prime-forms th,.prime-forms td{overflow-wrap:anywhere;padding:3px;text-align:left}
+.prime-forms h4{margin:6px 0 2px}

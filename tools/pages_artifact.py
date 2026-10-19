@@ -37,6 +37,10 @@ def prepare(data, output):
     refs += search['groups']
     modular = json.loads((data/'modular/index.json').read_text())
     refs.append({'path': 'modular/'+modular['path'], 'sha256': modular['sha256']})
+    if (data/'modular/forms-index.json').exists():
+        forms = json.loads((data/'modular/forms-index.json').read_text())
+        refs += [{'path': 'modular/'+c['path'], 'sha256': c['sha256']} for c in forms['chunks']]
+        refs.append({'path': 'modular/'+forms['excluded_list']['path'], 'sha256': forms['excluded_list']['sha256']})
     for entry in refs:
         if digest(data/entry['path']) != entry['sha256']:
             raise ValueError('catalog hash mismatch: '+entry['path'])

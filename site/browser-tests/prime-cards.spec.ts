@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 for(const width of [1440,390])for(const lang of ['en','ja'])test(`weight candidate cards change with modulus ${width} ${lang}`,async({page})=>{
- await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto(`http://127.0.0.1:4173/?lang=${lang}`);
+ await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto(`http://127.0.0.1:4173/?prime_forms=0&lang=${lang}`);
  const table=page.locator('.prime-table');await expect(table.locator('[data-prime-modulus]')).toHaveCount(58);
  for(const [m,n] of [[343,5],[8,1]]){
   await table.locator(`[data-prime-modulus="${m}"]`).click();const cards=table.locator('[data-prime-weight-card]');await expect(cards).toHaveCount(n);await expect(table.locator('[data-prime-cards]')).toHaveAttribute('data-inline',String(width===1440));

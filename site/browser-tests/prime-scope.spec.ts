@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 for(const lang of ['en','ja'])for(const width of [1440,390])test(`prime table bounds distinguish 2x2 search from other constructions ${lang} ${width}`,async({page})=>{
- await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/?lang='+lang);
+ await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/?prime_forms=0&lang='+lang);
  const table=page.locator('.prime-table');await expect(table.locator('[data-prime-modulus]')).toHaveCount(58);
  await expect(table.locator('[data-prime-modulus="163"], [data-prime-modulus="167"]')).toHaveCount(0);
  await expect(table.locator('.prime-table-legend')).toContainText('2–157');

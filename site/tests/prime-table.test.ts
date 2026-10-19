@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {primeSets,primeTableData,primesThrough,weightVariants} from '../src/primeTable.ts';
+import {formCells,primeSets,primeTableData,primesThrough,weightVariants,type PrimeForm} from '../src/primeTable.ts';
 import {connect,pool,factors} from '../src/visual.ts';
 const read=(p:string)=>JSON.parse(fs.readFileSync(new URL('../dist/'+p,import.meta.url),'utf8'));
 const catalog=read('modular/catalog.json'),powers=read('modular/powers.json');
@@ -43,4 +43,27 @@ test('343 has evidence for the 61-leading measured set, not the 107-leading buil
  assert.equal(sets.find(s=>s.moduli[0]===61)!.measured,true);
  assert.equal(sets.find(s=>s.moduli[0]===107)!.measured,false);
  assert.equal(table.usedIn.get(49)!.some(s=>s.measured),false);
+});
+
+const form=(modulus:number,prime:number,exponent:number,value_set:string,kind:PrimeForm['kind'],products:number,holes=0):PrimeForm=>({modulus,prime,exponent,value_set,kind,products,planes:[products,products],id:`awem2_${modulus}_${value_set}_${kind}`,...(kind==='excluded'?{reason:'nonunit_denominator_needs_table'}:{holes:{A:holes,B:holes,exact:true}})});
+const forms:PrimeForm[]=[form(529,23,2,'2xE2M1','hole_free',5),form(512,2,9,'2xE2M1','hole_free',5),form(163,163,1,'2xE2M1','holes',3,4),
+ form(1024,2,10,'8xE2M3','hole_free',4),form(1024,2,10,'8xE2M3','excluded',3),form(169,13,2,'8xE2M3','hole_free',2),form(1597,1597,1,'2xE2M1','hole_free',3)];
+test('single constructions add prime powers inside the columns and list larger primes after the table',()=>{
+ const cells=formCells(forms,'fp4',true,table.byModulus),t=primeTableData(records,sets,cells);
+ assert.equal(t.primeMax,157);
+ assert.ok(t.columns.find(c=>c.prime===23)!.powers.some(p=>p.modulus===529&&p.exponent===2));
+ assert.deepEqual(t.beyond.map(p=>p.modulus),[163,1597]);
+ assert.equal(cells.get(512)!.fewer,true);   // fewer products than the saved constructions of 512
+ assert.equal(cells.has(1024),false);         // FP6 only
+ const free=formCells(forms,'fp4',false,table.byModulus);
+ assert.deepEqual(primeTableData(records,sets,free).beyond.map(p=>p.modulus),[1597]);
+});
+test('the FP6 tab is the union with FP4 and marks FP6-only, fewer and left-out constructions',()=>{
+ const cells=formCells(forms,'fp6',true,table.byModulus);
+ assert.ok(cells.has(529)&&cells.has(1024));
+ const c1024=cells.get(1024)!;
+ assert.equal(c1024.hole_free!.products,4);assert.equal(c1024.onlyWider,true);assert.equal(c1024.excludedFewer,true);
+ assert.equal(cells.get(169)!.fewer,true);    // 2 products on 8xE2M3 against the saved FP4 constructions of 169
+ assert.equal(cells.get(529)!.onlyWider,false);
+ assert.ok(primeTableData(records,sets,cells).columns.find(c=>c.prime===2)!.powers.some(p=>p.modulus===1024&&p.exponent===10));
 });

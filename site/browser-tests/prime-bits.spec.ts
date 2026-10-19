@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {primeGeometry} from './primeGeometry.ts';
 for(const lang of ['en','ja'])for(const width of [1440,390])test(`prime bits, counts and set-only measurement ${lang} ${width}`,async({page})=>{
- await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto(`/?lang=${lang}`);const table=page.locator('.prime-table');await expect(table.locator('[data-prime-modulus]')).toHaveCount(58);
+ await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});await page.goto(`/?prime_forms=0&lang=${lang}`);const table=page.locator('.prime-table');await expect(table.locator('[data-prime-modulus]')).toHaveCount(58);
  await page.evaluate(()=>document.fonts.ready);const metrics=await table.locator('[data-prime-modulus]').evaluateAll(primeGeometry);
  for(const v of metrics){expect(v.bits).toBe(Math.log2(v.m).toFixed(2));expect(v.unit).toBe('bit');expect(v.overflow,JSON.stringify(v)).toEqual([]);expect(v.collisions,JSON.stringify(v)).toEqual([]);}
  for(const [m,n] of [[343,5],[8,1]]){const cell=table.locator(`[data-prime-modulus="${m}"]`);await cell.click();await expect(table.locator('[data-prime-weight-card]')).toHaveCount(n);if(n>1){await expect(cell.locator('[data-variant-badge]')).toHaveText('×'+n);await expect(cell.locator('title')).toContainText(lang==='en'?'weight candidates':'重みの候補');}else await expect(cell.locator('[data-variant-badge]')).toHaveCount(0);}

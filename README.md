@@ -55,6 +55,15 @@ This checks the stored mathematics; the measurement association is recorded sepa
 
 The [FP32 modulus-set records](data/modular/fp32-history.json) contain 16 distinct sets and their engine, width, K limit and routine records. Failed precision checks are retained separately from the exact residue checks. See [the source report](docs/FP32_HISTORY.md). Recheck the 328,333 residue pairs with `python3 -m tools.check_fp32 data/modular/fp32-history.json`.
 
+The [single modular constructions](data/modular/forms-index.json) are constructions for one modulus outside the saved sets: 7,088 constructions, 6,593 on 2×E2M1 (FP4) and 495 that need FP6 values (284 on 8×E2M3, 211 on 16×E3M2), with folded planes, holes and denominators. Each row names the smallest value set it was checked on; FP4 values are FP6 values as integers, so an FP4 construction also holds on FP6. Each construction appears once: constructions related by limb permutations and signs, unit multiples of the weights, plane signs and order, or swapping A and B are one row, and constructions already in the modular catalog are not repeated. Encoding tables are stored for moduli up to 256 and rebuilt by the verifier otherwise. The 2,171 constructions the public verifier cannot check are listed with their reasons in [forms-excluded.json](data/modular/forms-excluded.json); their absence from the catalog does not establish nonexistence. Recheck the identities and ids, or rebuild every construction:
+
+```sh
+.venv/bin/python -m tools.modular_forms check data/modular --quick
+.venv/bin/python -m tools.modular_forms check data/modular
+```
+
+[Field definitions](docs/DATA.md).
+
 ## License
 
 Source code and catalog data are available under the [MIT License](LICENSE).

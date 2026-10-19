@@ -42,7 +42,7 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m tools.check_data "$OUT"
 
 `--limit` を使った試験出力は `complete=false`。`complete=true` は取り込み対象の入力を切り詰めず処理したことを示す。全ての探索が完全であることや、隔離された構成がないことは意味しない。対象の入力は report の sources で確認する。公開前に全対象の会計と隔離理由を確認する。新たな取り込みは既存の出力ディレクトリを上書きしない。
 
-段の表のschemaは `data/schema/board.schema.json`。解の参照先は `urn:awe:schema:solution:1` であり、JSON Schema validatorへ solution.schema.json をこのIDで登録して検査する。ID参照の存在・段をまたぐ重複と数学の再検算はbrowser importerで別途確認する。
+S・A・B の格付けの表のschemaは `data/schema/board.schema.json`。解の参照先は `urn:awe:schema:solution:1` であり、JSON Schema validatorへ solution.schema.json をこのIDで登録して検査する。ID参照の存在・格付けをまたぐ重複と数学の再検算はbrowser importerで別途確認する。
 
 
 ## 法の構成と法の組
@@ -56,6 +56,25 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m tools.check_data "$OUT"
 `input_inventory` は受領したfile群のhash付き棚卸しへの参照で、解の件数ではない。`copies` は異なる場所にある同一内容の数、`review_status=unreviewed` は棚卸しが意味を判定しないことを示す。追加入力の意味の検討は別の記録を参照する。
 
 法のカタログの `intake` には各入力の採否と理由、元資料の表検査結果、保存された候補という位置付けを残す。`source_sha256` は公開構成のprovenanceと対応する。`declarations.scope_id` から `search_scopes` の有限範囲の宣言へ辿る。scopeがnullなら範囲宣言は未接続である。元の表検査の通過を独立検算の代わりにせず、表生成の適用対象外でも独立した数学的検査に通った構成はその違いを示す。隔離した組の一部を別の組として公表しない。
+
+## 単独の法の構成
+
+法の組に属さない法の構成は `modular/forms-index.json` からたどる。schema は `schema/modular-forms.schema.json`(各行)と `schema/modular-forms-index.schema.json`(索引と外した構成の一覧)。行は法の昇順に並び、約 2 MB ごとの file(`forms-<法の下限>-<法の上限>.json`)に分かれる。索引は各 file の法の範囲・SHA-256・件数を持つ。IDは `awem2_<hash>` で、数学の項から決まる。schema 1 の行はそのまま通る。
+
+- **面の法と穴**: `plane_moduli` は各面の値が合えばよい法(法の約数)。法より小さい面の法は折り返しを表す。`holes.A/B` は符号化の無い剰余の数。`holes.method=search` は、法を法とする全部のリムのベクトルについて、面の値が各面の法で値の集合に入るかを調べた数で、厳密(`exact=true`)。`holes.method=literal_table` は、リムと面の値がそのまま値の集合に入る符号化だけの数で、折り返しの符号化を調べていないので、0 でなければ上界(`exact=false`)。穴が 64 個以下なら `hole_set` に剰余を並べる。
+- **値の集合**: `plane_sets` は、その構成を確かめた一番小さい値の集合。`2xE2M1` は整数として `8xE2M3` にも `16xE3M2` にも含まれる(索引の `value_set_inclusion`)ので、`2xE2M1` の構成は FP6 の両方の値の集合でもそのまま成り立つ。FP6 で使える構成は、`2xE2M1` の行と FP6 の値の集合の行の和集合。
+- **同じ形**: リムの並べ替えと符号、重みの単元倍、面の符号と並び、A と B の入れ替え、分母のうち法と互いに素な部分で移り合う構成は、同じ形として 1 行だけ持つ(値の集合ごとに数える)。法の目録(`catalog.json`・`powers.json`・`fp32.json`・`fp32-history.json`)に同じ形がある構成は、ここには入れない。
+- **分母と復元**: 分母 `denominator` は `d1·d2` に分ける(`verified.den_split`。d1 は法の素因数だけでできた部分、d2 は法と互いに素)。検算はすべて `d1·m`(`verified.check_modulus`)を法として行う。`reconstruction.procedure=divide_d1_then_multiply_d2_inverse` の行は、積の和を `d1·m` を法として持ち、d1 で割り、d2 の法 m での逆数を掛ける手順だけを確かめている。和を分母·m を法として持ち、分母全体で割る手順は、この検算の対象外で、d2 > 1 の時に成り立たない組があり得る。d2 = 1 なら二つの手順は同じ。
+- **符号化表**: 法が 256 以下の行だけが全剰余の表(`encoding`・`plane_values`)を持つ。ほかの行は `verify/modular_forms.py` が数学の項から作り直す。分母が法の単元でない行は、検算器の探索が表を作らないので、法が 256 以下の時に限り、リムと面の値がそのまま値の集合に入る表で全部の対を確かめ、その表を持つ。
+- **外した構成**: 検算器で確かめ切れない構成は一覧に入れず、索引の `excluded` に理由ごとの数、`modular/forms-excluded.json` に各構成(ID は `awem2c_<hash>`、構成の項の SHA-256)を置く。一覧に無い事は、その構成が無い事や成り立たない事を意味しない。
+- **素数べきの要約**: 索引の `prime_powers` は、素数べきの法と値の集合ごとに、積の一番少ない穴なしの行・穴ありの行と、穴なしとして渡され一覧の外にある構成を持つ。サイトの周期表はこれを読む。
+- **出所**: `prior_checker_versions` は、`verify/modular_forms.py` が作り直す前に、その構成を確かめた別の厳密な検算器の版。ID と作り直しの比較には含まない。
+
+再検算(全部の行を数学の項から作り直す。`--quick` は ID と恒等式だけ、`--sample N` は N 行だけ作り直す):
+
+```sh
+python -m tools.modular_forms check data/modular
+```
 
 ## 検算結果の要約
 
