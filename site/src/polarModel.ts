@@ -2,7 +2,7 @@ import {factors} from './visual.ts';
 export type ValueSet='2xE2M1'|'8xE2M3'|'16xE3M2';
 export type PolarModel={E32f:(number|null)[];E32i:(number|null)[];K32f:number|null;K32i:number|null;encA:number;encB:number;mP:number[];L:number|null;shiftLength:number|null};
 export type PolarRow={id:string;m:number;vs:ValueSet;R:number;FA:number;FB:number;hA:number;hB:number;exact:boolean;weights:{A:number[];B:number[]};maxK:number|null;model:PolarModel|null;origin:string|null;inCatalog:boolean;source:string};
-export type PolarCatalog={schema_version:number;source_commit:string;model_source_sha256:string;model_index_sha256:string;rows:PolarRow[]};
+export type PolarCatalog={schema_version:number;source_commit?:string;base_commit?:string;forms_index_sha256?:string;model_source_sha256:string;model_index_sha256:string;rows:PolarRow[]};
 export type Coefficients={wF:number;wE:number;wM:number;wA:number;kap:number;w6:number;lim:'f'|'i';K:number;b:number;pay:'min'|'kap'|'shift'};
 export const DEFAULT_COEFFICIENTS:Coefficients={wF:.245,wE:0,wM:.63,wA:.24,kap:77.44,w6:3.1,lim:'f',K:1,b:0,pay:'min'};
 export const COEFFICIENTS=[['wF','面','Planes',0,1,.005],['wE','符号化','Encoding',0,.5,.005],['wM','法','Modulus',0,2,.01],['wA','累積器','Accumulators',0,1,.01],['kap','穴の補正','Hole correction',0,400,.01],['w6','FP6 / FP4','FP6 / FP4',1,4,.05]] as const;
