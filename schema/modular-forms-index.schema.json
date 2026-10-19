@@ -1,0 +1,60 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "modular-forms-index.schema.json",
+ "title": "Index of the single modular constructions (schema 2)",
+ "description": "forms-index.json: the chunk files, the value-set inclusions, a summary of the prime-power moduli and the constructions left out by reason. forms-excluded.json ($defs/excluded_file) lists each left-out construction.",
+ "type": "object",
+ "required": ["schema_version", "data_version", "kind", "solutions", "chunks", "excluded", "excluded_list", "value_set_inclusion", "prime_powers"],
+ "additionalProperties": false,
+ "properties": {
+  "schema_version": {"const": 2},
+  "data_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+  "kind": {"const": "modular_forms_index"},
+  "solutions": {"$ref": "#/$defs/count"},
+  "chunks": {"type": "array", "items": {"type": "object", "required": ["path", "sha256", "solutions", "modulus_min", "modulus_max"],
+   "additionalProperties": false,
+   "properties": {"path": {"type": "string", "pattern": "^forms-[0-9]{7,10}-[0-9]{7,10}\\.json$"}, "sha256": {"$ref": "#/$defs/sha256"},
+                  "solutions": {"$ref": "#/$defs/count"}, "modulus_min": {"$ref": "#/$defs/modulus"}, "modulus_max": {"$ref": "#/$defs/modulus"}}}},
+  "excluded": {"type": "array", "description": "Constructions that are not in the chunk files, counted by reason. Their absence from the chunk files does not mean that they do not exist or do not hold; each one is listed in forms-excluded.json.",
+   "items": {"type": "object", "required": ["reason", "count", "note"], "additionalProperties": false,
+    "properties": {"reason": {"type": "string"}, "count": {"type": "integer", "minimum": 1}, "note": {"type": "string"}}}},
+  "excluded_list": {"type": "object", "required": ["path", "sha256"], "additionalProperties": false,
+   "properties": {"path": {"const": "forms-excluded.json"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+  "value_set_inclusion": {"type": "object", "description": "Value set -> the value sets that contain all of its integers. A record names the smallest value set it was checked on; it also holds on every value set listed here for that set.",
+   "additionalProperties": {"type": "array", "items": {"$ref": "modular-forms.schema.json#/$defs/value_set"}},
+   "propertyNames": {"$ref": "modular-forms.schema.json#/$defs/value_set"}},
+  "prime_powers": {"type": "array", "description": "For each prime-power modulus and value set: the record with the fewest products without holes (hole_free) and with holes (holes), and the left-out construction given without holes with the fewest products (excluded), ties broken by planes, then id.",
+   "items": {"type": "object", "required": ["modulus", "prime", "exponent", "value_set", "kind", "products", "planes", "id"], "additionalProperties": false,
+    "properties": {"modulus": {"$ref": "#/$defs/modulus"}, "prime": {"$ref": "#/$defs/modulus"}, "exponent": {"type": "integer", "minimum": 1},
+                   "value_set": {"$ref": "modular-forms.schema.json#/$defs/value_set"}, "kind": {"enum": ["hole_free", "holes", "excluded"]},
+                   "products": {"type": "integer", "minimum": 1}, "planes": {"type": "array", "items": {"type": "integer", "minimum": 1}, "minItems": 2, "maxItems": 2},
+                   "holes": {"type": "object", "required": ["A", "B", "exact"], "additionalProperties": false,
+                    "properties": {"A": {"$ref": "#/$defs/count"}, "B": {"$ref": "#/$defs/count"}, "exact": {"type": "boolean"}}},
+                   "reason": {"type": "string"}, "id": {"type": "string", "pattern": "^awem2c?_[0-9a-f]{64}$"}}}}
+ },
+ "$defs": {
+  "count": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
+  "modulus": {"type": "integer", "minimum": 2, "maximum": 2147483647},
+  "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+  "excluded_file": {
+   "type": "object", "required": ["schema_version", "data_version", "kind", "excluded"], "additionalProperties": false,
+   "properties": {
+    "schema_version": {"const": 2},
+    "data_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "kind": {"const": "modular_forms_excluded"},
+    "excluded": {"type": "array", "items": {"type": "object", "required": ["reason", "note", "constructions"], "additionalProperties": false,
+     "properties": {"reason": {"type": "string"}, "note": {"type": "string"},
+      "constructions": {"type": "array", "minItems": 1, "items": {"type": "object",
+       "required": ["id", "modulus", "weights", "planes", "products", "denominator", "value_set"], "additionalProperties": false,
+       "description": "A construction as given, with products [a, b, numerator]. id: awem2c_ and the SHA-256 of the construction fields (sorted keys, no spaces); it differs from the id a record would have.",
+       "properties": {"id": {"type": "string", "pattern": "^awem2c_[0-9a-f]{64}$"}, "modulus": {"$ref": "#/$defs/modulus"},
+                      "weights": {"type": "object"}, "planes": {"type": "object"}, "plane_moduli": {"type": "object"},
+                      "products": {"type": "array", "items": {"type": "array", "items": {"type": "integer"}, "minItems": 3, "maxItems": 3}},
+                      "denominator": {"type": "integer", "minimum": 1},
+                      "holes_given": {"type": "array", "items": {"$ref": "#/$defs/count"}, "minItems": 2, "maxItems": 2,
+                       "description": "Holes [A, B] given with the construction; not checked by verify/modular_forms.py."},
+                      "value_set": {"$ref": "modular-forms.schema.json#/$defs/value_set"}}}}}}}
+   }
+  }
+ }
+}
