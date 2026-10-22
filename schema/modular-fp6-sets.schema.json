@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "modular-fp6-sets.schema.json",
+  "title": "Saved FP6 modulus sets (schema 2)",
+  "description": "Saved CRT sets on an FP6 value set. Each construction is a single-construction record (modular-forms.schema.json, solution2) with its provenance; each set lists its constructions in order.",
+  "type": "object",
+  "required": ["schema_version", "data_version", "kind", "solutions", "sets", "sources", "verification"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 2},
+    "data_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "kind": {"const": "modular_fp6_sets"},
+    "solutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "provenance", "encoding", "plane_values"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^awem2_[0-9a-f]{64}$"},
+          "provenance": {"$ref": "#/$defs/origins"},
+          "encoding": {"$ref": "#/$defs/tables"},
+          "plane_values": {"$ref": "#/$defs/tables"}
+        }
+      }
+    },
+    "sets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "id", "kind", "magnitude_bits", "k", "value_set", "solution_ids", "verification", "provenance"],
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {"const": 2},
+          "id": {"type": "string", "pattern": "^awemfs2_[0-9a-f]{64}$"},
+          "kind": {"const": "modular_set"},
+          "magnitude_bits": {"type": "integer", "minimum": 1},
+          "k": {"type": "integer", "minimum": 1},
+          "value_set": {"enum": ["8xE2M3", "16xE3M2"]},
+          "solution_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^awem2_[0-9a-f]{64}$"}},
+          "verification": {
+            "type": "object",
+            "required": ["max_k", "crt_max_k", "products", "faces", "moduli", "modulus_product", "max_abs_operand"],
+            "additionalProperties": false,
+            "properties": {
+              "max_k": {"type": "string", "pattern": "^[0-9]+$"},
+              "crt_max_k": {"type": "string", "pattern": "^[0-9]+$"},
+              "products": {"type": "integer"},
+              "faces": {"type": "integer"},
+              "moduli": {"type": "array", "items": {"type": "integer"}},
+              "modulus_product": {"type": "string", "pattern": "^[0-9]+$"},
+              "max_abs_operand": {"type": "string", "pattern": "^[0-9]+$"}
+            }
+          },
+          "provenance": {
+            "type": "array", "minItems": 1,
+            "items": {"type": "object", "required": ["source_sha256"], "additionalProperties": false,
+                      "properties": {"source_sha256": {"$ref": "#/$defs/sha256"}}}
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {"type": "object", "required": ["sha256", "rows"], "additionalProperties": false,
+                "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "rows": {"type": "integer", "minimum": 1}}}
+    },
+    "verification": {
+      "type": "object",
+      "required": ["date", "verifier_version", "constructions", "sets", "methods"],
+      "additionalProperties": false,
+      "properties": {
+        "date": {"type": "string", "format": "date"},
+        "verifier_version": {"type": "string"},
+        "constructions": {"type": "integer"},
+        "sets": {"type": "integer"},
+        "methods": {"type": "object", "additionalProperties": {"type": "integer"}}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tables": {
+      "description": "One row per residue, for every modulus (the single-construction schema stores at most 4096 rows): the limbs or plane values of that residue, null for a hole.",
+      "type": "object", "required": ["A", "B"], "additionalProperties": false,
+      "properties": {
+        "A": {"type": "array", "minItems": 2, "items": {"oneOf": [{"type": "null"}, {"type": "array", "items": {"type": "integer"}}]}},
+        "B": {"type": "array", "minItems": 2, "items": {"oneOf": [{"type": "null"}, {"type": "array", "items": {"type": "integer"}}]}}
+      }
+    },
+    "origins": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "required": ["source_sha256", "position"], "additionalProperties": false,
+                "properties": {"source_sha256": {"$ref": "#/$defs/sha256"}, "position": {"type": "integer", "minimum": 1}}}
+    }
+  }
+}
