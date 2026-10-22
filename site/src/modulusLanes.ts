@@ -1,12 +1,13 @@
 import type {ModularCatalog} from './modular.ts';
 import {canonicalLane,type Lane,type VisualCatalog} from './visual.ts';
 
-/** Preserve all recorded widths and K values before choosing an input range. */
+const VALUE_SET_FORMAT:Record<string,string>={'8xE2M3':'FP6 (8×E2M3)','16xE3M2':'FP6 (16×E3M2)'};
+/** Preserve all recorded widths and K values before choosing an input range. A set saved on an FP6 value set keeps that format. */
 export function storedModulusLanes(catalog:ModularCatalog,saved?:VisualCatalog):Lane[]{
  const fp32=new Set(catalog.fp32_groups?.flatMap(g=>g.set_ids)??[]);
  return catalog.sets.map(s=>{
   const lane=canonicalLane(catalog,s.id,saved)!;
-  return {...lane,format:fp32.has(s.id)?'FP32':s.magnitude_bits===53?'FP64':undefined,
+  return {...lane,format:s.value_set?VALUE_SET_FORMAT[s.value_set]??s.value_set:fp32.has(s.id)?'FP32':s.magnitude_bits===53?'FP64':undefined,
    faces_a:lane.mods.reduce((n,c)=>n+c.faces_a,0),faces_b:lane.mods.reduce((n,c)=>n+(c.faces_b??0),0)};
  });
 }

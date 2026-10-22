@@ -73,7 +73,7 @@ function MainApp(){
  const [m,setM]=useState(()=>number(query.get('matrix_m'),8192,1,65536));const [n,setN]=useState(()=>number(query.get('matrix_n'),8192,1,65536));
  const [k,setK]=useState(()=>number(query.get('K')??query.get('k'),8192,1,65536));
  const [modular,setModular]=useState<ModularCatalog>();
- useEffect(()=>{Promise.all([read<ModularCatalog>('modular/catalog.json'),read<ModularCatalog>('modular/powers.json'),read<ModularCatalog>('modular/fp32.json'),read<ModularCatalog>('modular/fp32-history.json')]).then(parts=>setModular(mergeModularCatalogs(parts))).catch(e=>setError(e.message));},[]);
+ useEffect(()=>{Promise.all([read<ModularCatalog>('modular/catalog.json'),read<ModularCatalog>('modular/powers.json'),read<ModularCatalog>('modular/fp32.json'),read<ModularCatalog>('modular/fp32-history.json'),read<ModularCatalog>('modular/fp6-sets.json')]).then(parts=>setModular(mergeModularCatalogs(parts))).catch(e=>setError(e.message));},[]);
  useEffect(()=>{const q=new URLSearchParams(location.search);q.set('K',String(k));q.set('matrix_m',String(m));q.set('matrix_n',String(n));q.delete('k');history.replaceState(null,'','?'+q.toString());},[k,m,n]);
  useEffect(()=>{const restore=()=>{const q=new URLSearchParams(location.search);dispatchInputs({type:'restore',value:readInputs(q)});setK(number(q.get('K')??q.get('k'),8192,1,65536));};addEventListener('popstate',restore);return()=>removeEventListener('popstate',restore);},[]);
  useEffect(()=>{read<VisualCatalog>('visualization/modsets.json').then(setData).catch(e=>setError(e.message));},[]);

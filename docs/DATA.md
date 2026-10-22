@@ -76,6 +76,15 @@ S・A・B の格付けの表のschemaは `data/schema/board.schema.json`。解�
 python -m tools.modular_forms check data/modular
 ```
 
+## FP6 の法の組
+
+`modular/fp6-sets.json`(schema は `schema/modular-fp6-sets.schema.json`)は、FP6 の値の集合で組む保存済みの法の組。各組は `value_set`(今は `8xE2M3`)を持ち、`solution_ids` が同じ file の `solutions` を順に指す。各構成は単独の法の構成と同じ schema 2 の行(`awem2_<hash>`)に `provenance` を足した物で、`verify/modular_forms.py` が、穴を変えない一番小さい値の集合の上で確かめる。単独の法の構成の一覧に同じ形があれば同じ ID になる。ただし一覧と違い、法が 256 を超えても全剰余の符号化表(`encoding`・`plane_values`)を持つ(法の目録の構成と同じく、サイトが組の構成の表を読むため)。一覧の schema は表を 4096 行までとするので、表は `modular-fp6-sets.schema.json` と作り直しの照合で確かめ、ほかの項目は一覧の schema で確かめる。`2xE2M1` の行は整数として `8xE2M3` に含まれるので、組の中でもそのまま成り立つ。組の `verification` は、法・法の積・CRT の範囲・K の上限(CRT の範囲、`k`、各構成の 24 bit 累積の上限の最小)・積と面の数を持つ。由来は入力 file の hash と、その組の中の 1 始まりの位置。
+
+```sh
+python -m tools.fp6_sets build "$INPUTS"/*.json --output data/modular/fp6-sets.json --date YYYY-MM-DD
+python -m tools.fp6_sets check
+```
+
 ## 検算結果の要約
 
 取り込み時の再検算結果は、整数を `data/verification.json`、法を `data/modular/verification.json` に保存する。schema_version=2の記録は `counts`、`methods`（各方法の件数・verifier_version）、`date`（検算日）、`checks`（成功した検査の範囲）、`files`（対象の相対名・SHA-256）を持つ。機械名・性能値・元データの自由記述は含めない。整数の分割記録にあるcountは全体数なので、分割数倍しない。
