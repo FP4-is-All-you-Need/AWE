@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page,type Locator} from '@playwright/test';
 async function numbered(page:Page){
  await expect.poll(()=>page.evaluate(()=>{
   const errors:string[]=[];
@@ -34,4 +34,15 @@ test('construction detail kinds keep their numbered slots after values and selec
  await detail.locator('[name=plane_values]').check();await numbered(page);expect(await read()).toEqual(before);
  await lane.locator('[data-tile-id]').nth(1).click();await numbered(page);await expect.poll(read).toEqual(before);
  const flow=detail.locator('details[data-section^="flow."]');await flow.locator(':scope > summary').click();await numbered(page);const side=flow.locator('details[data-side-details=B] > summary');const preceding=await side.evaluate(n=>{const parent=n.parentElement!.parentElement;return [...parent!.querySelectorAll('details')].filter(d=>d.parentElement?.closest('details')===parent?.closest('details')&&(d.compareDocumentPosition(n.parentElement!)&Node.DOCUMENT_POSITION_FOLLOWING)).length;});await expect(side).toHaveAttribute('data-section-number',`${before.flow}.${preceding+1}`);
+});
+for(const lang of ['en','ja'])test(`swap candidates are numbered under the selected construction, not as a top-level section ${lang}`,async({page})=>{
+ await page.goto(`/?crt=1&lang=${lang}`);const panel=page.locator('.contents-panel'),links=panel.locator('[data-contents-target^="candidates."]');
+ const under=async(detail:Locator)=>{await expect(detail).toHaveCount(1);await expect(links.first()).toBeAttached();await numbered(page);
+  const parent=(await detail.locator(':scope > summary').getAttribute('data-section-number'))!,numbers=await links.evaluateAll(nodes=>nodes.map(n=>(n as HTMLElement).dataset.sectionNumber!));
+  for(const number of numbers)expect(number).toMatch(new RegExp(`^${parent.replace(/\./g,'\\.')}\\.\\d+$`));};
+ await under(page.locator('.paper-lane .construction-detail'));
+ await expect(panel.locator('[data-contents-target^="candidates."][data-section-depth="1"]')).toHaveCount(0);
+ await links.first().click();await expect(page.locator('#swap-panel')).toBeVisible();
+ const lane=page.locator('details[data-section^="comparison-lane."][open]').first();await lane.locator('[data-tile-id]').first().click();
+ await under(lane.locator('.construction-detail'));
 });

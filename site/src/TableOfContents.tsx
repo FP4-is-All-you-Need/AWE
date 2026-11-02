@@ -10,12 +10,12 @@ function labelParts(summary:HTMLElement):LabelPart[]{
   if(node.tagName==='BR')parts.push({text:' '});else node.childNodes.forEach(visit);};summary.childNodes.forEach(visit);return parts;
 }
 type Entry={parts:LabelPart[];key:string;target:string;label:string;parent:string|null;node:HTMLDetailsElement;number:string;depth:number;numberWidth:string};
-// Optional side values keep their slot when a construction is replaced.
-const detailSlots=['side:plane-values:B','flow','matrix','encoding','construction-cost'];
+// Optional side values and swap candidates keep their slot when a construction is replaced.
+const detailSlots=['side:plane-values:B','flow','matrix','encoding','construction-cost','candidates'];
 function sectionKind(node:HTMLDetailsElement){
  if(node.dataset.sideDetails)return `side:${node.dataset.sideKind}:${node.dataset.sideDetails}`;
  const section=node.dataset.section??node.id;
- if(section){const parts=section.split('.'),kind=parts.find(p=>['detail','flow','matrix','encoding','construction-cost','cost'].includes(p));return kind??section;}
+ if(section){const parts=section.split('.'),kind=parts.find(p=>['detail','flow','matrix','encoding','construction-cost','cost','candidates'].includes(p));return kind??section;}
  return node.className||'disclosure';
 }
 const storage={width:'awe.contents.width',open:'awe.contents.open'};
@@ -47,10 +47,14 @@ export function TableOfContents(){
   const root=document.querySelector('.paper-app');if(!root)return;
   let frame=0;
   const refresh=()=>{
-   const nodes=[...root.querySelectorAll<HTMLDetailsElement>('details')].filter(n=>!shell.current?.contains(n)&&n.querySelector(':scope > summary'));
+   // Sections outside the page flow (the swap drawer) are listed under the section named by
+   // their container's data-contents-parent selector, and omitted when that section is absent.
+   const owned=(node:HTMLDetailsElement)=>{const owner=node.closest<HTMLElement>('[data-contents-parent]');return owner?{owner,target:root.querySelector<HTMLDetailsElement>(owner.dataset.contentsParent!)}:undefined;};
+   const nodes=[...root.querySelectorAll<HTMLDetailsElement>('details')].filter(n=>!shell.current?.contains(n)&&n.querySelector(':scope > summary')&&owned(n)?.target!==null);
    for(const node of nodes)if(!ids.current.has(node))ids.current.set(node,`contents-${++counter.current}`);
    const next:Entry[]=nodes.map(node=>{
-    const parent=node.parentElement?.closest('details') as HTMLDetailsElement|null;
+    const outer=node.parentElement?.closest('details') as HTMLDetailsElement|null,own=owned(node);
+    const parent=own&&!(outer&&own.owner.contains(outer))?own.target:outer;
     const summary=node.querySelector<HTMLElement>(':scope > summary')!;
     return {parts:labelParts(summary),key:ids.current.get(node)!,target:node.getAttribute('data-section')||node.id||ids.current.get(node)!,label:(summary.innerText||summary.textContent||'').replace(/\s+/g,' ').replace(/\bmod(?=\d)/g,'mod ').trim(),parent:parent&&nodes.includes(parent)?ids.current.get(parent)!:null,node,number:'',depth:0,numberWidth:''};
    });
@@ -71,7 +75,7 @@ export function TableOfContents(){
   const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(refresh);};
   refresh();
   const observer=new MutationObserver(records=>{if(records.some(r=>!shell.current?.contains(r.target)))schedule();});
-  observer.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['open','data-section']});
+  observer.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['open','data-section','data-contents-parent']});
   return()=>{observer.disconnect();cancelAnimationFrame(frame);};
  },[]);
  useEffect(()=>{

@@ -3,7 +3,7 @@ import {useLanguage} from './i18n.tsx';
 import './swap-drawer.css';
 const clamp=(n:number)=>Math.max(260,Math.min(520,n));
 function saved(key:string){try{return localStorage.getItem('awe.swap.'+key);}catch{return null;}}
-export function SwapDrawer({children}:{children:ReactNode}){
+export function SwapDrawer({children,contentsParent}:{children:ReactNode;contentsParent?:string}){
  const ja=useLanguage()==='ja',query=new URLSearchParams(location.search);
  const [open,setOpen]=useState(()=>query.has('swap')?query.get('swap')==='1':saved('open')==='1');
  const [width,setWidth]=useState(()=>clamp(Number(saved('width'))||360)),[count,setCount]=useState(0);
@@ -14,7 +14,7 @@ export function SwapDrawer({children}:{children:ReactNode}){
  useEffect(()=>{const node=ref.current;if(!node)return;const read=()=>setCount(Number(node.querySelector('[data-candidate-count]')?.getAttribute('data-candidate-count')??0));read();const observer=new MutationObserver(read);observer.observe(node,{subtree:true,childList:true,attributes:true,attributeFilter:['data-candidate-count']});return()=>observer.disconnect();},[]);
  const label=ja?`入れ替え候補 ${count}`:`Swap candidates ${count}`;
  const start=(e:PointerEvent<HTMLDivElement>)=>{e.preventDefault();drag.current={x:e.clientX,width};e.currentTarget.setPointerCapture(e.pointerId);};
- return <div ref={ref} className="swap-shell" data-swap-open={open} style={{'--swap-width':width+'px'} as React.CSSProperties}>
+ return <div ref={ref} className="swap-shell" data-swap-open={open} data-contents-parent={contentsParent} style={{'--swap-width':width+'px'} as React.CSSProperties}>
  <button type="button" form="visual-actions" name="swap_toggle" className="swap-tab" aria-expanded={open} aria-controls="swap-panel" onClick={()=>change(!open)}>{label}</button>
  <div id="swap-panel" className="swap-panel" hidden={!open}><button type="button" form="visual-actions" name="swap_close" className="swap-close" onClick={()=>change(false)}>{ja?'閉じる':'Close'}</button>{children}
  <div className="swap-resize" role="separator" aria-label={ja?'候補欄の幅':'Candidates width'} aria-orientation="vertical" aria-valuenow={width} aria-valuemin={260} aria-valuemax={520} tabIndex={0} onPointerDown={start} onPointerMove={e=>{if(drag.current)setWidth(clamp(drag.current.width+drag.current.x-e.clientX));}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}} onKeyDown={e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();setWidth(clamp(width+(e.key==='ArrowLeft'?10:-10)));}}}/></div>
