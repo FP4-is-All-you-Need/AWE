@@ -21,7 +21,7 @@ test('contents and summaries share hierarchical numbers through toggles and new 
  await settings.evaluate(n=>{const d=document.createElement('details');d.dataset.section='numbering-added';const s=document.createElement('summary');s.textContent='Added section';d.append(s);n.append(d);});
  await expect(page.locator('[data-contents-target=numbering-added]')).toHaveCount(1);await numbered(page);
  await page.locator('[data-contents-target=numbering-added]').click();await expect(page.locator('[data-section=numbering-added]')).toHaveAttribute('open','');
- const widths=await page.locator('[data-contents-target], .paper-app summary[data-section-number]').evaluateAll(nodes=>nodes.map(n=>({depth:(n as HTMLElement).dataset.sectionDepth,width:getComputedStyle(n,n.tagName==='SUMMARY'?'::after':'::before').width})));for(const a of widths)for(const b of widths)if(a.depth===b.depth)expect(Math.abs(parseFloat(a.width)-parseFloat(b.width))).toBeLessThan(.1);
+ const widths=await page.locator('[data-contents-target], .paper-app summary[data-section-number]').evaluateAll(nodes=>nodes.map(n=>({place:n.tagName,depth:(n as HTMLElement).dataset.sectionDepth,width:getComputedStyle(n,n.tagName==='SUMMARY'?'::after':'::before').width})));for(const a of widths)for(const b of widths)if(a.place===b.place&&a.depth===b.depth)expect(Math.abs(parseFloat(a.width)-parseFloat(b.width))).toBeLessThan(.1);
  await page.locator('[data-section=numbering-added]').evaluate(n=>n.remove());await expect(page.locator('[data-contents-target=numbering-added]')).toHaveCount(0);await numbered(page);
  await page.locator('[name=lang]').selectOption('ja');await numbered(page);
  // Generated numbers are CSS content, so repeated refreshes never enter labels.
