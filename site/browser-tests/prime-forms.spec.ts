@@ -15,8 +15,9 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`periodic table
  await c529.click();await expect(table.locator('[data-prime-forms-detail] [data-kind=hole_free]').first()).toContainText(String(best(529,['2xE2M1'],'hole_free')));
  // primes above the last column are listed after the table; hiding holes removes the ones with holes only
  const beyond=table.locator('[data-prime-beyond-list]');await expect(beyond).not.toHaveAttribute('open','');await beyond.locator(':scope > summary').click();await expect(beyond.locator('[data-prime-beyond="1597"]')).toHaveCount(1);
- await expect(beyond.locator('[data-prime-beyond="163"]')).toHaveAttribute('data-forms','holes');
- await table.locator('[name=prime_holes]').uncheck();await expect(beyond.locator('[data-prime-beyond="163"]')).toHaveCount(0);
+ const holesOnly=(await beyond.locator('[data-forms="holes"]').first().getAttribute('data-prime-beyond'))!;
+ expect(best(Number(holesOnly),['2xE2M1'],'hole_free')).toBeUndefined();expect(best(Number(holesOnly),['2xE2M1'],'holes')).toBeDefined();
+ await table.locator('[name=prime_holes]').uncheck();await expect(beyond.locator(`[data-prime-beyond="${holesOnly}"]`)).toHaveCount(0);
  expect(new URL(page.url()).searchParams.get('prime_holes')).toBe('0');await table.locator('[name=prime_holes]').check();
  // FP6 (8xE2M3): 1024 has fewer products than every FP4 construction and a fewer-product construction outside the published data;
  // 2048 has no FP4 construction, so it is hole-free only on FP6
