@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 for(const lang of ['en','ja'])for(const crt of [true,false])test(`rendered mathematics has no escaped command words ${lang} ${crt?'CRT':'integer'}`,async({page})=>{
- await page.goto(`/?lang=${lang}&crt=${crt?1:0}${crt?'':'&b=7&integer_weight=2,5,31'}`);
+ await page.goto(`/?lang=${lang}&crt=${crt?1:0}${crt?'':'&b=7&integer_weight=2,5,31'}&open.numeric-matrix=1&open.base13-matrix=1&open.crt-example=1`);
  await expect(page.locator('[data-expansion]').first()).toBeVisible();
  // Inspect every disclosure, including off-screen diagrams and the repeated B side.
  await page.evaluate(()=>{for(const d of document.querySelectorAll('details'))d.open=true;});

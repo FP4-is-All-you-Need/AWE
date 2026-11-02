@@ -8,7 +8,7 @@ async function thinPaths(page:Page){
 }
 
 test('symbolic and concrete braces use constant thin strokes',async({page})=>{
- await page.goto('/?lang=en');await page.locator('[data-group-brace]').first().waitFor();await page.evaluate(()=>document.fonts.ready);await thinPaths(page);
+ await page.goto('/?lang=en&open.numeric-matrix=1&open.base13-matrix=1');await page.locator('[data-group-brace]').first().waitFor();await page.evaluate(()=>document.fonts.ready);await thinPaths(page);
  const geometry=await page.locator('[data-group-brace]').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect(),c=getComputedStyle(n);return {width:r.width,height:r.height,color:c.color,weight:c.fontWeight};}));
  expect(geometry).toHaveLength(8);
  for(const g of geometry){expect(g.width).toBeGreaterThan(0);expect(g.height).toBeGreaterThan(0);expect(g.weight).toBe('400');}
@@ -17,7 +17,7 @@ test('symbolic and concrete braces use constant thin strokes',async({page})=>{
 });
 
 test('more reconstruction rows and narrow screens do not thicken braces',async({page})=>{
- await page.goto('/?lang=ja');await page.locator('.paper-lane [data-tile-modulus="103"]').click();await thinPaths(page);
+ await page.goto('/?lang=ja&open.numeric-matrix=1&open.base13-matrix=1');await page.locator('.paper-lane [data-tile-modulus="103"]').click();await thinPaths(page);
  const awe=page.locator('[data-matrix-diagram=awe]');await expect(awe.locator('[data-numeric-reconstruction-row]')).toHaveCount(4);
  await expect(awe.locator('[data-group-brace]').first()).toHaveCSS('font-size','152px');
  await page.locator('[name=contents_toggle]').click();await page.setViewportSize({width:390,height:844});await thinPaths(page);

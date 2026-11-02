@@ -5,7 +5,7 @@ const cellColors=['rgb(194, 24, 91)','rgb(74, 83, 168)','rgb(0, 137, 123)','rgb(
 const coloredSymbols=async(formula:import('@playwright/test').Locator)=>formula.locator('.katex-html [style]').evaluateAll(nodes=>nodes.filter(node=>(node as HTMLElement).style.color).map(node=>({text:node.textContent?.replace(/[\s\u200b]/g,''),color:getComputedStyle(node).color})));
 
 test('base13 keeps its limb and cell colors when concrete values are shown',async({page})=>{
- await page.goto('/?lang=ja');const base=page.locator('[data-matrix-diagram=base13]');
+ await page.goto('/?lang=ja&open.numeric-matrix=1&open.base13-matrix=1');const base=page.locator('[data-matrix-diagram=base13]');
  await expect(base.locator('[data-numeric-product]')).toHaveCount(9);
  for(let i=0;i<3;i++)for(const side of ['A','B']){
   const color=await base.locator(`[data-source-side=${side}] [data-limb=${side}${i}]`).evaluate(node=>getComputedStyle(node).color);
@@ -57,7 +57,7 @@ const fullFigureScreenshot=async(figure:import('@playwright/test').Locator,path:
 };
 
 test('slide-style FP4 matrix decomposition reveals correctly scaled limbs and preserves products',async({page})=>{
- await page.goto('/?lang=ja');
+ await page.goto('/?lang=ja&open.numeric-matrix=1&open.base13-matrix=1');
  const base=page.locator('[data-matrix-diagram=base13]'),awe=page.locator('[data-matrix-diagram=awe]');
  await expect(base.locator('[data-fp4-scale]')).toHaveAttribute('data-fp4-scale','2');
  await expect(base.locator('[data-source-side=A] [data-limb]')).toHaveCount(3);

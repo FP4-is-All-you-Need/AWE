@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 for(const lang of ['en','ja'])for(const width of [1440,390])test(`all FP32 sets can be compared and inspected ${lang} ${width}`,async({page})=>{
  test.setTimeout(180000);await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});
  const data=await(await page.request.get('/modular/fp32-history.json')).json(),ids=data.sets.map((s:any)=>s.id).sort();expect(ids).toHaveLength(16);
- await page.goto('/?lang='+lang);const table=page.locator('.prime-table'),select=table.locator('[name=prime_compare]');
+ await page.goto('/?lang='+lang+'&open.crt-example=1');const table=page.locator('.prime-table'),select=table.locator('[name=prime_compare]');
  await expect(select.locator('option[data-format=FP32]')).toHaveCount(16);
  const check=async(id:string)=>{await select.selectOption(id);const set=data.sets.find((s:any)=>s.id===id);await expect.poll(()=>table.locator('[data-prime-compare-outline],[data-prime-other-comparison]').evaluateAll(ns=>ns.map(n=>Number(n.getAttribute('data-prime-compare-outline')??n.getAttribute('data-prime-other-comparison'))).sort((a,b)=>a-b))).toEqual([...set.verification.moduli].sort((a:number,b:number)=>a-b));};
  for(const id of ids)await check(id);

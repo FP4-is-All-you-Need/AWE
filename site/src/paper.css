@@ -36,6 +36,10 @@ details.paper-source-plots { display: block; }
 .crt-flow th,.crt-flow td {padding:3px 6px;border:1px solid #9E9E9E;}
 .crt-flow tr[data-selected=true] {background:#FCEBDB;outline:2px solid #C2185B;outline-offset:-2px;}
 .crt-flow td .katex {font-size:1.05em;}
+.crt-flow td.crt-limbs {white-space:normal;}
+.crt-flow td.crt-limbs>.math {max-width:none;white-space:nowrap;}
+.crt-flow td.crt-limbs>.math>.katex>.katex-html {white-space:nowrap;overflow-wrap:normal;}
+.crt-flow td.crt-limbs>.math:not(:last-child) {margin-right:.5em;}
 .crt-selected {padding:5px 0;border-bottom:1px solid #9E9E9E;}
 
 [data-crt-caption] .svg-math {justify-content:flex-start;}

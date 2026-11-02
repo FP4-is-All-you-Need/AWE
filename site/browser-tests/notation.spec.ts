@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('CRT indices above nine remain wholly inside the rendered subscript',async({page})=>{
- await page.goto('/?lang=ja&crt_a=5&crt_b=2');
+ await page.goto('/?lang=ja&crt_a=5&crt_b=2&open.crt-example=1');
  const rows=page.locator('.crt-example [data-crt-mod]');
  await expect(rows).toHaveCount(18);
  for(const index of [10,17]){
@@ -16,7 +16,7 @@ test('CRT indices above nine remain wholly inside the rendered subscript',async(
 });
 
 test('modulus labels use spacing without a visible comma',async({page})=>{
- await page.goto('/?lang=ja');
+ await page.goto('/?lang=ja&open.crt-example=1');
  const labels=page.locator('.crt-example [data-crt-mod] th .katex');
  await expect(labels).toHaveCount(18);
  for(const label of await labels.all()){

@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 for(const lang of ['en','ja'])for(const width of [1440,390])test(`numeric values follow input and previous work is separate ${lang} ${width}`,async({page})=>{
  await page.setViewportSize({width,height:1000});
- await page.goto(`/?lang=${lang}&example_matrix_a=500&example_matrix_b=2`);
+ await page.goto(`/?lang=${lang}&example_matrix_a=500&example_matrix_b=2&open.numeric-matrix=1&open.base13-matrix=1`);
  const awe=page.locator('[data-matrix-diagram=awe]'),base=page.locator('[data-matrix-diagram=base13]');
  await expect(awe.locator('[data-result]')).toHaveAttribute('data-matches','true');
  await expect(base.locator('[data-result]')).toHaveAttribute('data-result','1000');
@@ -41,7 +41,7 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`numeric values
 });
 
 test('integer AWE encodes 500 with its own limbs and reports its boundary',async({page})=>{
- await page.goto('/?lang=en&crt=0&input_ma=12&input_mb=12&b=11&example_matrix_a=500&example_matrix_b=2');
+ await page.goto('/?lang=en&crt=0&input_ma=12&input_mb=12&b=11&example_matrix_a=500&example_matrix_b=2&open.numeric-matrix=1&open.base13-matrix=1');
  const awe=page.locator('[data-matrix-diagram=awe]');
  await expect(awe.locator('[data-result]')).toHaveAttribute('data-result','1000');
  await expect(awe.locator('[data-result]')).toHaveAttribute('data-matches','true');
@@ -76,7 +76,7 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`top headings h
 });
 
 test('both reconstruction braces contain every term of a twelve-product construction',async({page})=>{
- await page.goto('/?lang=en&crt=0&input_ma=12&input_mb=12&b=11&example_matrix_a=500&example_matrix_b=2');
+ await page.goto('/?lang=en&crt=0&input_ma=12&input_mb=12&b=11&example_matrix_a=500&example_matrix_b=2&open.numeric-matrix=1&open.base13-matrix=1');
  const awe=page.locator('[data-matrix-diagram=awe]');await expect(awe.locator('[data-numeric-product]')).toHaveCount(12);
  await page.evaluate(()=>document.fonts.ready);
  const positions=await awe.locator('.numeric-brace-formula').evaluateAll(forms=>forms.map(form=>{

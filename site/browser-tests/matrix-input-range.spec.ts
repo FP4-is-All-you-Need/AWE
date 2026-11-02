@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 for(const lang of ['en','ja'])for(const width of [1440,390])test(`matrix input ranges and errors stay visible ${lang} ${width}`,async({page})=>{
  await page.setViewportSize({width,height:1000});
- await page.goto(`/?lang=${lang}&crt=0&input_ma=12&input_mb=12&b=11&example_matrix_a=500&example_matrix_b=2`);
+ await page.goto(`/?lang=${lang}&crt=0&input_ma=12&input_mb=12&b=11&example_matrix_a=500&example_matrix_b=2&open.numeric-matrix=1&open.base13-matrix=1`);
  const awe=page.locator('[data-section=numeric-matrix]'),base=page.locator('[data-section=base13-matrix]');
  await expect(awe.locator('[data-input-range=A]')).toContainText('2160');
  await expect(awe.locator('[data-input-range=B]')).toContainText('2160');

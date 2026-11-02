@@ -14,7 +14,7 @@ test('shared input and saved AWE selection update two independent number lines',
  await page.locator('[name=encode_int]').fill('23');await page.locator('[data-section=previous-base13]').screenshot({path:'build/screens/hierarchy-base13-awe.png'});
 });
 test('editing matrices updates saved limbs, FP4 products and reconstruction',async({page})=>{
- await page.goto('/?lang=ja');const base=page.locator('[data-matrix-diagram=base13]'),awe=page.locator('[data-matrix-diagram=awe]');
+ await page.goto('/?lang=ja&open.numeric-matrix=1&open.base13-matrix=1');const base=page.locator('[data-matrix-diagram=base13]'),awe=page.locator('[data-matrix-diagram=awe]');
  await expect(base.locator('[data-result]')).toHaveAttribute('data-result','12,11;6,13');await expect(awe.locator('[data-result]')).toHaveAttribute('data-result','12,11;6,13');
  await awe.locator('[data-limb=A0]').click();const old=await awe.locator('[data-limb=A0]').textContent();await page.locator('[name=example_matrix_a]').fill('20 2\n1 4');
  await expect(awe.locator('[data-limb=A0]')).not.toHaveText(old!);await expect(base.locator('[data-result]')).toHaveAttribute('data-result','42,26;6,13');await expect(awe.locator('[data-result]')).toHaveAttribute('data-matches','true');
@@ -28,7 +28,7 @@ test('editing matrices updates saved limbs, FP4 products and reconstruction',asy
 });
 test('integer residues, saved products and CRT follow the current modulus set and replacement',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/?lang=ja&crt_a=-103&crt_b=127');const crt=page.locator('.crt-example'),output=crt.locator('.crt-reconstruction');
+ await page.goto('/?lang=ja&crt_a=-103&crt_b=127&open.crt-example=1');const crt=page.locator('.crt-example'),output=crt.locator('.crt-reconstruction');
  await expect(crt.locator('[data-crt-mod]')).toHaveCount(18);await expect(output).toHaveAttribute('data-result','-13081');await expect(output).toHaveAttribute('data-matches','true');
  await expect(crt.locator('[data-crt-mod="73"]')).toContainText('43');await expect(crt.locator('[data-crt-mod="73"]')).toContainText('54');
  await crt.locator('[data-crt-branch="81"]').click();await expect(page.locator('.paper-lane .law-button[aria-pressed=true]')).toHaveAttribute('aria-label','法 81 3積');await expect(crt.locator('.crt-selected')).toContainText('81');
@@ -44,7 +44,7 @@ test('integer residues, saved products and CRT follow the current modulus set an
  await crt.screenshot({path:'build/screens/crt-live-reconstruction.png'});expect(errors).toEqual([]);expect(await page.locator('.katex-error').count()).toBe(0);
 });
 test('saved hole construction shows actual missing values in both examples without inventing a correction',async({page})=>{
- await page.goto('/?lang=ja');await page.locator('[name=example_construction]').selectOption('joint_edd3ca7b2994fc829408');
+ await page.goto('/?lang=ja&open.numeric-matrix=1&open.base13-matrix=1');await page.locator('[name=example_construction]').selectOption('joint_edd3ca7b2994fc829408');
  const line=page.locator('[data-number-line=awe]');await expect(line).toHaveAttribute('data-construction','joint_edd3ca7b2994fc829408');
  await page.locator('[name=encode_int]').fill('103');await expect(line.locator('[data-value="103"]')).toHaveAttribute('data-hole','true');await expect(line).toContainText('Hole');await page.locator('.encoding-examples').screenshot({path:'build/screens/encoding-hole-example.png'});
  await page.locator('[name=example_matrix_a]').fill('103 2\n1 4');await expect(page.locator('[data-section=numeric-matrix] [role=alert]')).toContainText('穴');
