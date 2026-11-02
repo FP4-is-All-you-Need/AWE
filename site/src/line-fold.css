@@ -1,0 +1,7 @@
+.line-fold{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;min-width:0}
+.line-fold-lead{flex:0 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}
+.line-fold-items{flex:1 1 240px;min-width:0;height:30px;overflow:hidden;white-space:nowrap;line-height:30px}
+.line-fold-items>span{display:inline-block;white-space:nowrap;margin-right:12px;line-height:30px}
+.line-fold-items>span[data-beyond-line]{visibility:hidden}
+.line-fold-toggle{flex:none;height:30px;min-height:0;padding:0 5px;line-height:26px;margin:0 0 0 auto}
+.line-fold[data-expanded=true] .line-fold-items{order:1;flex-basis:100%;height:auto;white-space:normal}
