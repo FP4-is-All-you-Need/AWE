@@ -1,6 +1,6 @@
 import type {Construction} from './visual.ts';
 /** Read the geometric weights; evaluate only powers present in their product grid. */
-export function vanishingPowers(c:Construction):number[]{
+export function vanishingPowers(c:Pick<Construction,'modulus'|'weights'>):number[]{
  if(c.modulus<=1)return [];
  const a=[...c.weights.A].sort((a,b)=>a-b),b=[...c.weights.B].sort((a,b)=>a-b),w=a[1]??b[1];
  if(!Number.isSafeInteger(w)||w<=1||a.some((v,i)=>BigInt(v)!==BigInt(w)**BigInt(i))||b.some((v,i)=>BigInt(v)!==BigInt(w)**BigInt(i)))return [];

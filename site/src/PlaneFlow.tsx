@@ -9,10 +9,13 @@ const nnz=(row:number[])=>row.filter(v=>v!==0).length;
 const first=(row:number[])=>row.findIndex(v=>v!==0);
 const expression=(row:number[],symbol:string)=>row.map((v,i)=>v===0?'':`${v<0?'-':'+'}${Math.abs(v)===1?'':Math.abs(v)}${symbol}_{${i}}`).join('').replace(/^\+/,'')||'0';
 
+import {useLanguage} from './i18n.tsx';
 import {savedPlaneValues,FP4_VALUES} from './encoding.ts';
 export function SavedPlaneValues({c,side,plane}:{c:Construction;side:'A'|'B';plane:number}){
- const values=savedPlaneValues(c,side,plane);
+ const en=useLanguage()==='en',values=savedPlaneValues(c,side,plane);
  if(values===null)return <p style={{fontSize:16,margin:'2px 0'}}>未測定</p>;
+ const declared=(c.additional?.plane_sets as Record<string,string[]>|undefined)?.[side]?.[plane];
+ if(declared&&declared!=='2xE2M1')return <p data-saved-plane-values={side+'.'+plane} style={{overflowWrap:'anywhere'}}>{en?'Stored plane values':'保存表の面の値'} ({declared}): {values.join(', ')}</p>;
  const outside=values.filter(v=>!FP4_VALUES.includes(v));
  const residues=c.modulus>0?[...new Set(values.map(v=>((v%c.modulus)+c.modulus)%c.modulus))].sort((a,b)=>a-b):null;
  return <div className="paper-scroll" style={{fontSize:16,margin:'2px 0'}}>
@@ -92,6 +95,8 @@ export function PlaneFlow({c,side,selectedProduct,onSelectPlane,showValues}:{c:C
 
 function InlinePlaneBand({c,side,plane,x,y}:{c:Construction;side:'A'|'B';plane:number;x:number;y:number}){
  const values=savedPlaneValues(c,side,plane);if(values===null)return null;
+ const declared=(c.additional?.plane_sets as Record<string,string[]>|undefined)?.[side]?.[plane];
+ if(declared&&declared!=='2xE2M1')return <foreignObject data-flow-measured-values={plane} x={x} y={y} width={540} height={100}><div style={{fontSize:14,overflowWrap:'anywhere'}}>{declared}: {values.join(', ')}</div></foreignObject>;
  const cells=(residue:boolean)=>FP4_VALUES.map(v=><span key={v} data-fp4-value={residue?undefined:v} data-residue={residue?((v%c.modulus)+c.modulus)%c.modulus:undefined} data-used={values.includes(v)} style={{width:30,flexShrink:0,textAlign:'center',fontSize:14,border:'1px solid #9E9E9E',background:values.includes(v)?'#E2F1F8':'#FFFFFF',color:values.includes(v)?'#1A1A1A':'#666666'}}><MathText tex={String(residue?((v%c.modulus)+c.modulus)%c.modulus:v)}/></span>);
  return <foreignObject data-flow-measured-values={plane} x={x} y={y} width={540} height={48}><div style={{fontSize:14}}><div data-plane-band={`${side}.${plane}`} style={{display:'flex'}} aria-label={`S ${values.join(', ')}`}>{cells(false)}</div>{c.modulus>0&&<div className="plane-residues" style={{display:'flex'}}>{cells(true)}<span style={{marginLeft:4}}><MathText tex={`\\mathrm{mod}\\;${c.modulus}`}/></span></div>}</div></foreignObject>;
 }

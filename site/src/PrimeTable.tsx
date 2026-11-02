@@ -1,4 +1,5 @@
 import {usePeriodicFormat} from './PeriodicFormat.tsx';
+import {FP6Families} from './FP6Families.tsx';
 import {useId,useMemo,useState} from 'react';
 import {LawRow,MathText} from './PaperFigures.tsx';
 import {Expansion} from './Expansion.tsx';
@@ -34,7 +35,7 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
  const [withForms,setWithForms]=useParameter('prime_forms',true,r=>r!=='0',v=>v?'1':'0');
  const [withHoles,setWithHoles]=useParameter('prime_holes',true,r=>r!=='0',v=>v?'1':'0');
  const saved=useMemo(()=>primeTableData(all,sets).byModulus,[all,sets]);
- const formsBy=useMemo(()=>forms&&withForms?formCells(forms.filter(f=>f.value_set===valueSet||f.value_set==='2xE2M1'),tab,withHoles,saved):new Map<number,FormCell>(),[forms,withForms,tab,withHoles,saved,valueSet]);
+ const formsBy=useMemo(()=>forms&&withForms?formCells(forms.filter(f=>f.value_set===valueSet),tab,withHoles,saved):new Map<number,FormCell>(),[forms,withForms,tab,withHoles,saved,valueSet]);
  const table=useMemo(()=>primeTableData(all,sets,formsBy),[all,sets,formsBy]),measured=useMeasuredWidth();
  const shownForm=(m:number)=>{const f=formsBy.get(m);return f&&(f.hole_free||f.holes)?f:undefined;};
  const formTitle=(m:number)=>{const f=shownForm(m);if(!f)return '';const b=f.hole_free??f.holes!;return ` · ${en?'single construction':'単独の法の構成'} ${b.products}${en?' products':'積'}${f.hole_free?'':en?' (holes)':'(穴あり)'}`;};
@@ -71,16 +72,16 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
  const open=(modulus:number)=>{setOpenedModulus(modulus);setOpenedId('');};
  return <details data-section="prime-table" className="prime-table" open>
   <summary>{en?`${fp} periodic table`:`${fp} の周期表`}</summary>
-  <p className="prime-intro">{tab==='fp6'?(en?'FP6 constructions for prime moduli and their powers. FP4 values are FP6 values as integers, so every FP4 construction also holds on FP6; the table shows the FP4 constructions together with those that need FP6 values.':'素数とその冪を法に使うFP6の構成。FP4の値は整数としてFP6の値に含まれるので、FP4の構成はFP6でもそのまま成り立つ。FP4の構成とFP6の値が要る構成を合わせて出す。'):(en?'FP4 constructions for prime moduli and their powers.':'素数とその冪を法に使うFP4の構成。')}</p>
+  <p className="prime-intro">{tab==='fp6'?(en?'Prime moduli and their powers, using only constructions checked on the selected FP6 value set.':'素数とそのべきを法に使う構成です。選んだ FP6 の値の集合で検算した構成だけを出します。'):(en?'FP4 constructions for prime moduli and their powers.':'素数とその冪を法に使うFP4の構成。')}</p>
   {!!forms&&<form name="prime_layers" className="prime-layer-controls" onSubmit={e=>e.preventDefault()}>
-   <label>{en?'Value set':'値の集合'} <select name="prime_set" value={tab} onChange={e=>setTab(e.target.value==='fp6'?'fp6':'fp4')}><option value="fp4">FP4 (2×E2M1)</option><option value="fp6">{en?'FP6 (8×E2M3, 16×E3M2, with FP4)':'FP6(8×E2M3・16×E3M2、FP4 を含む)'}</option></select></label>
+   <label>{en?'Value set':'値の集合'} <select name="prime_set" value={tab} onChange={e=>setTab(e.target.value==='fp6'?'fp6':'fp4')}><option value="fp4">FP4 (2×E2M1)</option><option value="fp6">{en?'FP6':'FP6'}</option></select></label>
    <label><input type="checkbox" name="prime_forms" checked={withForms} onChange={e=>setWithForms(e.target.checked)}/>{en?'Show single modular constructions':'単独の法の構成を出す'}</label>
    <label><input type="checkbox" name="prime_holes" checked={withHoles} disabled={!withForms} onChange={e=>setWithHoles(e.target.checked)}/>{en?'Include constructions with holes':'穴のある構成も出す'}</label>
   </form>}
   <div className="prime-table-legend"><span>{en?'Prime bases':'素数'}: 2–{table.primeMax}</span><span>{en?'Moduli':'法'} ≤ {table.modulusMax}</span><span>{en?'×n: weight candidates (cards shown at lower right)':'×n：重みの候補の数(右下にカードで並ぶ)'}</span><span className="prime-missing-key">{en?'No construction recorded':'構成の収録なし'}</span><span className="prime-used-key">✓ {en?'Selected set: outer border':'選んだ組：外側の枠'}</span><span className="prime-compare-key">{en?'Comparison set: inner border':'比較する組：内側の枠'}</span><span>{en?'Both borders: common to both sets':'両方の枠：共通'}</span><span className="prime-focus-key">{en?'Focus: black frame':'表示中：黒枠'}</span>
    {formsBy.size>0&&<><span data-legend="forms">◢ {en?'Single modular construction without holes':'単独の法の構成(穴なし)'}</span>{withHoles&&<span data-legend="forms-holes">◿ {en?'Only with holes':'穴のある構成だけ'}</span>}<span data-legend="fewer">● {tab==='fp6'?(en?'Fewer products than every FP4 construction':'FP4のどの構成より積が少ない'):(en?'Fewer products than the saved constructions':'保存された組の構成より積が少ない')}</span>{tab==='fp6'&&<span data-legend="only-wider">6 {en?'Without holes only with FP6 values':'穴なしはFP6の値でだけ'}</span>}<span data-legend="excluded-fewer">† {en?'A construction with fewer products is not in the published data':'積の少ない構成が公開の data の外にある'}</span></>}</div>
   {!!choices.length&&<label className="prime-compare-control">{en?'Compare with':'比較する組'} <select name="prime_compare" value={compareId==='none'?'none':comparison?.id??'none'} onChange={e=>setCompareId(e.target.value)}><option value="none">{en?'None':'なし'}</option>{choices.map((l,i)=><option key={l.id} value={l.id} data-moduli={l.moduli.join(',')} data-bits={l.bits} data-format={l.format??''}>{i+1}: {l.format?l.format+' · ':''}{l.bits} bit · {l.moduli.length}{en?' moduli':'法'} · {l.products}{en?' products':'積'} · K {l.plan_k??l.k_max}</option>)}</select></label>}
-  <p className="prime-search-scope">{en?`The recorded search covered moduli 2–225 under fixed conditions with two limbs on both A and B (2×2), and found no constructions for primes above ${table.primeMax} in that range; three-limb constructions and constructions with unequal limb counts were not searched for every modulus.${formsBy.size?' The single modular constructions come from other searches, with their own limb counts, modulus ranges and value sets. A modulus missing here, or an empty cell, does not mean that no construction exists.':''}`:`記録された探索はA・Bとも2リム（2×2）の決まった条件で法2〜225を対象とし、その範囲では${table.primeMax}より大きい素数の構成は見つかっていませんが、3リムやA・Bでリム数が違う構成を全ての法で調べたものではありません。${formsBy.size?'単独の法の構成は別の探索の結果で、リムの数・法の範囲・値の集合はそれぞれ違います。ここに無い法や空いた欄は、構成が無いことを示しません。':''}`}</p>
+  {tab==='fp4'&&<p className="prime-search-scope">{en?`The recorded search covered moduli 2–225 under fixed conditions with two limbs on both A and B (2×2), and found no constructions for primes above ${table.primeMax} in that range; three-limb constructions and constructions with unequal limb counts were not searched for every modulus.${formsBy.size?' The single modular constructions come from other searches, with their own limb counts, modulus ranges and value sets. A modulus missing here, or an empty cell, does not mean that no construction exists.':''}`:`記録された探索はA・Bとも2リム（2×2）の決まった条件で法2〜225を対象とし、その範囲では${table.primeMax}より大きい素数の構成は見つかっていませんが、3リムやA・Bでリム数が違う構成を全ての法で調べたものではありません。${formsBy.size?'単独の法の構成は別の探索の結果で、リムの数・法の範囲・値の集合はそれぞれ違います。ここに無い法や空いた欄は、構成が無いことを示しません。':''}`}</p>}
   <div className="prime-table-figure" ref={measured.ref}>
    <div className="prime-table-surface" style={{width}}><svg data-prime-chart width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-label={en?`${fp} periodic table: prime columns and power rows`:`${fp} の周期表：素数の列と冪の行`}>
     <defs><filter id={glowId} x="-50%" y="-30%" width="200%" height="160%"><feGaussianBlur stdDeviation={1.5}/></filter></defs>
@@ -130,5 +131,6 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
    </>:!shownForm(openedModulus)&&<output>{en?'Not recorded':'未収録'}</output>}
    {formsBy.get(openedModulus)&&<FormRows cell={formsBy.get(openedModulus)!} en={en}/>}
   </div>}
+  {tab==='fp6'&&<FP6Families/>}
  </details>;
 }

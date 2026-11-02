@@ -69,8 +69,7 @@ details.paper-source-plots { display: block; }
 .top-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start;}
 .top-inputs,.top-layout>.map-section{min-width:0;}
 .top-layout>.map-section{padding-top:4px;}
-.top-layout .language-control{position:absolute;right:12px;top:6px;}
-@media(max-width:1000px){.top-layout{grid-template-columns:minmax(0,1fr);}.top-layout>.map-section{padding-top:0;}.top-layout .language-control{position:static;}}
+@media(max-width:1000px){.top-layout{grid-template-columns:minmax(0,1fr);}.top-layout>.map-section{padding-top:0;}}
 
 .integer-browser{display:grid;grid-template-columns:210px minmax(0,1fr) 265px;gap:12px;align-items:start}
 .integer-main,.integer-filters,.integer-candidates{min-width:0}.integer-filters label{display:block;margin:6px 0}.integer-filters input:not([type=checkbox]),.integer-filters select{display:block;max-width:100%;width:180px;box-sizing:border-box}

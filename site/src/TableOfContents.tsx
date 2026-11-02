@@ -31,7 +31,7 @@ export function TableOfContents(){
  const [entries,setEntries]=useState<Entry[]>([]),[active,setActive]=useState('');
  const shell=useRef<HTMLDivElement>(null),entryRef=useRef<Entry[]>([]),ids=useRef(new WeakMap<HTMLDetailsElement,string>()),counter=useRef(0);
  const slots=useRef(new Map<string,Map<string,number>>());
- const drag=useRef<{start:number;width:number}|null>(null);
+ const drag=useRef<{start:number;width:number}|null>(null),candidateLinkHandled=useRef(false);
  useEffect(()=>{
   const media=window.matchMedia('(max-width: 767px)');
   const change=()=>setMobile(media.matches);
@@ -92,11 +92,24 @@ export function TableOfContents(){
   window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);
  },[]);
  useEffect(()=>{const panel=shell.current?.querySelector<HTMLElement>('.contents-panel'),item=panel?.querySelector<HTMLElement>('[aria-current="location"]');if(panel&&item){const a=panel.getBoundingClientRect(),b=item.getBoundingClientRect();if(b.top<a.top+44)panel.scrollTop-=a.top+44-b.top;else if(b.bottom>a.bottom-12)panel.scrollTop+=b.bottom-a.bottom+12;}},[active,open]);
- const navigate=(entry:Entry)=>{
+ const reveal=(entry:Entry)=>{
   let ancestor:HTMLElement|null=entry.node;
   while(ancestor){if(ancestor instanceof HTMLDetailsElement)ancestor.open=true;ancestor=ancestor.parentElement;}
+  if(entry.node.closest('.swap-panel'))window.dispatchEvent(new Event('awe-open-swap'));
   setActive(entry.key);if(mobile)setOpen(false);
-  requestAnimationFrame(()=>entry.node.scrollIntoView({block:'start',behavior:'auto'}));
+  // The drawer's React state must render before scrolling its formerly hidden contents.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>entry.node.scrollIntoView({block:'start',behavior:'auto'})));
+ };
+ useEffect(()=>{
+  if(candidateLinkHandled.current)return;
+  const target=new URLSearchParams(location.search).get('section');
+  if(!target?.startsWith('candidates.'))return;
+  const entry=entries.find(e=>e.target===target);if(!entry)return;
+  candidateLinkHandled.current=true;reveal(entry);
+ },[entries]);
+ const navigate=(entry:Entry)=>{
+  if(entry.node.closest('.swap-panel')){const q=new URLSearchParams(location.search);q.set('section',entry.target);history.replaceState(null,'','?'+q+location.hash);candidateLinkHandled.current=true;}
+  reveal(entry);
  };
  const startDrag=(event:PointerEvent<HTMLDivElement>)=>{event.preventDefault();drag.current={start:event.clientX,width};event.currentTarget.setPointerCapture(event.pointerId);};
  const moveDrag=(event:PointerEvent<HTMLDivElement>)=>{if(drag.current)setWidth(bounded(drag.current.width+event.clientX-drag.current.start));};

@@ -1,7 +1,8 @@
 import {factors} from './visual.ts';
+import {vanishingPowers} from './shapeFormula.ts';
 export type ValueSet='2xE2M1'|'8xE2M3'|'16xE3M2';
 export type PolarModel={E32f:(number|null)[];E32i:(number|null)[];K32f:number|null;K32i:number|null;encA:number;encB:number;mP:number[];L:number|null;shiftLength:number|null};
-export type PolarRow={id:string;m:number;vs:ValueSet;R:number;FA:number;FB:number;hA:number;hB:number;exact:boolean;weights:{A:number[];B:number[]};maxK:number|null;model:PolarModel|null;origin:string|null;inCatalog:boolean;source:string};
+export type PolarRow={id:string;m:number;vs:ValueSet;R:number;FA:number;FB:number;hA:number;hB:number;exact:boolean;weights:{A:number[];B:number[]};maxK:number|null;model:PolarModel|null;origin:string|null;inCatalog:boolean;source:string;denominator?:number;recon?:string};
 export type PolarCatalog={schema_version:number;source_commit?:string;base_commit?:string;forms_index_sha256?:string;model_source_sha256:string;model_index_sha256:string;rows:PolarRow[]};
 export type Coefficients={wF:number;wE:number;wM:number;wA:number;kap:number;w6:number;lim:'f'|'i';K:number;b:number;pay:'min'|'kap'|'shift'};
 export const DEFAULT_COEFFICIENTS:Coefficients={wF:.245,wE:0,wM:.63,wA:.24,kap:77.44,w6:3.1,lim:'f',K:1,b:0,pay:'min'};
@@ -37,6 +38,22 @@ export function dominance(rows:PolarRow[],s:Coefficients){
  rows.forEach((other,j)=>{if(i===j||other.m!==r.m||other.vs!==r.vs||!a[j])return;
  if(a[j]!.every((v,k)=>v<=a[i]![k])&&a[j]!.some((v,k)=>v<a[i]![k])&&(!best||(cost(other,s)??Infinity)<(cost(best,s)??Infinity)))best=other;});
  if(best)result.set(r.id,best.id);});return result;
+}
+export type PlaneOption={R:number;F:number;rows:PolarRow[];shown:PolarRow};
+/** One modulus: the (products, planes A+B) pairs that no other construction beats in both, fewest products first.
+ * A pair shows `first` when it holds it, otherwise its lowest-cost undominated construction, then fewer limbs A+B, then id. */
+export function productPlaneOptions(rows:PolarRow[],s:Coefficients,first?:PolarRow):PlaneOption[]{
+ const planes=(r:PolarRow)=>r.FA+r.FB,limbs=(r:PolarRow)=>r.weights.A.length+r.weights.B.length,dominated=dominance(rows,s);
+ const order=(a:PolarRow,b:PolarRow)=>{const x=cost(a,s),y=cost(b,s),d=x===null||y===null?Number(x===null)-Number(y===null):x-y;return Math.abs(d)>1e-9?d:limbs(a)-limbs(b)||a.id.localeCompare(b.id);};
+ const pairs=[...new Map(rows.map(r=>[`${r.R}:${planes(r)}`,{R:r.R,F:planes(r)}])).values()];
+ return pairs.filter(p=>!pairs.some(q=>q!==p&&q.R<=p.R&&q.F<=p.F)).sort((a,b)=>a.R-b.R).map(p=>{
+  const all=rows.filter(r=>r.R===p.R&&planes(r)===p.F),open=all.filter(r=>!dominated.has(r.id)),list=open.length?open:all;
+  return {...p,rows:list,shown:first&&all.includes(first)?first:[...list].sort(order)[0]};});
+}
+/** What makes a construction fit its modulus: powers of w that vanish for weights 1, w, w², … and plane moduli below the
+ * modulus (folded planes). `planeModuli` is undefined while not loaded and null when the source has none. */
+export function formKind(r:PolarRow,planeModuli:number[]|null|undefined){
+ return {vanishing:vanishingPowers({modulus:r.m,weights:r.weights}),w:[...r.weights.A].sort((a,b)=>a-b)[1]??null,folded:planeModuli?[...new Set(planeModuli.filter(q=>q<r.m))].sort((a,b)=>a-b):planeModuli};
 }
 export type Layout='sacks'|'ulam';
 export function position(m:number,layout:Layout):[number,number]{

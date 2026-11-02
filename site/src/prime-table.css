@@ -49,3 +49,6 @@
 .prime-forms table{width:100%;table-layout:fixed;font-size:16px}
 .prime-forms th,.prime-forms td{overflow-wrap:anywhere;padding:3px;text-align:left}
 .prime-forms h4{margin:6px 0 2px}
+
+.fp6-families{margin-top:18px}.fp6-families details>summary{white-space:normal!important;overflow-wrap:anywhere}.fp6-families td{max-width:320px;overflow-wrap:anywhere}.fp6-families>p,.fp6-families details p{overflow-wrap:anywhere}
+.fp6-families table{width:100%;min-width:700px;border-collapse:collapse}.fp6-families th,.fp6-families td{text-align:left;vertical-align:top;padding:7px 9px;border-bottom:1px solid #ddd}
