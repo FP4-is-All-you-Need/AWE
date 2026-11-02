@@ -48,7 +48,8 @@ export function fp4Fewest(records:Construction[],forms:PrimeForm[]):Map<number,n
 }
 /** The single constructions of each prime-power modulus shown on a tab, with the comparisons the cells mark:
  fewer: the fewest products without holes is below every saved construction (FP4) or every FP4 construction (FP6);
- onlyWider: on FP6, only FP6 value sets give a construction without holes; excludedFewer: a left-out construction has fewer products.
+ onlyWider: on FP6, only FP6 value sets give a construction without holes; excludedFewer: a left-out construction has fewer
+ products than every published construction without holes.
  fp4, when given, is the FP4 side of the comparison in place of the saved constructions (an FP6 page saves FP6 constructions). */
 export function formCells(forms:PrimeForm[],tab:PrimeTab,holes:boolean,saved:Map<number,Construction[]>,fp4?:Map<number,number>):Map<number,FormCell>{
  const sets=TAB_SETS[tab],out=new Map<number,FormCell>();
@@ -65,7 +66,8 @@ export function formCells(forms:PrimeForm[],tab:PrimeTab,holes:boolean,saved:Map
   const free=cell.hole_free?.products??Infinity;
   cell.fewer=free<(tab==='fp4'?savedMin:fp4Min)&&Number.isFinite(tab==='fp4'?savedMin:fp4Min);
   cell.onlyWider=tab==='fp6'&&Number.isFinite(free)&&!Number.isFinite(fp4Min);
-  cell.excludedFewer=!!cell.excluded&&cell.excluded.products<Math.min(savedMin,free);
+  const savedFree=Math.min(...(saved.get(modulus)??[]).filter(c=>!c.holes.count).map(c=>c.products.length));
+  cell.excludedFewer=!!cell.excluded&&cell.excluded.products<Math.min(savedFree,free);
   if(!cell.hole_free&&!cell.holes)cell.entries=cell.entries.filter(f=>f.kind!=='excluded');
  }
  return out;

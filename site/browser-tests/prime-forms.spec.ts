@@ -26,6 +26,8 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`periodic table
  await expect(table.locator('[data-prime-modulus="2048"]')).toHaveAttribute('data-forms-only-wider','true');
  await expect(table.locator('[data-prime-modulus="529"]')).toHaveAttribute('data-forms','hole_free');
  await c1024.click();await expect(table.locator('[data-prime-form-reason]')).toHaveCount(1);
+ // The mark stays once the checked constructions of 1024 are read in full.
+ await expect(table.locator('[data-prime-inspection-loading]')).toHaveCount(0);await expect(c1024).toHaveAttribute('data-forms-excluded-fewer','true');
  await table.screenshot({path:`build/screens/prime-forms-fp6-${lang}-${width}.png`});
  await expect(table.locator('[data-prime-forms-detail] [data-kind=hole_free]').first()).toContainText(String(best(1024,['8xE2M3'],'hole_free')));
  await table.locator('[name=prime_forms]').uncheck();await expect(table.locator('[data-prime-forms-marker]')).toHaveCount(0);await expect(beyond.locator('[data-forms="hole_free"],[data-forms="holes"]')).toHaveCount(0);

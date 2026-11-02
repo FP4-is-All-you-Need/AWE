@@ -100,3 +100,9 @@ test('an FP6 row stands in for its construction until its forms file is read',()
  assert.equal(pendingSource(records[0]),undefined);
  assert.equal(weightVariants([c,{...c,id:'awem2_y'}]).length,1);
 });
+test('the left-out mark compares only with published constructions without holes',()=>{
+ const row=(id:string,R:number,h:number)=>rowConstruction({id,m:1024,vs:'8xE2M3',R,FA:2,FB:2,hA:h,hB:h,exact:true,weights:{A:[1,32],B:[1,32]},maxK:null,model:null,origin:null,inCatalog:true,source:'modular/forms-0003077-0010981.json'});
+ const shown=forms.filter(f=>f.modulus===1024),fp4=new Map([[1024,9]]);
+ assert.equal(formCells(shown,'fp6',true,new Map([[1024,[row('awem2_holes',2,10)]]]),fp4).get(1024)!.excludedFewer,true);   // 3 products left out, 4 without holes
+ assert.equal(formCells(shown,'fp6',true,new Map([[1024,[row('awem2_free',2,0)]]]),fp4).get(1024)!.excludedFewer,false);
+});
