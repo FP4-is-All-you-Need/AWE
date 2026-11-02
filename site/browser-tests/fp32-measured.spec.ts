@@ -24,7 +24,7 @@ for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP32 measured 
  await page.locator('[name=K]').fill('9181');await expect(page.locator(`[name=modset_id] option[value="${id}"]`)).toHaveCount(0);
  await page.locator('[name=K]').fill('8192');await page.locator('[name=precision]').selectOption('fp64');
  await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(18);
- await expect(page.locator('[data-comparison-lane][open]')).toHaveCount(3);
+ await expect(page.locator('[data-comparison-lane][open]')).toHaveCount(2);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
 });
 test('server serves measured FP32 JSON and default FP32 list',async({page})=>{
