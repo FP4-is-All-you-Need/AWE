@@ -7,7 +7,8 @@
 .prime-table-figure [data-prime-modulus] text { fill:#1A1A1A; }
 .prime-table-figure [data-prime-used] { fill:#C2185B; }
 .prime-variants { display:flex;flex-wrap:wrap;gap:3px;margin:3px 0; }
-.prime-variants button { border:1px solid #1A1A1A;padding:1px 5px;min-height:26px;font-size:14px;border-radius:0;box-shadow:none; }
+/* The formula is clipped to its button, so its invisible box does not catch clicks meant for the heading above. */
+.prime-variants button { border:1px solid #1A1A1A;padding:1px 5px;min-height:26px;font-size:14px;border-radius:0;box-shadow:none;overflow:hidden; }
 .prime-variants button[data-used-variant="true"] { border:3px solid #C2185B;padding:0 3px; }
 .prime-variants button[aria-pressed="true"] { outline:2px solid #1A1A1A;outline-offset:1px; }
 .prime-other { display:flex;gap:8px;flex-wrap:wrap;padding:4px 0;font-size:16px; }

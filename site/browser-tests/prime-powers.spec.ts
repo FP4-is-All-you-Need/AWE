@@ -8,7 +8,10 @@ for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP4 periodic t
  for(const m of [343,512,625,729,1331,2197,2401])await expect(table.locator(`[data-prime-modulus="${m}"]`)).toHaveAttribute('data-recorded','true');
  const cube=table.locator('[data-prime-modulus="343"]');await expect(cube).toHaveAttribute('data-in-set','true');await expect(cube.locator('[data-measured-marker]')).toHaveCount(0);
  await cube.click();await expect(table.locator('.prime-inspection .construction-detail')).toBeVisible();await expect(table.locator('[data-weight-variant]')).toHaveCount(5);
- await table.locator('.prime-set-history > summary').click();await expect(table.locator(`[data-prime-set="${id}"]`)).toHaveAttribute('data-use','measured');
+ // A click anywhere along the heading reaches the heading, not the weight buttons below it.
+ const heading=table.locator('.prime-set-history > summary');await heading.scrollIntoViewIfNeeded();
+ expect(await heading.evaluate(s=>{const r=s.getBoundingClientRect();return [.1,.3,.5,.7,.9].filter(f=>!s.contains(document.elementFromPoint(r.left+r.width*f,r.top+r.height/2))).length;})).toBe(0);
+ await heading.click();await expect(table.locator(`[data-prime-set="${id}"]`)).toHaveAttribute('data-use','measured');
  await expect(table.locator('[data-prime-set="awemps2_4c16afaa19d827808a3c443104b95481f7fd92f64472802415d76c8e369367f2"]')).toHaveAttribute('data-use','catalog-only');
  const figure=table.locator('.prime-table-figure');expect(await figure.evaluate(n=>n.scrollHeight<=n.clientHeight)).toBe(true);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
