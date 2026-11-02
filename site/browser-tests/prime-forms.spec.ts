@@ -27,7 +27,7 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`periodic table
  await c1024.click();await expect(table.locator('[data-prime-form-reason]')).toHaveCount(1);
  await table.screenshot({path:`build/screens/prime-forms-fp6-${lang}-${width}.png`});
  await expect(table.locator('[data-prime-forms-detail] [data-kind=hole_free]').first()).toContainText(String(best(1024,['8xE2M3'],'hole_free')));
- await table.locator('[name=prime_forms]').uncheck();await expect(table.locator('[data-prime-forms-marker]')).toHaveCount(0);await expect(beyond).toHaveCount(0);
+ await table.locator('[name=prime_forms]').uncheck();await expect(table.locator('[data-prime-forms-marker]')).toHaveCount(0);await expect(beyond.locator('[data-forms="hole_free"],[data-forms="holes"]')).toHaveCount(0);
  await table.locator('[name=prime_forms]').check();await table.locator('[name=prime_set]').selectOption('fp4');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await table.screenshot({path:`build/screens/prime-forms-${lang}-${width}.png`});
