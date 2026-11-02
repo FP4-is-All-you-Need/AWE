@@ -18,7 +18,7 @@ export function FP6Families(){
  const name=(f:string)=>FP6_FAMILIES[f]?.[en?1:0]??f;
  return <details open data-section="fp6-families" className="fp6-families" data-no-i18n>
   <summary>{en?'FP6 constructions by family':'FP6 の系列ごとの構成'}</summary>
-  <p>{en?'One representative per modulus, value set, family and product count, minimizing the larger hole count and then the sum. Every delivered family is retained. “Source report only” entries have not been reproduced by this site’s verifier and are excluded from the ribbon and component comparisons.':'法・値の集合・系列・積数ごとに、両側の穴の数の最大値、両側の合計の順に比較し、最少の構成を一つ載せます。受領したすべての系列を残しています。「出所の報告のみ」は、この頁の検算器で再現できていない行で、らせんや成分との比較には含めません。'}</p>
+  <p>{en?'One representative per modulus, value set, family and product count, minimizing the larger hole count and then the sum. Every delivered family is retained. “Source report only” entries have not been reproduced by this site’s verifier and are excluded from the modulo spiral and component comparisons.':'法・値の集合・系列・積数ごとに、両側の穴の数の最大値、両側の合計の順に比較し、最少の構成を一つ載せます。受領したすべての系列を残しています。「出所の報告のみ」は、この頁の検算器で再現できていない行で、法の螺旋表示や成分との比較には含めません。'}</p>
   <div className="paper-controls">
    <label>{en?'Family':'系列'} <select aria-label="FP6 family" value={family} onChange={e=>{setFamily(e.target.value);setPage(0);}}><option value="">{en?'All':'すべて'}</option>{Object.keys(FP6_FAMILIES).map(f=><option key={f} value={f}>{name(f)}</option>)}</select></label>
    <label>{en?'Modulus':'法'} <input aria-label="FP6 modulus" inputMode="numeric" value={modulus} onChange={e=>{setModulus(e.target.value.replace(/\D/g,''));setPage(0);}}/></label>

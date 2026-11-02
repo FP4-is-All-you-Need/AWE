@@ -75,7 +75,7 @@ function FP6Page(){
   }
  },[rows,index]);
  return <main className="paper-app" data-format-page={valueSet}><PeriodicFormatControl/><h1>FP6 · {valueSet}</h1>
- <p data-no-i18n>{en?'The periodic table, spiral ribbon, composite table and construction list all use the selected FP6 value set. The family table also retains source-reported entries that this site’s verifier could not reproduce, with their status shown.':'周期表・らせんの帯・分子の表・構成の一覧は、すべて選んだ FP6 の値の集合を使います。系列ごとの表には、この頁の検算器で再現できなかった出所の行も、状態を示して残しています。'}</p>
+ <p data-no-i18n>{en?'The periodic table, modulo spiral, composite table and construction list all use the selected FP6 value set. The family table also retains source-reported entries that this site’s verifier could not reproduce, with their status shown.':'周期表・法の螺旋表示・分子の表・構成の一覧は、すべて選んだ FP6 の値の集合を使います。系列ごとの表には、この頁の検算器で再現できなかった出所の行も、状態を示して残しています。'}</p>
  {error&&<p role="alert">{error}</p>}{lanes.length>0&&<ModulusSets lanes={lanes} selected={laneId} onSelect={setLaneId}/>}<PrimeTable records={records} sets={sets} lane={lane} comparisonLanes={lanes} forms={forms} onInspect={inspect}/><PeriodicViews/><ModularFormsList/>
  <p data-no-i18n>{en?'FP6 data corresponding to the saved FP4 integer-width maps and numerical examples are not included in this collection. The saved FP6 (8×E2M3) modulus sets are listed with the other modulus sets on the FP4 page.':'FP4 の整数幅の地図・数値例に相当する FP6 のデータは、この公開目録には収めていません。保存された FP6 (8×E2M3) の法の組は、FP4 の頁の法の組の一覧に出します。'}</p>
  </main>;
