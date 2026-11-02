@@ -1,0 +1,5 @@
+.coverage-figure{min-width:0}.coverage-figure p{margin:4px 0}
+.coverage-boards{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 4px;max-width:100%}
+.coverage-boards svg{display:block;max-width:none;background:#fff}.coverage-item{display:flex;align-items:center}
+.coverage-op{font-size:18px;padding:0 4px;align-self:center}
+.coverage-legend{margin:6px 0;padding-left:20px;font-size:13px;line-height:1.6}

@@ -4,6 +4,7 @@ import {useLanguage,translate} from './i18n.tsx';
 import {useLimbOrder} from './useLimbOrder.ts';
 import {blockPairs,type LimbOrder} from './limbOrder.ts';
 import {CompactExpansion} from './CompactExpansion.tsx';
+import {CoverageFigure} from './CoverageFigure.tsx';
 import {productBaseColor,coefficientColor,productFillOpacity} from './compact.ts';
 import {DifferenceDiagram,differencePlan} from './DifferenceDiagram.tsx';
 import {useParameter,bounded} from './parameters.ts';
@@ -15,12 +16,14 @@ import {PlaneFlow,SavedPlaneValues} from './PlaneFlow.tsx';
 import {holeLabel,residual,type Construction} from './visual.ts';
 
 export const linear=(v:number[],s:string)=>v.map((n,i)=>n?`${n<0?'-':'+'}${Math.abs(n)===1?'':Math.abs(n)}${s}_{${i}}`:'').join('').replace(/^\+/,'')||'0';
-export function Expansion({c:stored,scope=""}:{c:Construction;scope?:string}){
+type Layout='products'|'compact'|'paper';
+/** layout: the expansion view shown until one is chosen; by default compact for four or more limbs, otherwise per product. */
+export function Expansion({c:stored,scope="",layout:initial}:{c:Construction;scope?:string;layout?:Layout}){
  const dimensions=useContext(DimensionContext),lang=useLanguage();
  const key=(name:string)=>scope+name+'.'+stored.id;
  const {order,setOrder,view:c}=useLimbOrder(stored,scope),blocks=blockPairs(c);
  const [selected,setSelected]=useParameter<number|null>(key('product_index'),null,r=>r===''?null:bounded(r,0,c.products.length-1,0),v=>v===null?'':String(v)),[showValues,setShowValues]=useParameter(key('plane_values'),false,r=>r==='1',v=>v?'1':'0');
- const [layout,setLayout]=useParameter(key('expansion_layout'),Math.max(c.weights.A.length,c.weights.B.length)>=4?'compact':'products',r=>r==='compact'?'compact':'products');
+ const [layout,setLayout]=useParameter<Layout>(key('expansion_layout'),initial??(Math.max(c.weights.A.length,c.weights.B.length)>=4?'compact':'products'),r=>r==='compact'||r==='paper'?r:'products');
  const n=c.weights.B.length,m=c.weights.A.length,cell=54,gap=54,gridW=n*cell,gridH=m*cell,panel=Math.max(gridW,150)+gap,top=65;
  const diff=residual(c),consistent=diff?.every(row=>row.every(x=>x==='0'));
  const equation=`${c.denominator===1?'':c.denominator}AB${c.modulus?'\\equiv':'='}${c.products.map((p,i)=>`${p.numerator!==null&&p.numerator<0?'-':i?'+':''}\\textcolor{${coefficientColor(c,i)}}{${p.numerator===null?'?':Math.abs(p.numerator)}T_{${i}}}`).join('')}${c.modulus?`\\pmod{${c.modulus}}`:''}`;
@@ -35,8 +38,8 @@ export function Expansion({c:stored,scope=""}:{c:Construction;scope?:string}){
  {c.correction&&c.canonical?.correction?.source_cost?.correction_rel_mma!==undefined&&<p data-correction-source-cost>補正の費用比（元資料） <MathText tex={`\\times ${c.canonical.correction.source_cost.correction_rel_mma}`}/></p>}
  <p className="equation"><MathText tex={equation}/></p>
  {!consistent&&<p>{diff===null?'未測定':`係数式のずれ（行A・列B）：${diff[0].map((_,i)=>diff.map(row=>row[i])).map(r=>'('+r.join(',')+')').join(' ')}`}</p>}
- <form name={scope+'expansion_view.'+c.id} onSubmit={e=>e.preventDefault()}><label>展開図の表示 <select name="expansion_layout" data-url-key={key('expansion_layout')} value={layout} onChange={e=>setLayout(e.target.value==='compact'?'compact':'products')}><option value="products">積ごと</option><option value="compact">まとめた形</option></select></label></form>
- <div className="paper-scroll">{layout==='compact'?<CompactExpansion c={c} selected={selected} onSelect={setSelected}/>:differencePlan(c)?<DifferenceDiagram c={c} selected={selected} onSelect={setSelected}/>:<svg data-expansion={c.id} width={(c.products.length+1)*panel} height={top+gridH+100} viewBox={`0 0 ${(c.products.length+1)*panel} ${top+gridH+100}`} aria-label="全項の格子と面の積の和">
+ <form name={scope+'expansion_view.'+c.id} onSubmit={e=>e.preventDefault()}><label>展開図の表示 <select name="expansion_layout" data-url-key={key('expansion_layout')} value={layout} onChange={e=>setLayout(e.target.value==='compact'||e.target.value==='paper'?e.target.value:'products')}><option value="products">積ごと</option><option value="compact">まとめた形</option><option value="paper">{lang==='en'?'Paper figure':'論文の図の形'}</option></select></label></form>
+ <div className="paper-scroll">{layout==='paper'?<CoverageFigure c={c} selected={selected} onSelect={setSelected} en={lang==='en'}/>:layout==='compact'?<CompactExpansion c={c} selected={selected} onSelect={setSelected}/>:differencePlan(c)?<DifferenceDiagram c={c} selected={selected} onSelect={setSelected}/>:<svg data-expansion={c.id} width={(c.products.length+1)*panel} height={top+gridH+100} viewBox={`0 0 ${(c.products.length+1)*panel} ${top+gridH+100}`} aria-label="全項の格子と面の積の和">
  {Array.from({length:c.products.length+1},(_,index)=>{const x=28+index*panel,p=c.products[index-1],av=p&&c.planes?.A[p.a],bv=p&&c.planes?.B[p.b],color=index?coefficientColor(c,index-1):'#1A1A1A';
  return <g key={index} data-product={index-1} data-product-index={index?index-1:undefined} data-block-color={index?color:undefined} role={index?'button':undefined} tabIndex={index?0:undefined} aria-label={index?`積 ${index}`:'全項'} aria-pressed={selected===index-1} onClick={()=>index&&setSelected(index-1)} onKeyDown={e=>{if(index&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setSelected(index-1);}}}>
  {index>0&&<Formula x={x-gap-28} y={top+gridH/2-16} w={gap-8} h={40} tex={index===1?(c.modulus?'\\equiv':'='):'+'} size={24}/>}
