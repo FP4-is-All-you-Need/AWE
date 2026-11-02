@@ -11,7 +11,7 @@ import {ModulusCostTable} from './ModulusCostTable.tsx';
 import {CompositeSplit} from './CompositeSplit.tsx';
 import {factorText} from './modularForms.ts';
 import {factors} from './visual.ts';
-import {accumulator,COEFFICIENTS,componentComparison,cost,DEFAULT_COEFFICIENTS,dominance,formKind,groupRows,kind,pick,productPlaneOptions,type Coefficients,type PolarCatalog,type PolarRow} from './polarModel.ts';
+import {accumulator,cheapest,COEFFICIENTS,componentComparison,cost,costOrder,DEFAULT_COEFFICIENTS,dominance,formKind,groupRows,kind,pick,productPlaneOptions,type Coefficients,type PolarCatalog,type PolarRow} from './polarModel.ts';
 import './polar-periodic.css';
 const fmt=(n:number|null|undefined,d=3)=>n==null||!Number.isFinite(n)?'—':n.toLocaleString(undefined,{maximumFractionDigits:d});
 const SUP:Record<string,string>={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
@@ -53,8 +53,10 @@ function PolarView({rows,s,setS,en,onOpen}:{rows:PolarRow[];s:Coefficients;setS:
  const costs=useMemo(()=>new Map(rows.map(r=>[r.id,cost(r,s)])),[rows,s]);
  const chosen=useMemo(()=>new Map([...groups].map(([m,rs])=>[m,pick(rs,s,sizeMetric==='products'||sizeMetric==='products_per_bit'?'products':'cost')??pick(rs,s,'products')])),[groups,s,sizeMetric]);
  const candidates=useMemo(()=>groups.get(selected)??[],[groups,selected]);const dominated=useMemo(()=>dominance(candidates,s),[candidates,s]);
- const ordered=[...candidates].sort((a,b)=>(costs.get(a.id)??Infinity)-(costs.get(b.id)??Infinity)||a.R-b.R||a.id.localeCompare(b.id));
- const active=ordered.find(r=>r.id===inspect)??chosen.get(selected),comparison=componentComparison(selected,groups,s);
+ // The list, the zoomed bands and the detail under the spiral all show `active`: the picked construction, or by default
+ // the cheapest undominated one.
+ const ordered=useMemo(()=>[...candidates].sort(costOrder(s)),[candidates,s]);
+ const active=ordered.find(r=>r.id===inspect)??cheapest(candidates,s),comparison=componentComparison(selected,groups,s);
  const select=(m:number)=>{setSelected(m);setInspect('');};
  // Plane moduli of the selected modulus's candidates, read from their source files (folded planes need them).
  const [planeModuli,setPlaneModuli]=useState(new Map<string,number[]|null>());

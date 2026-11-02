@@ -40,11 +40,20 @@ export function dominance(rows:PolarRow[],s:Coefficients){
  if(best)result.set(r.id,best.id);});return result;
 }
 export type PlaneOption={R:number;F:number;rows:PolarRow[];shown:PolarRow};
+/** Lower cost first (unknown costs last), then fewer limbs A+B, then id. */
+export function costOrder(s:Coefficients){
+ const limbs=(r:PolarRow)=>r.weights.A.length+r.weights.B.length;
+ return (a:PolarRow,b:PolarRow)=>{const x=cost(a,s),y=cost(b,s),d=x===null||y===null?Number(x===null)-Number(y===null):x-y;return Math.abs(d)>1e-9?d:limbs(a)-limbs(b)||a.id.localeCompare(b.id);};
+}
+/** The construction a modulus shows until one is picked: the first by costOrder among those no other construction dominates. */
+export function cheapest(rows:PolarRow[],s:Coefficients):PolarRow|undefined{
+ const dominated=dominance(rows,s),open=rows.filter(r=>!dominated.has(r.id));
+ return [...(open.length?open:rows)].sort(costOrder(s))[0];
+}
 /** One modulus: the (products, planes A+B) pairs that no other construction beats in both, fewest products first.
- * A pair shows `first` when it holds it, otherwise its lowest-cost undominated construction, then fewer limbs A+B, then id. */
+ * A pair shows `first` when it holds it, otherwise its first construction by costOrder among the undominated ones. */
 export function productPlaneOptions(rows:PolarRow[],s:Coefficients,first?:PolarRow):PlaneOption[]{
- const planes=(r:PolarRow)=>r.FA+r.FB,limbs=(r:PolarRow)=>r.weights.A.length+r.weights.B.length,dominated=dominance(rows,s);
- const order=(a:PolarRow,b:PolarRow)=>{const x=cost(a,s),y=cost(b,s),d=x===null||y===null?Number(x===null)-Number(y===null):x-y;return Math.abs(d)>1e-9?d:limbs(a)-limbs(b)||a.id.localeCompare(b.id);};
+ const planes=(r:PolarRow)=>r.FA+r.FB,dominated=dominance(rows,s),order=costOrder(s);
  const pairs=[...new Map(rows.map(r=>[`${r.R}:${planes(r)}`,{R:r.R,F:planes(r)}])).values()];
  return pairs.filter(p=>!pairs.some(q=>q!==p&&q.R<=p.R&&q.F<=p.F)).sort((a,b)=>a.R-b.R).map(p=>{
   const all=rows.filter(r=>r.R===p.R&&planes(r)===p.F),open=all.filter(r=>!dominated.has(r.id)),list=open.length?open:all;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {DEFAULT_COEFFICIENTS,formKind,productPlaneOptions,type PolarRow} from '../src/polarModel.ts';
+import {cheapest,DEFAULT_COEFFICIENTS,formKind,productPlaneOptions,type PolarRow} from '../src/polarModel.ts';
 
 const model={E32f:[null,10,null],E32i:[null,10,null],K32f:null,K32i:null,encA:1,encB:1,mP:[0,0,0,0],L:null,shiftLength:null};
 const row=(id:string,R:number,FA:number,FB:number,A:number[],B=A):PolarRow=>({id,m:343,vs:'2xE2M1',R,FA,FB,hA:0,hB:0,exact:true,weights:{A,B},maxK:null,model,origin:null,inCatalog:true,source:'modular/forms.json'});
@@ -24,4 +24,11 @@ test('form kind: vanishing powers of geometric weights and plane moduli below th
  assert.deepEqual(formKind(fourLimbs,[343,343,343,343,343,343]).folded,[]);
  assert.deepEqual(formKind(fourLimbs,[343,343,343,343,343,343]).vanishing,[]);
  assert.equal(formKind(vanishing6,null).folded,null);
+});
+test('the default construction is the cheapest undominated one, then fewer limbs, then id, as in the bands',()=>{
+ assert.equal(cheapest(rows,DEFAULT_COEFFICIENTS)?.id,'awem2_a');
+ assert.equal(cheapest([vanishing6,fourLimbs],DEFAULT_COEFFICIENTS)?.id,'awem2_z');
+ assert.equal(cheapest([],DEFAULT_COEFFICIENTS),undefined);
+ const options=productPlaneOptions(rows,DEFAULT_COEFFICIENTS);
+ assert.ok(options.some(o=>o.shown.id===cheapest(rows,DEFAULT_COEFFICIENTS)?.id));
 });
