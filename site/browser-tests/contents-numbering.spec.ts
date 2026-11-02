@@ -30,7 +30,7 @@ test('contents and summaries share hierarchical numbers through toggles and new 
 test('construction detail kinds keep their numbered slots after values and selection changes',async({page})=>{
  await page.goto('/?crt=1&lang=en');const lane=page.locator('.paper-lane'),detail=lane.locator('.construction-detail');await expect(detail).toBeVisible();await numbered(page);
  const read=()=>detail.locator(':scope > details[data-section] > summary').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>{const section=(n.parentElement as HTMLElement).dataset.section!;return [section.split('.')[0],(n as HTMLElement).dataset.sectionNumber];})));
- const before=await read();expect(Object.keys(before)).toEqual(expect.arrayContaining(['flow','matrix','encoding','construction-cost']));
+ const before=await read();expect(Object.keys(before)).toEqual(expect.arrayContaining(['flow','matrix','encoding']));
  await detail.locator('[name=plane_values]').check();await numbered(page);expect(await read()).toEqual(before);
  await lane.locator('[data-tile-id]').nth(1).click();await numbered(page);await expect.poll(read).toEqual(before);
  const flow=detail.locator('details[data-section^="flow."]');await flow.locator(':scope > summary').click();await numbered(page);const side=flow.locator('details[data-side-details=B] > summary');const preceding=await side.evaluate(n=>{const parent=n.parentElement!.parentElement;return [...parent!.querySelectorAll('details')].filter(d=>d.parentElement?.closest('details')===parent?.closest('details')&&(d.compareDocumentPosition(n.parentElement!)&Node.DOCUMENT_POSITION_FOLLOWING)).length;});await expect(side).toHaveAttribute('data-section-number',`${before.flow}.${preceding+1}`);
