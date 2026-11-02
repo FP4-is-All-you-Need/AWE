@@ -1,5 +1,14 @@
-import {factors,type Construction,type VisualCatalog} from './visual.ts';
+import {factors,type Construction,type Lane,type VisualCatalog} from './visual.ts';
 import type {ModularCatalog} from './modular.ts';
+
+export const FP6_VALUE_SETS=['8xE2M3','16xE3M2'];
+/** A set saved on an FP6 value set; its format starts with "FP6 " (FP64 does not match). */
+export const isFP6Lane=(l?:Lane)=>!!l?.format&&/^FP6\b/.test(l.format);
+/** A saved construction whose limbs use an FP6 value set. */
+export function onFP6ValueSet(c:Construction){
+ const sets=c.canonical?.limb_sets;
+ return !!sets&&[...sets.A,...sets.B].some(s=>FP6_VALUE_SETS.includes(s));
+}
 
 export type PrimeSet={id:string;bits:number;k:number;products:number;moduli:number[];solutionIds:string[];measured:boolean};
 export function primeSets(catalog?:ModularCatalog,saved?:VisualCatalog):PrimeSet[]{

@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {formCells,primeSets,primeTableData,primesThrough,weightVariants,type PrimeForm} from '../src/primeTable.ts';
+import {formCells,isFP6Lane,onFP6ValueSet,primeSets,primeTableData,primesThrough,weightVariants,type PrimeForm} from '../src/primeTable.ts';
 import {connect,pool,factors} from '../src/visual.ts';
+import {mergeModularCatalogs} from '../src/modular.ts';
+import {storedModulusLanes} from '../src/modulusLanes.ts';
 const read=(p:string)=>JSON.parse(fs.readFileSync(new URL('../dist/'+p,import.meta.url),'utf8'));
 const catalog=read('modular/catalog.json'),powers=read('modular/powers.json');
 catalog.solutions.push(...powers.solutions);catalog.sets.push(...powers.sets);
@@ -66,4 +68,14 @@ test('the FP6 tab is the union with FP4 and marks FP6-only, fewer and left-out c
  assert.equal(cells.get(169)!.fewer,true);    // 2 products on 8xE2M3 against the saved FP4 constructions of 169
  assert.equal(cells.get(529)!.onlyWider,false);
  assert.ok(primeTableData(records,sets,cells).columns.find(c=>c.prime===2)!.powers.some(p=>p.modulus===1024&&p.exponent===10));
+});
+test('sets saved on an FP6 value set and their FP6 constructions stay out of the FP4 table',()=>{
+ const merged=mergeModularCatalogs([catalog,read('modular/fp6-sets.json')]),saved=connect(read('visualization/modsets.json'),merged);
+ const all=pool(saved,merged);
+ assert.ok(primeTableData(all).primeMax>157);
+ const fp4=primeTableData(all.filter(c=>!onFP6ValueSet(c)),primeSets({...merged,sets:merged.sets.filter(s=>!s.value_set)},saved));
+ assert.equal(fp4.primeMax,157);assert.deepEqual(fp4.columns,table.columns);assert.deepEqual(fp4.beyond,table.beyond);
+ const lanes=storedModulusLanes(merged);
+ assert.deepEqual(lanes.filter(isFP6Lane).map(l=>l.id).sort(),merged.sets.filter(s=>s.value_set).map(s=>s.id).sort());
+ assert.ok(lanes.some(l=>l.format==='FP64')&&!lanes.some(l=>l.format==='FP64'&&isFP6Lane(l)));
 });

@@ -7,7 +7,7 @@ import {constructionCost} from './cost.ts';
 import {useParameter,bounded} from './parameters.ts';
 import type {Lane} from './visual.ts';
 // Sets saved on an FP6 value set name it first; FP4 sets keep their label.
-const fp6=(lane:Lane)=>lane.format?.startsWith('FP6')?lane.format+' / ':'';
+const fp6=(lane:Lane)=>lane.format?.startsWith('FP6 (')?lane.format+' / ':'';
 export function ModulusSets({lanes,selected,onSelect}:{lanes:Lane[];selected:string;onSelect:(id:string)=>void}){
  const cost=useContext(CostContext),dims=useContext(DimensionContext);
  const [sort,setSort]=useParameter('modset_sort','products',r=>['products','planes','cost'].includes(r)?r:'products');
