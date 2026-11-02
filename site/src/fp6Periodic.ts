@@ -24,7 +24,7 @@ export function verificationReason(reason:string,en:boolean){
  const labels:Record<string,[string,string]>={
   nonunit_denominator_needs_table:['分母の逆数が法 m で存在せず、この頁の検算器には保存対象の範囲を超える符号化表が必要です。構成が無いという意味ではありません。','The denominator is not invertible modulo m; the verifier requires an encoding table beyond its supported stored-table range. This is not a nonexistence result.'],
   coverage_cost_cap:['符号化を作り直す手数が、検算器の上限を超えました。','Rebuilding the encoding exceeded the verifier’s work budget.'],
-  no_served_residue:['この検算器で作り直した符号化では、片側に表せる剰余が無く、積の検算を行えませんでした。出所の手順との対応は未確認です。','The encoding rebuilt by this verifier serves no residues on one side, so product verification could not proceed. Its correspondence to the source procedure is unconfirmed.'],
+  no_served_residue:['この検算器で作り直した符号化では、片側に表せる剰余が無く、積の検算を行えませんでした。出所の手順との対応は未確認です。','The encoding rebuilt by this verifier represents no residue on one side, so its products could not be checked. Its correspondence to the source procedure is unconfirmed.'],
  };
  return labels[reason]?.[en?1:0]??reason;
 }
