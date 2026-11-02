@@ -8,7 +8,7 @@ for(const lang of ['en','ja'])test(`saved set run evidence badges survive select
   await page.locator('[data-section="modset-catalog"] > summary').click();
   await page.locator('[name="modset_id"]').selectOption(set.id);
   const measured=set.verification.moduli[0]!==107;
-  const label=measured?(lang==='en'?'Used in measurements':'測定で使用'):(lang==='en'?'Build only':'build だけ');
+  const label=measured?(lang==='en'?'Used in measurements':'測定で使用'):(lang==='en'?'Compiled; run unconfirmed':'コンパイル済・実行未確認');
   await expect(page.locator('.paper-lane [data-set-usage]')).toHaveText(label);
   await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(set.solution_ids.length);
   await page.reload();
