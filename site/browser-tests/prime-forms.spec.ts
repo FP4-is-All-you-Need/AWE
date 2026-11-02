@@ -18,13 +18,15 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`periodic table
  await expect(beyond.locator('[data-prime-beyond="163"]')).toHaveAttribute('data-forms','holes');
  await table.locator('[name=prime_holes]').uncheck();await expect(beyond.locator('[data-prime-beyond="163"]')).toHaveCount(0);
  expect(new URL(page.url()).searchParams.get('prime_holes')).toBe('0');await table.locator('[name=prime_holes]').check();
- // FP6: the union, with 1024 marked as hole-free only on FP6 and with a fewer-product construction outside the published data
+ // FP6 (8xE2M3): 1024 has fewer products than every FP4 construction and a fewer-product construction outside the published data;
+ // 2048 has no FP4 construction, so it is hole-free only on FP6
  await table.locator('[name=prime_set]').selectOption('fp6');await expect(table.locator(':scope > summary')).toContainText('FP6');
- const c1024=table.locator('[data-prime-modulus="1024"]');await expect(c1024).toHaveAttribute('data-forms-only-wider','true');await expect(c1024).toHaveAttribute('data-forms-excluded-fewer','true');
+ const c1024=table.locator('[data-prime-modulus="1024"]');await expect(c1024).toHaveAttribute('data-forms-fewer','true');await expect(c1024).toHaveAttribute('data-forms-only-wider','false');await expect(c1024).toHaveAttribute('data-forms-excluded-fewer','true');
+ await expect(table.locator('[data-prime-modulus="2048"]')).toHaveAttribute('data-forms-only-wider','true');
  await expect(table.locator('[data-prime-modulus="529"]')).toHaveAttribute('data-forms','hole_free');
  await c1024.click();await expect(table.locator('[data-prime-form-reason]')).toHaveCount(1);
  await table.screenshot({path:`build/screens/prime-forms-fp6-${lang}-${width}.png`});
- await expect(table.locator('[data-prime-forms-detail] [data-kind=hole_free]').first()).toContainText(String(best(1024,['2xE2M1','8xE2M3','16xE3M2'],'hole_free')));
+ await expect(table.locator('[data-prime-forms-detail] [data-kind=hole_free]').first()).toContainText(String(best(1024,['8xE2M3'],'hole_free')));
  await table.locator('[name=prime_forms]').uncheck();await expect(table.locator('[data-prime-forms-marker]')).toHaveCount(0);await expect(beyond).toHaveCount(0);
  await table.locator('[name=prime_forms]').check();await table.locator('[name=prime_set]').selectOption('fp4');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

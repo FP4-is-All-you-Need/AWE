@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {formCells,isFP6Lane,onFP6ValueSet,primeSets,primeTableData,primesThrough,weightVariants,type PrimeForm} from '../src/primeTable.ts';
+import {formCells,fp4Fewest,isFP6Lane,onFP6ValueSet,pendingSource,primeSets,primeTableData,primesThrough,rowConstruction,weightVariants,type PrimeForm} from '../src/primeTable.ts';
 import {connect,pool,factors} from '../src/visual.ts';
 import {mergeModularCatalogs} from '../src/modular.ts';
 import {storedModulusLanes} from '../src/modulusLanes.ts';
@@ -78,4 +78,25 @@ test('sets saved on an FP6 value set and their FP6 constructions stay out of the
  const lanes=storedModulusLanes(merged);
  assert.deepEqual(lanes.filter(isFP6Lane).map(l=>l.id).sort(),merged.sets.filter(s=>s.value_set).map(s=>s.id).sort());
  assert.ok(lanes.some(l=>l.format==='FP64')&&!lanes.some(l=>l.format==='FP64'&&isFP6Lane(l)));
+});
+test('an FP6 page shows one value set, marks against the FP4 minima and runs its columns while primes have constructions',()=>{
+ const fp4=fp4Fewest(records,forms);
+ assert.equal(fp4.get(512),5);assert.equal(fp4.get(1331),6);assert.equal(fp4.has(1024),false);   // a single construction; a saved construction
+ const shown=[...forms,...[[9,3],[25,5],[49,7],[121,11]].map(([m,p])=>form(m,p,2,'8xE2M3','hole_free',2)),form(251,251,1,'8xE2M3','hole_free',3)].filter(f=>f.value_set==='8xE2M3');
+ // The FP6 page's own saved constructions do not stand in for FP4 in the marks.
+ const savedFP6=new Map([[169,[{...records.find(c=>c.modulus===169)!,id:'fp6_169',products:[records.find(c=>c.modulus===169)!.products[0]]}]]]);
+ const cells=formCells(shown,'fp6',true,savedFP6,fp4),t=primeTableData([],[],cells,true);
+ assert.ok(!cells.has(529)&&cells.has(169)&&cells.has(1024));
+ assert.equal(cells.get(169)!.fewer,true);assert.equal(cells.get(169)!.onlyWider,false);   // 2 products against the saved FP4 constructions of 169
+ assert.equal(cells.get(1024)!.onlyWider,true);
+ assert.equal(t.primeMax,13);assert.deepEqual(t.primes,[2,3,5,7,11,13]);   // 17 has nothing, so the columns stop at 13
+ assert.ok(t.columns.find(c=>c.prime===2)!.powers.some(p=>p.modulus===1024&&p.exponent===10));
+ assert.deepEqual(t.beyond.map(p=>p.modulus),[251]);
+ assert.equal(primeTableData([],[],cells).primeMax,2);   // without contiguous columns, only saved constructions set the range
+});
+test('an FP6 row stands in for its construction until its forms file is read',()=>{
+ const c=rowConstruction({id:'awem2_x',m:343,vs:'8xE2M3',R:2,FA:2,FB:2,hA:0,hB:3,exact:true,weights:{A:[1,7],B:[1,49]},maxK:null,model:null,origin:null,inCatalog:true,source:'modular/forms-0000286-0000728.json'});
+ assert.equal(c.products.length,2);assert.equal(c.holes.count,3);assert.equal(pendingSource(c),'modular/forms-0000286-0000728.json');
+ assert.equal(pendingSource(records[0]),undefined);
+ assert.equal(weightVariants([c,{...c,id:'awem2_y'}]).length,1);
 });
