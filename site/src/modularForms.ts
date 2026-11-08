@@ -1,5 +1,6 @@
 import {factors} from './visual.ts';
 import type {Pair} from './types.ts';
+import {withoutUnusedLimbs} from './unusedLimbs.ts';
 
 /** Single modular constructions (data/modular/forms-*.json listed in forms-index.json, schema 2; schema-1 rows may appear unchanged). */
 export type FormSolution={schema_version:number;id:string;modulus:number;weights:Pair<number[]>;planes:Pair<number[][]>;plane_sets:Pair<string[]>;plane_moduli?:Pair<number[]>;products:{a:number;b:number;numerator:number}[];denominator:number;holes?:{A:number;B:number;exact:boolean;method?:string};reconstruction?:{procedure:string;note?:string};prior_checker_versions?:string[];encoding?:Pair<(number[]|null)[]>;accumulation?:{max_k:number|null}};
@@ -32,9 +33,15 @@ export function formRow(s:FormSolution):FormRow{
   folded:[...(s.plane_moduli?.A??[]),...(s.plane_moduli?.B??[])].some(f=>f<s.modulus),holesA:holes.A,holesB:holes.B,exact:holes.exact,maxK:s.accumulation?.max_k??null,table:Boolean(s.encoding),
   denominator:s.denominator,dividesD1:s.reconstruction?.procedure==='divide_d1_then_multiply_d2_inverse'};
 }
-/** The value-set filter keeps the constructions that hold on the chosen set, including those checked on a set it contains. */
+/** The value-set filter keeps the constructions that hold on the chosen set, including those checked on a set it contains.
+ * Rows count without unused limbs. Rows that are then the same construction of a modulus are listed once (fewer omitted
+ * limbs first, then the smaller id); every id still opens from the URL. */
 export function formRows(list:FormSolution[],f:FormFilters,inclusion=VALUE_SET_INCLUSION):FormRow[]{
- const range=parseRange(f.range);
- return list.filter(s=>(!range||(s.modulus>=range[0]&&s.modulus<=range[1]))&&(!f.set||usableOn(s.plane_sets.A[0],f.set,inclusion))&&(!f.holeFree||!(s.holes&&(s.holes.A||s.holes.B))))
-  .map(formRow).sort((a,b)=>a.modulus-b.modulus||a.products-b.products||a.id.localeCompare(b.id));
+ const range=parseRange(f.range),shown=new Map<string,{row:FormRow;omitted:number}>();
+ for(const raw of list.filter(s=>(!range||(s.modulus>=range[0]&&s.modulus<=range[1]))&&(!f.set||usableOn(s.plane_sets.A[0],f.set,inclusion))&&(!f.holeFree||!(s.holes&&(s.holes.A||s.holes.B))))){
+  const s=withoutUnusedLimbs(raw),omitted=raw.weights.A.length+raw.weights.B.length-s.weights.A.length-s.weights.B.length;
+  const key=JSON.stringify([s.modulus,s.plane_sets,s.weights,s.planes,s.plane_moduli??null,s.products.map(p=>[p.a,p.b,p.numerator]).sort(),s.denominator,s.holes?.A??0,s.holes?.B??0,s.reconstruction?.procedure??null]),old=shown.get(key);
+  if(!old||omitted<old.omitted||(omitted===old.omitted&&raw.id<old.row.id))shown.set(key,{row:formRow(s),omitted});
+ }
+ return [...shown.values()].map(v=>v.row).sort((a,b)=>a.modulus-b.modulus||a.products-b.products||a.id.localeCompare(b.id));
 }

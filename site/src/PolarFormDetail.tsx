@@ -20,7 +20,8 @@ function PolarFormDetail({row,en}:{row:PolarRow;en:boolean}){
  useEffect(()=>{let alive=true;read<{solutions:(FormSolution|ModularSolution)[]}>(row.source).then(d=>{
   const found=d.solutions.find(v=>v.id===row.id);if(!found)throw Error(en?'Source construction was not found':'元の構成が見つかりません');
   const built=row.source.startsWith('modular/forms-')?formConstruction(found as FormSolution):fromCanonical(found as ModularSolution);
-  if(built.modulus!==row.m||built.products.length!==row.R||JSON.stringify(built.weights)!==JSON.stringify(row.weights))throw Error(en?'Source and display index do not match':'元データと表示用索引が一致しません');
+  // The display index describes the published record; the expansion leaves out unused limbs.
+  if(found.modulus!==row.m||found.products.length!==row.R||JSON.stringify(found.weights)!==JSON.stringify(row.weights))throw Error(en?'Source and display index do not match':'元データと表示用索引が一致しません');
   if(alive)setC(built);
  }).catch(e=>{if(alive)setError(String(e));});return()=>{alive=false;};},[row,en]);
  return <section className="polar-form-detail" data-polar-form-detail={row.id} data-i18n>

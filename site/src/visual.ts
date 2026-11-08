@@ -1,5 +1,6 @@
 import type {Pair, Solution} from './types.ts';
 import type {ModularCatalog, ModularSolution} from './modular.ts';
+import {omittedNote,withoutUnusedLimbs} from './unusedLimbs.ts';
 
 export const PAPER_8192='awems1_5b05738257bbabf8901c9dfaa2c8b7d03469ce483316bd6e8f9b0b46197e5757';
 export const PAPER_16384='awems1_a5885349a9a7ded35f1072e1509027c38f41c3e8b6033865068b05d0de7893a0';
@@ -19,11 +20,11 @@ function termKey(c:Pick<Construction,'planes'>,p:{a:number;b:number}){return c.p
 export function geometry(c:Pick<Construction,'modulus'|'weights'|'planes'|'products'>):string{
  return JSON.stringify([c.modulus,c.weights,c.planes?c.products.map(p=>termKey(c,p)).sort():null]);
 }
-export function fromCanonical(s:ModularSolution):Construction{
- const extra=s as ModularSolution&{accumulation?:{max_k:number|null}};
+export function fromCanonical(raw:ModularSolution):Construction{
+ const s=withoutUnusedLimbs(raw),extra=s as ModularSolution&{accumulation?:{max_k:number|null}};
  let shape=s.weights.A.length>2||s.weights.B.length>2?`${s.weights.A.length}×${s.weights.B.length}`:'direct';if(s.weights.A.length===1&&s.weights.B.length===1)shape='one';
  else if(s.weights.A.length===2&&s.products.length===3)shape=s.weights.A[1]*s.weights.B[1]%s.modulus===0?'B':'A';
- return {plane_moduli:s.plane_moduli,limbs_stored:s.limbs_stored,additional:{verification:s.verified,measurement:s.measurement,correction_source:s.correction?.source_cost,encoding_origin:s.encoding_origin},id:s.id,modulus:s.modulus,weights:s.weights,planes:s.planes,products:s.products.map(p=>({...p,group:null})),denominator:s.denominator,shape,faces_a:new Set(s.products.map(p=>p.a)).size,faces_b:new Set(s.products.map(p=>p.b)).size,holes:{count:s.measurement?Math.max(s.measurement.holes.A.length,s.measurement.holes.B.length):0,share:s.measurement?Math.max(s.measurement.holes.A.length,s.measurement.holes.B.length)/s.modulus:0},correction:s.correction?{kind:s.correction.kind,chosen_representatives:null}:undefined,carry:false,block_shift:false,source_sha256:s.provenance?.[0]?.source_sha256??'',canonical:s,max_k:extra.accumulation?.max_k};
+ return {plane_moduli:s.plane_moduli,limbs_stored:s.limbs_stored,additional:{verification:s.verified,measurement:s.measurement,correction_source:s.correction?.source_cost,encoding_origin:s.encoding_origin,...omittedNote(raw,s)},id:s.id,modulus:s.modulus,weights:s.weights,planes:s.planes,products:s.products.map(p=>({...p,group:null})),denominator:s.denominator,shape,faces_a:new Set(s.products.map(p=>p.a)).size,faces_b:new Set(s.products.map(p=>p.b)).size,holes:{count:s.measurement?Math.max(s.measurement.holes.A.length,s.measurement.holes.B.length):0,share:s.measurement?Math.max(s.measurement.holes.A.length,s.measurement.holes.B.length)/s.modulus:0},correction:s.correction?{kind:s.correction.kind,chosen_representatives:null}:undefined,carry:false,block_shift:false,source_sha256:s.provenance?.[0]?.source_sha256??'',canonical:s,max_k:extra.accumulation?.max_k};
 }
 export function fromInteger(s:Solution):Construction{return {id:s.id,modulus:0,weights:s.weights,planes:s.planes,products:s.products.map(p=>({...p,group:null})),denominator:s.denominator,shape:`${s.products.length}積`,faces_a:s.planes.A.length,faces_b:s.planes.B.length,holes:{count:0,share:0},carry:false,block_shift:false,source_sha256:s.provenance[0]?.source_sha256??'',max_k:s.accumulation.max_k,integer:s,additional:{widths:s.widths,domain:s.domain}};}
 export function connect(saved:VisualCatalog,canonical:ModularCatalog):VisualCatalog{
