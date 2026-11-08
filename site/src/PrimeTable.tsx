@@ -17,16 +17,15 @@ const SET_LABEL:Record<string,string>={'2xE2M1':'FP4 (2×E2M1)','8xE2M3':'FP6 (8
 const REASON:Record<string,[string,string]>={nonunit_denominator_needs_table:['分母が法の単元でなく、公開の検算器で確かめるには符号化の表が要る(法が 256 より大きい構成の表は収めていない)','the denominator is not a unit modulo the modulus; checking it with the public verifier needs its encoding table, and tables are not stored for moduli above 256'],
  coverage_cost_cap:['検算器が決まった手数の内で符号化を作り直せない','the verifier cannot rebuild its encoding within its fixed work budget'],
  no_served_residue:['検算器が作り直した符号化では片側に表せる剰余が無く、積を検算できない(出所の手順との対応は未確認)','the encoding rebuilt by the verifier represents no residue on one side, so its products cannot be checked (its correspondence to the source procedure is unconfirmed)']};
-/** The single constructions of a modulus: value set, holes, products, planes and id, with the left-out ones and their reason.
- * A construction already read in full gives its counts without unused limbs. */
-function FormRows({cell,en,shown}:{cell:FormCell;en:boolean;shown:Construction[]}){
+/** The single constructions of a modulus: value set, holes, products, planes and id, with the left-out ones and their reason. */
+function FormRows({cell,en}:{cell:FormCell;en:boolean}){
  const t=(ja:string,english:string)=>en?english:ja;
  return <div className="prime-forms" data-prime-forms-detail>
   <h4>{t('単独の法の構成','Single modular constructions')}</h4>
   <table><thead><tr><th>{t('値の集合','Value set')}</th><th>{t('穴','Holes')}</th><th>{t('積','Products')}</th><th>{t('面 A / B','Planes A / B')}</th><th>id</th></tr></thead>
-  <tbody>{cell.entries.map(f=>{const c=shown.find(c=>c.id===f.id&&c.planes),counts=c?{products:c.products.length,planes:[c.faces_a,c.faces_b??f.planes[1]]}:f;return <tr key={f.kind+f.id} data-prime-form={f.id} data-kind={f.kind}><td>{SET_LABEL[f.value_set]??f.value_set}</td>
+  <tbody>{cell.entries.map(f=><tr key={f.kind+f.id} data-prime-form={f.id} data-kind={f.kind}><td>{SET_LABEL[f.value_set]??f.value_set}</td>
    <td>{f.kind==='excluded'?t('公開の data の外','not in the published data'):f.holes&&(f.holes.A||f.holes.B)?`${f.holes.A} / ${f.holes.B}${f.holes.exact?'':t('(上限)',' (upper bound)')}`:t('なし','none')}</td>
-   <td>{counts.products}</td><td>{counts.planes[0]} / {counts.planes[1]}</td><td className="prime-form-id">{f.id.slice(0,f.id.indexOf('_')+9)}…</td></tr>;})}</tbody></table>
+   <td>{f.products}</td><td>{f.planes[0]} / {f.planes[1]}</td><td className="prime-form-id">{f.id.slice(0,f.id.indexOf('_')+9)}…</td></tr>)}</tbody></table>
   {cell.entries.filter(f=>f.kind==='excluded').map(f=><p key={f.id} data-prime-form-reason>{t('公開の data の外の構成: ','Not in the published data: ')}{REASON[f.reason??'']?.[en?1:0]??f.reason}{t('。一覧は data/modular/forms-excluded.json。','. Listed in data/modular/forms-excluded.json.')}</p>)}
  </div>;
 }
@@ -151,7 +150,7 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
     <label>{en?'Construction':'構成'} <select name="prime_construction" value={inspected.id} onChange={e=>setOpenedId(e.target.value)}>{variants.map((c,i)=><option key={c.id} value={c.id}>{i+1}: A ({c.weights.A.join(',')}) / B ({c.weights.B.join(',')}) · {c.products.length}{en?' products':'積'}{used.has(c.id)?' ✓':''}</option>)}</select></label>
     <Expansion key={inspected.id} c={inspected} scope="prime."/>
    </>:!shownForm(openedModulus)&&<output>{en?'Not recorded':'未収録'}</output>}
-   {formsBy.get(openedModulus)&&<FormRows cell={formsBy.get(openedModulus)!} en={en} shown={all}/>}
+   {formsBy.get(openedModulus)&&<FormRows cell={formsBy.get(openedModulus)!} en={en}/>}
   </div>}
   {tab==='fp6'&&<FP6Families/>}
  </details>;

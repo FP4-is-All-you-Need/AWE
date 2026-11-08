@@ -6,6 +6,7 @@ import {factorText} from './modularForms.ts';
 import {DIRECT_COLORS} from './productPalette.ts';
 import {componentComparison,type Coefficients,type PolarRow} from './polarModel.ts';
 import {moleculeSharing,type MoleculeSource} from './moleculeModel.ts';
+import {withoutUnusedLimbs} from './unusedLimbs.ts';
 import './molecule-detail.css';
 
 const cache=new Map<string,Promise<{solutions:MoleculeSource[]}>>();
@@ -15,7 +16,8 @@ export function MoleculeDetail({m,groups,s,en}:{m:number;groups:Map<number,Polar
  const comparison=useMemo(()=>componentComparison(m,groups,s),[m,groups,s]),row=comparison.best;
  const [source,setSource]=useState<MoleculeSource>(),[error,setError]=useState(''),[selected,setSelected]=useState<number|null>(null);
  useEffect(()=>{let alive=true;setSource(undefined);setError('');setSelected(null);if(row)sourceFile(row.source).then(d=>{
-  const found=d.solutions.find(v=>v.id===row.id);if(!found)throw Error(en?'Source construction was not found':'元の構成が見つかりません');
+  const raw=d.solutions.find(v=>v.id===row.id);if(!raw)throw Error(en?'Source construction was not found':'元の構成が見つかりません');
+  const found=withoutUnusedLimbs(raw);
   if(found.modulus!==row.m||found.products.length!==row.R||found.planes.A.length!==row.FA||found.planes.B.length!==row.FB||JSON.stringify(found.weights)!==JSON.stringify(row.weights))throw Error(en?'Source and display index do not match':'元データと表示用索引が一致しません');
   if(alive)setSource(found);
  }).catch(e=>{if(alive)setError(String(e));});return()=>{alive=false;};},[row,en]);

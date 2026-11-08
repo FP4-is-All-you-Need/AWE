@@ -42,6 +42,22 @@ test('saved FP6 constructions leave out unused limbs too',()=>{
   assert.deepEqual(c.weights,{A:[1],B:[1]});assert.equal(c.shape,'one');assert.equal(c.additional?.omitted_limbs,2);assert.deepEqual(c.canonical!.encoding.A[1],[1]);
  }
 });
+test('the display indexes count every construction as the site shows it',()=>{
+ const index=read('forms-index.json'),polar=JSON.parse(fs.readFileSync(new URL('../../data/visualization/polar-catalog.json',import.meta.url),'utf8')).rows;
+ const forms:FormSolution[]=index.chunks.flatMap((c:{path:string})=>read(c.path).solutions);
+ const records=new Map<string,FormSolution|ModularSolution>([...forms,...read('fp6-sets.json').solutions].map(s=>[s.id,s]));
+ const counts=(s:FormSolution|ModularSolution)=>{const v=withoutUnusedLimbs(s);return {weights:v.weights,R:v.products.length,FA:v.planes.A.length,FB:v.planes.B.length};};
+ let rows=0,powers=0;
+ for(const r of polar){const s=records.get(r.id);if(!s)continue;assert.deepEqual({weights:r.weights,R:r.R,FA:r.FA,FB:r.FB},counts(s),r.id);rows++;}
+ for(const f of index.prime_powers){const s=records.get(f.id);if(!s)continue;const c=counts(s);assert.deepEqual([f.products,f.planes],[c.R,[c.FA,c.FB]],f.id);powers++;}
+ assert.ok(rows>11000&&powers>600);
+ // The list and the polar index leave out the same rows.
+ const indexed=new Set(polar.map((r:{id:string})=>r.id));
+ const listed=new Set(['2xE2M1','8xE2M3','16xE3M2'].flatMap(set=>formRows(forms.filter(s=>s.plane_sets.A[0]===set),{range:'',set,holeFree:false},{}).map(r=>r.id)));
+ assert.deepEqual(forms.filter(s=>listed.has(s.id)!==indexed.has(s.id)).map(s=>s.id),[]);assert.equal(forms.length-listed.size,10);
+ assert.ok(index.prime_powers.every((f:{id:string;kind:string})=>f.kind==='excluded'||listed.has(f.id)));
+ assert.deepEqual(index.prime_powers.filter((f:{modulus:number;value_set:string})=>f.modulus===4&&f.value_set==='8xE2M3').map((f:{products:number})=>f.products),[1]);
+});
 test('the list shows a construction once when leaving out unused limbs makes two rows the same',()=>{
  const rows=formRows(small,{range:'4',set:'2xE2M1',holeFree:false},{});
  assert.ok(rows.some(r=>r.id.startsWith('awem2_16fdd925')));assert.ok(!rows.some(r=>r.id.startsWith('awem2_9fa03837')));

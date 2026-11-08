@@ -27,3 +27,25 @@ for(const lang of ['en','ja'])test(`a selected construction leaves out unused li
  await expect(detail.locator('[data-omitted-limbs]')).toHaveCount(0);
  expect(errors).toEqual([]);
 });
+for(const lang of ['en','ja'])test(`periodic cells and the spiral count a construction as it opens (${lang})`,async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ // FP6 mod 4 needs one product once the limb that is always 0 is left out.
+ await page.goto(`/?lang=${lang}&prime_set=fp6&periodic_fp6=8xE2M3`);
+ const cell=page.locator('.prime-table [data-prime-modulus="4"]').first();await expect(cell).toHaveCount(1,{timeout:30000});
+ await expect(cell.locator('title')).toContainText(lang==='en'?'single construction 1 products':'単独の法の構成 1積');
+ await cell.click();
+ await expect(page.locator('[data-prime-forms-detail] tr[data-prime-form] td').nth(2)).toHaveText('1');
+ await expect(page.locator('[data-section^="prime.detail."]').first().locator('select[name=product_index] option')).toHaveCount(2);
+ const tip=lang==='en'?'Products 1 · Planes A / B 1 / 1':'積 1 · 面 A / B 1 / 1';
+ for(const query of ['prime_set=fp6&periodic_fp6=8xE2M3&',''] as const){
+  await page.goto(`/?lang=${lang}&${query}section=polar-periodic&polar_modulus=4`);
+  const detail=page.locator('[data-polar-form-detail] [data-section^="polar.detail."]');await expect(detail).toHaveCount(1,{timeout:30000});
+  await expect(detail.locator('select[name=product_index] option')).toHaveCount(2);
+  await expect(page.locator('[data-ribbon-modulus="4"] title').first()).toContainText(tip);
+ }
+ // FP4 mod 4: the row that equals another once its unused limbs are left out is not a separate candidate.
+ await page.locator('aside.polar-detail input[type=checkbox]').first().check();
+ await expect(page.locator('.polar-candidates button[title^="awem2_9fa03837"]')).toHaveCount(0);
+ await expect(page.locator('.polar-candidates button')).not.toHaveCount(0);
+ expect(errors).toEqual([]);
+});

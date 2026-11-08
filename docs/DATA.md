@@ -67,13 +67,19 @@ S・A・B の格付けの表のschemaは `data/schema/board.schema.json`。解�
 - **分母と復元**: 分母 `denominator` は `d1·d2` に分ける(`verified.den_split`。d1 は法の素因数だけでできた部分、d2 は法と互いに素)。検算はすべて `d1·m`(`verified.check_modulus`)を法として行う。`reconstruction.procedure=divide_d1_then_multiply_d2_inverse` の行は、積の和を `d1·m` を法として持ち、d1 で割り、d2 の法 m での逆数を掛ける手順だけを確かめている。和を分母·m を法として持ち、分母全体で割る手順は、この検算の対象外で、d2 > 1 の時に成り立たない組があり得る。d2 = 1 なら二つの手順は同じ。
 - **符号化表**: 法が 256 以下の行だけが全剰余の表(`encoding`・`plane_values`)を持つ。ほかの行は `verify/modular_forms.py` が数学の項から作り直す。分母が法の単元でない行は、検算器の探索が表を作らないので、法が 256 以下の時に限り、リムと面の値がそのまま値の集合に入る表で全部の対を確かめ、その表を持つ。
 - **外した構成**: 検算器で確かめ切れない構成は一覧に入れず、索引の `excluded` に理由ごとの数、`modular/forms-excluded.json` に各構成(ID は `awem2c_<hash>`、構成の項の SHA-256)を置く。一覧に無い事は、その構成が無い事や成り立たない事を意味しない。
-- **素数べきの要約**: 索引の `prime_powers` は、素数べきの法と値の集合ごとに、積の一番少ない穴なしの行・穴ありの行と、穴なしとして渡され一覧の外にある構成を持つ。サイトの周期表はこれを読む。
+- **素数べきの要約**: 索引の `prime_powers` は、素数べきの法と値の集合ごとに、積の一番少ない穴なしの行・穴ありの行と、穴なしとして渡され一覧の外にある構成を持つ。サイトの周期表はこれを読む。積と面は、どの積にも届かないリム(重みが法の倍数で、どの面にも入らないか、符号化でいつも 0 のリム)と、それで全部 0 になる面と積を除いて数える(サイトの表示と同じ。`tools/unused_limbs.py`)。
 - **出所**: `prior_checker_versions` は、`verify/modular_forms.py` が作り直す前に、その構成を確かめた別の厳密な検算器の版。ID と作り直しの比較には含まない。
 
 再検算(全部の行を数学の項から作り直す。`--quick` は ID と恒等式だけ、`--sample N` は N 行だけ作り直す):
 
 ```sh
 python -m tools.modular_forms check data/modular
+```
+
+`prime_powers` と `visualization/polar-catalog.json` の重み・積・面は、公開の file から作り直せる(`build` は書き換え、`check` は作り直して比べる):
+
+```sh
+python -m tools.display_indexes check
 ```
 
 ## FP6 の法の組

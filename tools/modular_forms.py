@@ -17,6 +17,7 @@ import re
 import jsonschema
 from referencing import Registry, Resource
 from tools.ingest import digest, write
+from tools.unused_limbs import omitted_limbs, without_unused_limbs
 from verify.core import Invalid
 import verify.modular_forms as MF
 
@@ -151,7 +152,9 @@ def prime_power(m):
 
 def prime_power_summary(rows, excluded):
     """Per prime-power modulus and value set: the fewest-product record with holes and without, and the fewest-product
-    left-out construction given without holes (with its reason), ordered by modulus, value set, kind."""
+    left-out construction given without holes (with its reason), ordered by modulus, value set, kind.  Products and planes
+    are counted without unused limbs (tools/unused_limbs.py), as the site shows them; among equal counts, fewer unused limbs
+    come first."""
     best = {}
     def keep(key, entry, rank):
         if key not in best or rank < best[key][0]:
@@ -162,19 +165,21 @@ def prime_power_summary(rows, excluded):
             continue
         holey = bool(r['holes']['A'] or r['holes']['B'])
         vs = r['plane_sets']['A'][0]
+        s = without_unused_limbs(r)
         entry = {'modulus': r['modulus'], 'prime': pe[0], 'exponent': pe[1], 'value_set': vs, 'kind': 'holes' if holey else 'hole_free',
-                 'products': len(r['products']), 'planes': [len(r['planes']['A']), len(r['planes']['B'])],
+                 'products': len(s['products']), 'planes': [len(s['planes']['A']), len(s['planes']['B'])],
                  'holes': {k: r['holes'][k] for k in ('A', 'B', 'exact')}, 'id': r['id']}
-        keep((r['modulus'], vs, entry['kind']), entry, (entry['products'], sum(entry['planes']), r['id']))
+        keep((r['modulus'], vs, entry['kind']), entry, (entry['products'], sum(entry['planes']), omitted_limbs(r, s), r['id']))
     for e in excluded:
         c = e['construction']
         pe = prime_power(c['modulus'])
         if pe is None or c.get('holes_given') != [0, 0]:
             continue
+        s = without_unused_limbs(c)
         entry = {'modulus': c['modulus'], 'prime': pe[0], 'exponent': pe[1], 'value_set': c['value_set'], 'kind': 'excluded',
-                 'products': len(c['products']), 'planes': [len(c['planes']['A']), len(c['planes']['B'])], 'reason': e['reason'],
+                 'products': len(s['products']), 'planes': [len(s['planes']['A']), len(s['planes']['B'])], 'reason': e['reason'],
                  'id': c['id']}
-        keep((c['modulus'], c['value_set'], 'excluded'), entry, (entry['products'], sum(entry['planes']), c['id']))
+        keep((c['modulus'], c['value_set'], 'excluded'), entry, (entry['products'], sum(entry['planes']), omitted_limbs(c, s), c['id']))
     order = {'hole_free': 0, 'holes': 1, 'excluded': 2}
     return [v[1] for k, v in sorted(best.items(), key=lambda kv: (kv[0][0], kv[0][1], order[kv[0][2]]))]
 
