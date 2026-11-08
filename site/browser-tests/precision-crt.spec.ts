@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 test('precision changes restore saved CRT sets and explicit no-CRT retains a recovery button',async({page})=>{
- await page.goto('/?lang=en');await expect(page.locator('[name=crt]')).toHaveValue('1');await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(18);
+ await page.goto('/?lang=en&open.integer-candidates=1');await expect(page.locator('[name=crt]')).toHaveValue('1');await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(18);
  for(const precision of ['fp32','fp64']){
   await page.locator('[name=crt]').selectOption('0');await expect(page.locator('[data-integer-unavailable]')).toContainText('Not recorded');
   await page.locator('[name=precision]').selectOption(precision);await expect(page.locator('[name=crt]')).toHaveValue('1');await expect(page.locator('.paper-lane [data-tile-id]').first()).toBeVisible();

@@ -4,12 +4,14 @@ export type InputSelection={a:number;b:number;same:boolean;precisionA:string;pre
 export const precisionFor=(b:number)=>Object.entries(PRECISIONS).find(([id,p])=>!id.startsWith('complex')&&p.b===b)?.[0]??'custom';
 const number=(v:string|null,fallback:number,min=1,max=256)=>v!==null&&/^\d+$/.test(v)&&Number(v)>=min&&Number(v)<=max?Number(v):fallback;
 const format=(id:string|null,b:number)=>id&&PRECISIONS[id]?.b===b?id:precisionFor(b);
+// Integer formats have constructions without CRT, so they start there; CRT stays one choice away.
+const integerFormats=(s:{precisionA:string;precisionB:string})=>s.precisionA.startsWith('int')&&s.precisionB.startsWith('int');
 export function readInputs(q:URLSearchParams):InputSelection{
  const a=number(q.get('b'),q.has('input_ma')?number(q.get('input_ma'),54,2,257)-1:(PRECISIONS[q.get('precision')??'fp64']?.b??53));
  const same=q.get('same_inputs')!=='0'&&(!q.has('input_mb')||q.has('same_inputs')||Number(q.get('input_ma'))===Number(q.get('input_mb')));
  const b=same?a:number(q.get('b_b'),q.has('input_mb')?number(q.get('input_mb'),a+1,2,257)-1:a);
  const precisionA=format(q.get('precision'),a),precisionB=same?precisionA:format(q.get('precision_b'),b);
- return {a,b,same,precisionA,precisionB,method:q.has('crt')?(q.get('crt')==='0'?'awe':'crt'):'crt',showResults:q.get('width_results')==='1'||(q.has('input_ma')&&!q.has('width_results'))};
+ return {a,b,same,precisionA,precisionB,method:q.has('crt')?(q.get('crt')==='0'?'awe':'crt'):integerFormats({precisionA,precisionB})?'awe':'crt',showResults:q.get('width_results')==='1'||(q.has('input_ma')&&!q.has('width_results'))};
 }
 export type InputAction={type:'method';value:'awe'|'crt'}|{type:'bits';side:'A'|'B';value:number}|{type:'precision';side:'A'|'B';value:string}|{type:'same';value:boolean}|{type:'widths';a:number;b:number;method?:'awe'|'crt';precisionA?:string;precisionB?:string}|{type:'restore';value:InputSelection};
 export function inputReducer(s:InputSelection,action:InputAction):InputSelection{
@@ -23,8 +25,8 @@ export function inputReducer(s:InputSelection,action:InputAction):InputSelection
  const value=action.type==='precision'?PRECISIONS[action.value]?.b:action.value;
  if(value===undefined||value<1||value>256||!Number.isInteger(value))return s;
  const id=action.type==='precision'?action.value:precisionFor(value);
- if(action.side==='B'&&!s.same)return {...s,b:value,precisionB:id};
- return {...s,a:value,precisionA:id,...(s.same?{b:value,precisionB:id}:{})};
+ const next=action.side==='B'&&!s.same?{...s,b:value,precisionB:id}:{...s,a:value,precisionA:id,...(s.same?{b:value,precisionB:id}:{})};
+ return action.type==='precision'&&integerFormats(next)?{...next,method:'awe'}:next;
 }
 // The original source places FP32/FP64 reference names beside 24/53 (REF_NAMES).
 export const mapAxis=(width:number)=>width===54?53:width===25?24:width;

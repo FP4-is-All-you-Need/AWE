@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 test('base-13 reference filters integer candidates, range sort and explicit product maximum survive reload',async({page})=>{
- test.setTimeout(90000);await page.goto('/?crt=0&b=7&lang=en');
+ test.setTimeout(90000);await page.goto('/?crt=0&b=7&lang=en&open.integer-candidates=1');
  const count=page.locator('[data-integer-count]'),flag=page.locator('[name=show_worse_than_base13]');await expect(count).toBeVisible();await expect(flag).not.toBeChecked();
  const n=Number(await count.getAttribute('data-integer-count'));expect(Number(await count.getAttribute('data-hidden-count'))).toBeGreaterThan(0);await expect(count).toHaveAttribute('data-base13-products','9');
  expect(await page.locator('[data-integer-tile]').evaluateAll(nodes=>nodes.every(n=>Number(n.getAttribute('data-product-count'))<=9))).toBe(true);
@@ -21,7 +21,7 @@ test('CRT replacements use base-13 residue coverage and the same persistent flag
  await page.reload();await expect(aside.locator('[name=show_worse_than_base13]')).toBeChecked();
 });
 test('M=11 includes the saved eleven-product construction within the sixteen-product figure reference',async({page})=>{
- test.setTimeout(90000);await page.goto('/?crt=0&b=10&lang=en');
+ test.setTimeout(90000);await page.goto('/?crt=0&b=10&lang=en&open.integer-candidates=1');
  const count=page.locator('[data-integer-count]'),flag=page.locator('.integer-filters [name=show_worse_than_base13]');await expect(count).toBeVisible();await expect(count).toHaveAttribute('data-base13-products','16');
  await page.locator('[name=integer_weight]').fill('3,29,33,319');await page.locator('[name=integer_products_max]').fill('11');
  await flag.check();await expect(flag).toBeChecked();

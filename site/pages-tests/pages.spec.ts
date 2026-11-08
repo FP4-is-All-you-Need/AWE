@@ -35,7 +35,9 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`Pages prefix, 
  await expect(page.locator('.paper-lane [data-expansion]')).toHaveAttribute('data-expansion',lastId!);
  await page.locator('.paper-lane details[data-section^="flow."] > summary').click();
  await expect(page.locator('.paper-lane [data-plane-sets=A]')).toHaveAttribute('data-plane-sets-complete','true');
- await page.locator('[name=precision]').selectOption('int8');await page.locator('[name=crt]').selectOption('0');
+ await page.locator('[name=precision]').selectOption('int8');await expect(page.locator('[name=crt]')).toHaveValue('0');
+ await expect(page.locator('.integer-detail [data-expansion]')).toBeVisible();
+ await page.locator('details[data-section="integer-candidates"] > summary').click();
  await expect(page.locator('.integer-grid > button')).not.toHaveCount(0);
  await page.locator('.integer-grid > button').last().click();await expect(page.locator('.integer-detail [data-expansion]')).toBeVisible();
  await settled();

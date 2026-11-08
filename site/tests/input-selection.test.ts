@@ -26,6 +26,14 @@ test('explicit crt URL overrides map_method and an empty URL defaults to CRT',()
  assert.equal(readInputs(new URLSearchParams('map_method=awe')).method,'crt');
 });
 
+test('an integer format starts without CRT unless the URL asks for CRT',()=>{
+ assert.equal(readInputs(new URLSearchParams('precision=int8')).method,'awe');
+ assert.equal(readInputs(new URLSearchParams('precision=int8&crt=1')).method,'crt');
+ assert.equal(readInputs(new URLSearchParams('precision=fp32')).method,'crt');
+ const initial=readInputs(new URLSearchParams());
+ assert.equal(inputReducer(initial,{type:'precision',side:'A',value:'int8'}).method,'awe');
+ assert.equal(inputReducer(initial,{type:'precision',side:'A',value:'fp32'}).method,'crt');
+});
 test('method toggle preserves widths and updates the selected triangle and URL together',()=>{
  const initial=inputReducer(readInputs(new URLSearchParams()),mapAction(24,9));
  for(const method of ['awe','crt'] as const){

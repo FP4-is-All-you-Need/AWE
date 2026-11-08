@@ -34,15 +34,25 @@ for(const k of [8192,16384])test(`CRT ${k} selection retains every tile position
  }
 });
 
-test('integer selected detail follows the whole grid without moving tile rows',async({page})=>{
+test('integer selected detail comes before the folded candidate list without moving tile rows',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});
- await page.goto('/?lang=ja&crt=0&b=7');
- const list=page.locator('.integer-main'),tiles=list.locator('[data-integer-tile]');
- await expect(tiles).toHaveCount(12);await expect(list.locator('[data-selected-detail]')).toBeVisible();
- const before=await positions(tiles);await belowTiles(list,tiles);
- await tiles.last().click();await belowTiles(list,tiles);await assertPositions(tiles,before);
- await tiles.first().click();await belowTiles(list,tiles);await assertPositions(tiles,before);
- await list.screenshot({path:'build/screens/detail-after-integer-tiles.png'});
+ await page.goto('/?lang=ja&crt=0&b=7&open.integer-candidates=1');
+ const list=page.locator('.integer-main'),tiles=list.locator('[data-integer-tile]'),detail=page.locator('#integer-results [data-selected-detail]'),candidates=page.locator('details[data-section="integer-candidates"]');
+ const above=async()=>expect(await detail.evaluate(d=>d.getBoundingClientRect().bottom+window.scrollY)).toBeLessThanOrEqual(await candidates.evaluate(c=>c.getBoundingClientRect().top+window.scrollY)+1);
+ await expect(tiles).toHaveCount(12);await expect(detail).toBeVisible();
+ const before=await positions(tiles);await above();
+ await tiles.last().click();await above();await assertPositions(tiles,before);
+ await tiles.first().click();await above();await assertPositions(tiles,before);
+ await page.locator('#integer-results').screenshot({path:'build/screens/detail-after-integer-tiles.png'});
+});
+
+for(const lang of ['en','ja'])test(`choosing INT8 opens on the selected construction with the candidates folded ${lang}`,async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});await page.goto(`/?lang=${lang}`);
+ await page.locator('[name=precision]').selectOption('int8');await expect(page.locator('[name=crt]')).toHaveValue('0');
+ const results=page.locator('#integer-results'),detail=results.locator('[data-selected-detail]'),candidates=results.locator('details[data-section="integer-candidates"]');
+ await expect(results).toHaveAttribute('open','');await expect(detail.locator('[data-paper-difference]')).toBeVisible();await expect(detail.locator('[data-construction-difference]')).toBeVisible();
+ await expect(candidates).not.toHaveAttribute('open');await expect(candidates.locator(':scope>summary')).toHaveText(lang==='en'?/^Candidates [\d,]+ entries$/:/^候補 [\d,]+件$/);
+ await page.locator('[name=crt]').selectOption('1');await expect(results).toHaveCount(0);await expect(page.locator('.paper-lane [data-tile-id]').first()).toBeVisible();
 });
 
 test('only a tile click scrolls an off-screen selected heading',async({page})=>{

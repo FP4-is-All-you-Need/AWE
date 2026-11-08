@@ -13,7 +13,7 @@ async function painted(rects:Locator,color:string,opacity:string){
 
 for(const kind of ['six','mod73','four_limb'])test(`plane fill follows the common product color ${kind}`,async({page})=>{
  test.setTimeout(120000);
- await page.goto(kind==='four_limb'?`/?crt=0&b=11&width_results=1&integer_id=${four}&lang=en`:kind==='six'?`/?crt=0&b=7&integer_weight=2,5,31&lang=en`:'/?crt=1&lang=en');
+ await page.goto(kind==='four_limb'?`/?crt=0&b=11&width_results=1&integer_id=${four}&lang=en&open.integer-candidates=1`:kind==='six'?`/?crt=0&b=7&integer_weight=2,5,31&lang=en&open.integer-candidates=1`:'/?crt=1&lang=en');
  const tile=kind==='four_limb'?page.locator(`[data-integer-tile="${four}"]`):kind==='six'?page.locator(`[data-integer-tile="${six}"]`):page.locator('.paper-lane [data-tile-modulus="73"]');
  await expect(tile).toBeVisible();await tile.click();await expect(tile).toHaveAttribute('aria-pressed','true');
  if(kind==='mod73')expect(await page.locator('.paper-lane [data-tile-id]').nth(1).getAttribute('data-tile-modulus')).toBe('73');

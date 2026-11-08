@@ -4,7 +4,7 @@ const target='awe1_002b0cddfc3729fdb06a905e402dc9c2e9b5be0d8c4222c10571bc9a5cacc
 
 for(const lang of ['en','ja'])test(`block colors follow the selected six-product construction ${lang}`,async({page})=>{
  test.setTimeout(120000);
- await page.goto(`/?crt=0&b=7&integer_weight=2,5,31&lang=${lang}`);
+ await page.goto(`/?crt=0&b=7&integer_weight=2,5,31&lang=${lang}&open.integer-candidates=1`);
  const tile=page.locator(`[data-integer-tile="${target}"]`);
  await expect(tile).toBeVisible();await tile.click();
  const detail=page.locator('.integer-detail .construction-detail');

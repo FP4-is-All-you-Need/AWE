@@ -101,7 +101,7 @@ test('square map cells select canonical width groups and change their details',a
  const dimensions=await cells.evaluateAll(nodes=>nodes.map(n=>[(n as SVGRectElement).width.baseVal.value,(n as SVGRectElement).height.baseVal.value]));expect(dimensions.every(([w,h])=>Math.abs(w-h)<1e-7)).toBe(true);
  await page.locator('[name=crt]').selectOption('0');
  await page.getByRole('button',{name:'4 × 4 幅',exact:true}).click();await expect(page.locator('.integer-results [data-expansion]')).toBeVisible();const first=await page.locator('.integer-results [data-expansion]').getAttribute('data-expansion');
- await page.getByRole('button',{name:'8 × 8 幅',exact:true}).click();await expect(page.locator('.integer-results [data-expansion]')).not.toHaveAttribute('data-expansion',first!);await expect(page.locator('.integer-results h2')).toContainText('8');expect(page.url()).toContain('input_ma=8');
+ await page.getByRole('button',{name:'8 × 8 幅',exact:true}).click();await expect(page.locator('.integer-results [data-expansion]')).not.toHaveAttribute('data-expansion',first!);await expect(page.locator('.integer-results>summary')).toContainText('8');expect(page.url()).toContain('input_ma=8');
 });
 
 test('independent A B precision controls and ranges survive URL reload',async({page})=>{
@@ -117,7 +117,7 @@ test('equal-width sEM bands select precision and show the moving b marker',async
 
 test('integer input changes encoding and a staircase point selects its width',async({page})=>{
  await page.goto('/?lang=ja');await page.locator('input[name=encode_int]').fill('12');const before=await page.locator('.encoding-equation').innerText();await page.locator('input[name=encode_int]').fill('100');await expect(page.locator('.encoding-equation')).not.toHaveText(before);await expect(page.locator('.encoding-equation')).toContainText('100');await expect(page.locator('[data-number-line=base13] .encoding-candidates.all-representations')).toContainText('−4');
- await page.getByRole('button',{name:'幅 8 の構成へ',exact:true}).click();await expect(page.getByLabel('b 数値',{exact:true})).toHaveValue('7');await expect(page.locator('.integer-results [data-expansion]')).toBeVisible();await expect(page.locator('.integer-results h2')).toContainText('8');await expect(page.getByRole('button',{name:'幅 8 の構成へ',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'幅 8 の構成へ',exact:true}).click();await expect(page.getByLabel('b 数値',{exact:true})).toHaveValue('7');await expect(page.locator('.integer-results [data-expansion]')).toBeVisible();await expect(page.locator('.integer-results>summary')).toContainText('8');await expect(page.getByRole('button',{name:'幅 8 の構成へ',exact:true})).toHaveAttribute('aria-pressed','true');
 });
 
 test('plane columns and product selection highlight each other',async({page})=>{
