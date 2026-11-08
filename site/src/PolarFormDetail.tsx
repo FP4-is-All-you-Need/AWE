@@ -23,7 +23,7 @@ function PolarFormDetail({row,en}:{row:PolarRow;en:boolean}){
   if(built.modulus!==row.m||built.products.length!==row.R||JSON.stringify(built.weights)!==JSON.stringify(row.weights))throw Error(en?'Source and display index do not match':'元データと表示用索引が一致しません');
   if(alive)setC(built);
  }).catch(e=>{if(alive)setError(String(e));});return()=>{alive=false;};},[row,en]);
- return <section className="polar-form-detail" data-polar-form-detail={row.id}>
+ return <section className="polar-form-detail" data-polar-form-detail={row.id} data-i18n>
   <h4>{en?'Selected construction':'表示中の形'} · mod {row.m} · {row.vs}</h4>
   {error?<p role="alert">{error}</p>:!c?<p>{en?'Loading the source construction…':'元の構成を読み込み中…'}</p>:<Expansion c={c} scope="polar." layout="paper"/>}
  </section>;

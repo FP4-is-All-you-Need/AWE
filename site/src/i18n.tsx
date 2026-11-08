@@ -473,10 +473,12 @@ export function LanguageControl(){
  const root=document.getElementById('root')??document.body;
  const options:MutationObserverInit={subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label','title','placeholder','alt']};
  let observer:MutationObserver;
+ // A [data-i18n] element inside a [data-no-i18n] section is translated again; the nearest marker wins.
+ const skipped=(element:Element|null)=>!!element&&(!!element.closest('script,style,code,pre,.katex')||element.closest('[data-i18n],[data-no-i18n]')?.hasAttribute('data-no-i18n')===true);
  const apply=(changes?:MutationRecord[])=>{
  observer?.disconnect();document.documentElement.lang=language;
  const visit=(node:Node)=>{
- if(node instanceof Element){if(node.matches('script,style,code,pre,.katex,[data-no-i18n]'))return;updateAttributes(node,language);}
+ if(node instanceof Element){if(node.matches('[data-no-i18n]')){node.querySelectorAll('[data-i18n]').forEach(visit);return;}if(node.matches('script,style,code,pre,.katex'))return;updateAttributes(node,language);}
  if(node.nodeType===Node.TEXT_NODE)updateText(node as Text,language);
  else for(const child of [...node.childNodes])visit(child);
  };
@@ -484,11 +486,11 @@ export function LanguageControl(){
  else {
   const touched=new Set<Node>();
   for(const change of changes){
-   if(change.type==='attributes'&&change.target instanceof Element){if(!change.target.closest('.katex,[data-no-i18n]'))updateAttributes(change.target,language);}
+   if(change.type==='attributes'&&change.target instanceof Element){if(!skipped(change.target))updateAttributes(change.target,language);}
    else if(change.type==='characterData'){touched.add(change.target);if(change.target.nextSibling instanceof Text)touched.add(change.target.nextSibling);if(change.target.previousSibling instanceof Text)touched.add(change.target.previousSibling);}
    else for(const node of change.addedNodes)touched.add(node);
   }
-  for(const node of touched){if(node.parentElement?.closest('script,style,code,pre,.katex,[data-no-i18n]'))continue;if(![...touched].some(other=>other!==node&&other.contains(node)))visit(node);}
+  for(const node of touched){if(skipped(node.parentElement)){if(node instanceof Element)[node,...node.querySelectorAll('[data-i18n]')].filter(e=>e.matches('[data-i18n]')).forEach(visit);continue;}if(![...touched].some(other=>other!==node&&other.contains(node)))visit(node);}
  }
  observer.observe(root,options);
  };

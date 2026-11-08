@@ -30,3 +30,9 @@ test('expansions outside the spiral keep their own default view',async({page})=>
  await expect(select).not.toHaveValue('paper');
  await expect(select.locator('option[value=paper]')).toHaveCount(1);
 });
+test('the spiral detail follows the page language',async({page})=>{
+ await page.goto('/?lang=en&section=polar-periodic&polar_modulus=343&polar_count=400');
+ const summary=page.locator('[data-polar-form-detail] [data-section^="polar.detail."] > summary');await expect(summary).toHaveCount(1,{timeout:30000});
+ await expect(summary).toContainText('details:');await expect(summary).not.toContainText('の詳細');
+ await page.locator('[name=lang]').selectOption('ja');await expect(summary).toContainText('の詳細');
+});
