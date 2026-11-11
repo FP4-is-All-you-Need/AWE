@@ -53,3 +53,4 @@
 
 .fp6-families{margin-top:18px}.fp6-families details>summary{white-space:normal!important;overflow-wrap:anywhere}.fp6-families td{max-width:320px;overflow-wrap:anywhere}.fp6-families>p,.fp6-families details p{overflow-wrap:anywhere}
 .fp6-families table{width:100%;min-width:700px;border-collapse:collapse}.fp6-families th,.fp6-families td{text-align:left;vertical-align:top;padding:7px 9px;border-bottom:1px solid #ddd}
+.fp6-families .fp6-family-tile{min-width:120px}.fp6-families .polar-factors{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.fp6-families tr[data-selected=true]>td{background:#F7E5ED}.fp6-family-detail{margin:12px 0;min-width:0}

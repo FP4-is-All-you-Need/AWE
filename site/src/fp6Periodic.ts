@@ -1,4 +1,6 @@
 import type {ValueSet} from './polarModel.ts';
+import type {FormSolution} from './modularForms.ts';
+import {withoutUnusedLimbs} from './unusedLimbs.ts';
 export type FP6FamilyRow={m:number;factor:string;value_set:ValueSet;family:string;R:number;faces:number[];holes:number[];holefree:boolean;denominator:number;recon:string;id:string;public_id:string|null;status:'checked'|'source_only';reason?:string};
 export type FP6Summary={m:number;value_set:ValueSet;holefree_R:number|null;holefree_family:string|null;general_weight_no_holefree_upto:number|null;general_weight_open_cells:number[][]|null;scope_of_no_holefree:string|null};
 export type FP6Periodic={schema_version:number;rows:FP6FamilyRow[];summaries:FP6Summary[]};
@@ -13,6 +15,16 @@ export const reconstructionText=(recon:string,en:boolean)=>recon==='d1_divide_d2
  :recon==='none'?(en?'No denominator division':'分母による除算なし'):recon;
 export function familyRows(data:FP6Periodic,set:ValueSet,family:string,modulus:string,holes:boolean){
  return data.rows.filter(r=>r.value_set===set&&(!family||r.family===family)&&(!modulus||String(r.m)===modulus)&&(holes||r.holefree));
+}
+/** Products and planes A/B as the site draws the row: a published construction is counted without its unused limbs;
+ * a row without one, or before its record is loaded, keeps the source counts. */
+export function shownCounts(row:FP6FamilyRow,record?:FormSolution):{R:number;faces:number[]}{
+ if(!record)return {R:row.R,faces:row.faces};
+ const s=withoutUnusedLimbs(record);return {R:s.products.length,faces:[s.planes.A.length,s.planes.B.length]};
+}
+/** The hole-free row with the fewest shown products; on a tie the family named by the source summary is kept. */
+export function fewestShown(rows:FP6FamilyRow[],record:(row:FP6FamilyRow)=>FormSolution|undefined,family?:string|null){
+ return rows.filter(r=>r.holefree).map(r=>({row:r,R:shownCounts(r,record(r)).R})).sort((a,b)=>a.R-b.R||Number(b.row.family===family)-Number(a.row.family===family))[0];
 }
 export function formLink(row:FP6FamilyRow,lang='ja'){
  const q=new URLSearchParams({prime_set:'fp6',periodic_fp6:row.value_set,section:'modular-forms',forms_m:String(row.m)});
