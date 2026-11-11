@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {connect, conflicts, holePercent, inFilter, initialState, PRECISIONS, residual, stateQuery, totals} from '../src/visual.ts';
+import {readFileSync} from 'node:fs';
+import {connect, conflicts, equationTex, holePercent, inFilter, initialState, PRECISIONS, residual, solveNumerators, stateQuery, totals, withNumerators} from '../src/visual.ts';
+import {mergeModularCatalogs} from '../src/modular.ts';
 import type {Construction, Lane, VisualCatalog} from '../src/visual.ts';
 import type {ModularCatalog, ModularSolution} from '../src/modular.ts';
 
@@ -85,4 +87,29 @@ test('connect maps coefficients by used face vectors while keeping saved accumul
  assert.equal(linked.denominator,2);
  assert.deepEqual(linked.products,[{a:2,b:0,group:0,numerator:-2},{a:0,b:1,group:2,numerator:5},{a:1,b:2,group:null,numerator:3}]);
  assert.deepEqual(saved.products.map(p=>p.numerator),[null,null,null]);
+});
+const karatsuba=(modulus:number,w:number)=>construction(modulus,{id:`k${modulus}_${w}`,weights:{A:[1,w],B:[1,w]},planes:{A:[[1,0],[0,1],[1,1]],B:[[1,0],[0,1],[1,1]]},products:[0,1,2].map(i=>({a:i,b:i,group:0,numerator:null}))});
+const lane=(mods:Construction[]):VisualCatalog=>({schema_version:1,source_sha256:'fixture',widths:[{bits:53,rows:[{id:'row',lane:'a',selection_kind:'products',tag:'fixture',moduli:mods.map(c=>c.modulus),products:3,faces_a:3,faces_b:3,k_max:'1',mods}]}]});
+test('connect solves numerators of a saved construction that matches no catalog construction',()=>{
+ const linked=connect(lane([karatsuba(59,7)]),{schema_version:1,sets:[],solutions:[]}).widths[0].rows[0].mods[0];
+ assert.equal(linked.id,'k59_7');
+ assert.deepEqual(linked.products.map(p=>p.numerator),[-6,-17,7]);
+ assert.ok(residual(linked)!.flat().every(x=>x==='0'));
+ assert.equal(equationTex(linked,()=>'c'),String.raw`AB\equiv-\textcolor{c}{6T_{0}}-\textcolor{c}{17T_{1}}+\textcolor{c}{7T_{2}}\pmod{59}`);
+});
+test('numerators are solved modulo prime powers and composites, and an impossible identity names its reason',()=>{
+ for(const m of [9,49,118,343,1000])for(const w of [3,5,7]){const c=withNumerators(karatsuba(m,w));assert.ok(c.products.every(p=>Number.isInteger(p.numerator)&&2*Math.abs(p.numerator!)<=m),`${m} ${w}`);assert.ok(residual(c)!.flat().every(x=>x==='0'),`${m} ${w}`);}
+ const known=karatsuba(73,7);known.products[0]={...known.products[0],numerator:-6};
+ assert.deepEqual(withNumerators(known).products.map(p=>p.numerator),[-6,-31,7]);
+ const lone=construction(7,{weights:{A:[1,2],B:[1,2]},planes:{A:[[1,0]],B:[[1,0]]},products:[{a:0,b:0,group:null,numerator:null}]});
+ assert.equal(solveNumerators(lone),'no_solution');assert.equal(solveNumerators({...lone,planes:null}),'planes_missing');
+ const kept=withNumerators(lone);assert.equal(kept.additional?.numerators_unresolved,'no_solution');
+ assert.equal(equationTex(kept,()=>'c'),String.raw`AB\equiv\textcolor{c}{c_{0}T_{0}}\pmod{7}`);
+});
+test('every saved construction has numeric reconstruction coefficients that satisfy the identity',()=>{
+ const read=(path:string)=>JSON.parse(readFileSync(new URL('../../data/'+path,import.meta.url),'utf8'));
+ const merged=mergeModularCatalogs(['catalog','powers','fp32','fp32-history'].map(n=>read(`modular/${n}.json`)));
+ const mods=connect(read('visualization/modsets.json'),merged).widths.flatMap(w=>w.rows.flatMap(r=>r.mods));
+ assert.ok(mods.length>2000);
+ for(const c of mods){assert.ok(c.products.every(p=>Number.isInteger(p.numerator)),c.id);assert.ok(residual(c)!.flat().every(x=>x==='0'),c.id);assert.doesNotMatch(equationTex(c,()=>'c'),/\?|NaN|undefined|c_\{/,c.id);}
 });

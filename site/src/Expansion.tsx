@@ -13,10 +13,11 @@ import {MatrixSplit} from './MatrixSplit.tsx';
 import {DimensionContext} from './Dimensions.tsx';
 import {Formula,MathText} from './PaperFigures.tsx';
 import {PlaneFlow,SavedPlaneValues} from './PlaneFlow.tsx';
-import {holeLabel,residual,type Construction} from './visual.ts';
+import {equationTex,holeLabel,residual,type Construction} from './visual.ts';
 
 export const linear=(v:number[],s:string)=>v.map((n,i)=>n?`${n<0?'-':'+'}${Math.abs(n)===1?'':Math.abs(n)}${s}_{${i}}`:'').join('').replace(/^\+/,'')||'0';
 type Layout='products'|'compact'|'paper';
+const UNRESOLVED:Record<string,[string,string]>={planes_missing:['面が記録に無い','the planes are not recorded'],folded_planes:['面を別の法で折り返す構成の','the planes are folded by their own moduli, so the weights and planes alone do not fix them'],no_solution:['記録された積をどう組み合わせても重みの積にならない','no combination of the recorded products gives the product of the weights']};
 /** layout: the expansion view shown until one is chosen; by default compact for four or more limbs, otherwise per product. */
 export function Expansion({c:stored,scope="",layout:initial}:{c:Construction;scope?:string;layout?:Layout}){
  const dimensions=useContext(DimensionContext),lang=useLanguage();
@@ -28,7 +29,7 @@ export function Expansion({c:stored,scope="",layout:initial}:{c:Construction;sco
  const diff=residual(c),consistent=diff?.every(row=>row.every(x=>x==='0'));
  // Limbs kept with weight 0 (a multiple of the modulus) are used in planes; unused ones are left out before display.
  const zeroWeights=c.modulus?(['A','B'] as const).flatMap(side=>c.weights[side].flatMap((w,i)=>w%c.modulus?[]:[`${side.toLowerCase()}_{${i}}`])):[],zeroSides=[...new Set(zeroWeights.map(t=>t[0].toUpperCase()))];
- const equation=`${c.denominator===1?'':c.denominator}AB${c.modulus?'\\equiv':'='}${c.products.map((p,i)=>`${p.numerator!==null&&p.numerator<0?'-':i?'+':''}\\textcolor{${coefficientColor(c,i)}}{${p.numerator===null?'?':Math.abs(p.numerator)}T_{${i}}}`).join('')}${c.modulus?`\\pmod{${c.modulus}}`:''}`;
+ const equation=equationTex(c,i=>coefficientColor(c,i)),unresolved=stored.additional?.numerators_unresolved;
  const selectPlane=(side:'A'|'B',idx:number)=>{const i=c.products.findIndex(p=>p[side==='A'?'a':'b']===idx);setSelected(i<0?null:i);};
  return <details data-section={scope+'detail.'+c.id} className="construction-detail" open><summary className="selected-mod"><MathText tex={c.modulus?`\\operatorname{mod}\\;${c.modulus}`:'\\text{整数の構成}'}/> の詳細：{c.products.length}積、面 A {c.faces_a} / B {c.faces_b??'未測定'}</summary>
  <form name={scope+'limb_order.'+c.id} onSubmit={e=>e.preventDefault()}><label>リムの並び <select name="limb_order" data-url-key={key('limb_order')} value={order} onChange={e=>setOrder(e.target.value as LimbOrder)}><option value="stored">保存順</option><option value="weight">重み順</option><option value="block">ブロック順</option></select></label></form>
@@ -41,13 +42,14 @@ export function Expansion({c:stored,scope="",layout:initial}:{c:Construction;sco
  {c.limbs_stored&&<p data-limb-storage>{(['A','B'] as const).map(side=><span key={side}>{side}: {c.limbs_stored![side].every(Boolean)?'FP4 格納':<>FP4に格納しないリム <MathText tex={c.limbs_stored![side].flatMap((stored,i)=>stored?[]:[`${side.toLowerCase()}_{${i}}`]).join(',')}/></>} </span>)}</p>}
  {c.correction&&c.canonical?.correction?.source_cost?.correction_rel_mma!==undefined&&<p data-correction-source-cost>補正の費用比（元資料） <MathText tex={`\\times ${c.canonical.correction.source_cost.correction_rel_mma}`}/></p>}
  <p className="equation"><MathText tex={equation}/></p>
+ {typeof unresolved==='string'&&<p data-numerators-unresolved={unresolved} data-no-i18n>{lang==='en'?<>The coefficients <MathText tex="c_{k}"/> are not recorded and cannot be determined: {UNRESOLVED[unresolved]?.[1]??unresolved}.</>:<>係数 <MathText tex="c_{k}"/> は記録に無く、{UNRESOLVED[unresolved]?.[0]??unresolved}ため決まりません。</>}</p>}
  {!consistent&&<p>{diff===null?'未測定':`係数式のずれ（行A・列B）：${diff[0].map((_,i)=>diff.map(row=>row[i])).map(r=>'('+r.join(',')+')').join(' ')}`}</p>}
  <form name={scope+'expansion_view.'+c.id} onSubmit={e=>e.preventDefault()}><label>展開図の表示 <select name="expansion_layout" data-url-key={key('expansion_layout')} value={layout} onChange={e=>setLayout(e.target.value==='compact'||e.target.value==='paper'?e.target.value:'products')}><option value="products">積ごと</option><option value="compact">まとめた形</option><option value="paper">{lang==='en'?'Paper figure':'論文の図の形'}</option></select></label></form>
  <div className="paper-scroll">{layout==='paper'?<CoverageFigure c={c} selected={selected} onSelect={setSelected} en={lang==='en'}/>:layout==='compact'?<CompactExpansion c={c} selected={selected} onSelect={setSelected}/>:differencePlan(c)?<DifferenceDiagram c={c} selected={selected} onSelect={setSelected}/>:<svg data-expansion={c.id} width={(c.products.length+1)*panel} height={top+gridH+100} viewBox={`0 0 ${(c.products.length+1)*panel} ${top+gridH+100}`} aria-label="全項の格子と面の積の和">
  {Array.from({length:c.products.length+1},(_,index)=>{const x=28+index*panel,p=c.products[index-1],av=p&&c.planes?.A[p.a],bv=p&&c.planes?.B[p.b],color=index?coefficientColor(c,index-1):'#1A1A1A';
  return <g key={index} data-product={index-1} data-product-index={index?index-1:undefined} data-block-color={index?color:undefined} role={index?'button':undefined} tabIndex={index?0:undefined} aria-label={index?`積 ${index}`:'全項'} aria-pressed={selected===index-1} onClick={()=>index&&setSelected(index-1)} onKeyDown={e=>{if(index&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setSelected(index-1);}}}>
  {index>0&&<Formula x={x-gap-28} y={top+gridH/2-16} w={gap-8} h={40} tex={index===1?(c.modulus?'\\equiv':'='):'+'} size={24}/>}
- <Formula x={x+(gridW-Math.max(gridW,110))/2} y={0} w={Math.max(gridW,110)} h={38} tex={index?`${p.numerator??'?'}T_{${index-1}}`:'w_{i}w_{j}a_{i}b_{j}'} size={20} color={color}/>
+ <Formula x={x+(gridW-Math.max(gridW,110))/2} y={0} w={Math.max(gridW,110)} h={38} tex={index?`${p.numerator??`c_{${index-1}}`}T_{${index-1}}`:'w_{i}w_{j}a_{i}b_{j}'} size={20} color={color}/>
  {c.weights.B.map((w,j)=><Formula key={j} x={x+j*cell} y={top-30} w={cell} h={28} tex={String(w)} size={18}/>)}
  {c.weights.A.map((w,i)=><Formula key={i} x={x-28} y={top+i*cell+15} w={28} h={30} tex={String(w)} size={18}/>)}
  {Array.from({length:n},(_,j)=>Array.from({length:m},(_,i)=>{const coefficient=index?(av?.[i]??0)*(bv?.[j]??0):(c.weights.A[i]*c.weights.B[j])%(c.modulus||Infinity);return <g key={`${i},${j}`}><rect data-expansion-cell={`${index}:${i}:${j}`} data-cell-coefficient={coefficient} x={x+j*cell} y={top+i*cell} width={cell} height={cell} fill={index?productBaseColor(c,index-1):'#000000'} fillOpacity={coefficient?(index?productFillOpacity(c,index-1):.061):0} stroke="#9E9E9E" strokeWidth=".65"/>{coefficient!==0&&<Formula x={x+j*cell} y={top+i*cell+14} w={cell} h={40} tex={`${index&&coefficient!==1?(coefficient===-1?'-':coefficient):''}a_{${i}}b_{${j}}`} size={20}/>}</g>;}))}

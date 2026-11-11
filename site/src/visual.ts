@@ -30,11 +30,66 @@ export function fromInteger(s:Solution):Construction{return {id:s.id,modulus:0,w
 export function connect(saved:VisualCatalog,canonical:ModularCatalog):VisualCatalog{
  const byGeometry=new Map<string,Construction>();for(const s of canonical.solutions){if(s.plane_moduli)continue;const c=fromCanonical(s);if(!byGeometry.has(geometry(c)))byGeometry.set(geometry(c),c);}
  return {...saved,widths:saved.widths.map(w=>({...w,rows:w.rows.map(row=>({...row,bits:w.bits,plan_k:8192,mods:row.mods.map(s=>{
-  const c=byGeometry.get(geometry(s));if(!c)return s;
+  const c=byGeometry.get(geometry(s));if(!c)return withNumerators(s);
   const terms=new Map(c.products.map(p=>[termKey(c,p),p.numerator]));
   // Keep the saved order: accumulator colours index the saved product list.
-  return {...s,id:c.id,canonical:c.canonical,max_k:c.max_k,denominator:c.denominator,products:s.products.map(p=>({...p,numerator:p.numerator??terms.get(termKey(s,p))??null})),holes:c.holes};
+  return withNumerators({...s,id:c.id,canonical:c.canonical,max_k:c.max_k,denominator:c.denominator,products:s.products.map(p=>({...p,numerator:p.numerator??terms.get(termKey(s,p))??null})),holes:c.holes});
  })}))}))};
+}
+const reduce=(x:bigint,m:bigint)=>(x%m+m)%m;
+function inverse(a:bigint,m:bigint){let [r0,r1,s0,s1]=[reduce(a,m),m,1n,0n];while(r1){const q=r0/r1;[r0,r1,s0,s1]=[r1,r0-q*r1,s1,s0-q*s1];}return reduce(s0,m);}
+/** Solves rows·x ≡ rhs (mod p^e) by elimination with a pivot of least p-adic valuation; null when no solution exists. */
+function solvePrimePower(rows:bigint[][],rhs:bigint[],p:bigint,e:number):bigint[]|null{
+ const q=p**BigInt(e),n=rows[0]?.length??0,A=rows.map(r=>r.map(x=>reduce(x,q))),b=rhs.map(x=>reduce(x,q)),free=[...Array(n).keys()];
+ const valuation=(x:bigint)=>{let v=0;for(;x&&x%p===0n;x/=p)v++;return x?v:e;};
+ const pivots:{row:number;col:number;scale:bigint}[]=[];
+ for(let r=0;r<A.length&&free.length;r++){
+  let best:{i:number;j:number;v:number}|undefined;
+  for(let i=r;i<A.length;i++)for(const j of free){const v=valuation(A[i][j]);if(v<e&&(!best||v<best.v))best={i,j,v};}
+  if(!best)break;
+  [A[r],A[best.i],b[r],b[best.i]]=[A[best.i],A[r],b[best.i],b[r]];
+  const scale=p**BigInt(best.v),unit=inverse(A[r][best.j]/scale,q);
+  for(let i=r+1;i<A.length;i++){const f=reduce(A[i][best.j]/scale*unit,q);if(f){A[i]=A[i].map((x,j)=>reduce(x-f*A[r][j],q));b[i]=reduce(b[i]-f*b[r],q);}}
+  pivots.push({row:r,col:best.j,scale});free.splice(free.indexOf(best.j),1);
+ }
+ if(b.slice(pivots.length).some(x=>x))return null;
+ const x=Array<bigint>(n).fill(0n);
+ for(const {row,col,scale} of pivots.reverse()){
+  const rest=reduce(b[row]-A[row].reduce((s,a,j)=>j===col?s:s+a*x[j],0n),q);if(rest%scale)return null;
+  x[col]=reduce(rest/scale*inverse(A[row][col]/scale,q),q);
+ }
+ return x;
+}
+/** Numerators n_k with Σ_k n_k·(P_A[a_k] ⊗ P_B[b_k]) ≡ d·(w_A ⊗ w_B) (mod m) for the products whose numerator is unknown,
+ given the known ones, as the least absolute residues; a string names why none can be given. */
+export function solveNumerators(c:Construction):(number|null)[]|string{
+ if(!c.planes)return 'planes_missing';
+ if(c.modulus<=0)return 'not_modular';
+ if(c.plane_moduli)return 'folded_planes';
+ const m=BigInt(c.modulus),unknown=c.products.flatMap((p,k)=>p.numerator===null?[k]:[]),rows:bigint[][]=[],rhs:bigint[]=[];
+ c.weights.A.forEach((wa,i)=>c.weights.B.forEach((wb,j)=>{
+  const term=(k:number)=>BigInt(c.planes!.A[c.products[k].a][i])*BigInt(c.planes!.B[c.products[k].b][j]);
+  rows.push(unknown.map(term));
+  rhs.push(BigInt(c.denominator)*BigInt(wa)*BigInt(wb)-c.products.reduce((s,p,k)=>p.numerator===null?s:s+BigInt(p.numerator)*term(k),0n));
+ }));
+ let x=unknown.map(()=>0n),q=1n;
+ for(const f of factors(c.modulus)){
+  const pe=BigInt(f.prime)**BigInt(f.exponent),y=solvePrimePower(rows,rhs,BigInt(f.prime),f.exponent);if(!y)return 'no_solution';
+  x=x.map((v,t)=>v+q*reduce((y[t]-v)*inverse(q,pe),pe));q*=pe;
+ }
+ const solved=new Map(unknown.map((k,t)=>{const v=reduce(x[t],m);return [k,Number(2n*v>m?v-m:v)];}));
+ return c.products.map((p,k)=>p.numerator??solved.get(k)??null);
+}
+/** Fills unknown reconstruction numerators from the weights and planes; when they cannot be determined, the reason is kept
+ in additional.numerators_unresolved. */
+export function withNumerators(c:Construction):Construction{
+ if(c.products.every(p=>p.numerator!==null))return c;
+ const solved=solveNumerators(c);
+ return typeof solved==='string'?{...c,additional:{...c.additional,numerators_unresolved:solved}}:{...c,products:c.products.map((p,k)=>({...p,numerator:solved[k]}))};
+}
+/** The reconstruction identity shown above an expansion; an unknown numerator is written as c_k. */
+export function equationTex(c:Construction,color:(index:number)=>string):string{
+ return `${c.denominator===1?'':c.denominator}AB${c.modulus?'\\equiv':'='}${c.products.map((p,i)=>`${p.numerator!==null&&p.numerator<0?'-':i?'+':''}\\textcolor{${color(i)}}{${p.numerator===null?`c_{${i}}`:Math.abs(p.numerator)}T_{${i}}}`).join('')}${c.modulus?`\\pmod{${c.modulus}}`:''}`;
 }
 export function canonicalLane(c:ModularCatalog,id:string,saved?:VisualCatalog):Lane|undefined{
  const s=c.sets.find(s=>s.id===id);if(!s)return;
