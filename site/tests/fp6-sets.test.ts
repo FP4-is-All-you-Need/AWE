@@ -17,7 +17,7 @@ test('the FP6 sets are saved lanes with their recorded widths, K and constructio
   assert.equal(l.products,l.mods.reduce((n,c)=>n+c.products.length,0));
   // Pairwise coprime, so each prime appears in one modulus only.
   const primes=l.mods.flatMap(c=>factors(c.modulus).map(f=>f.prime));assert.equal(new Set(primes).size,primes.length);}
- assert.deepEqual(lanes.map(l=>[l.bits,l.mods.length,l.products]).sort((a,b)=>a[0]-b[0]),[[53,20,30],[72,22,41]]);
+ assert.deepEqual(lanes.map(l=>[l.bits,l.mods.length,l.products]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]),[[53,19,29],[53,20,30],[72,22,41]]);
 });
 test('FP4 sets keep their formats when the FP6 file is added',()=>{
  const without=storedModulusLanes(mergeModularCatalogs(['catalog','powers','fp32','fp32-history'].map(n=>read('modular/'+n+'.json'))),visual);

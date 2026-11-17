@@ -7,10 +7,10 @@ from tools.pages_artifact import ROOT
 
 class FP6SetsTest(unittest.TestCase):
     def test_sets_rebuild_from_constructions(self):
-        self.assertEqual(check(ROOT/'data/modular/fp6-sets.json'), {'constructions': 26, 'sets': 2, 'valid': True})
+        self.assertEqual(check(ROOT/'data/modular/fp6-sets.json'), {'constructions': 26, 'sets': 3, 'valid': True})
         data = json.loads((ROOT/'data/modular/fp6-sets.json').read_text())
         sets = sorted((s['magnitude_bits'], len(s['solution_ids']), s['verification']['products']) for s in data['sets'])
-        self.assertEqual(sets, [(53, 20, 30), (72, 22, 41)])
+        self.assertEqual(sets, [(53, 19, 29), (53, 20, 30), (72, 22, 41)])
         # The site reads the encoding tables of a saved set, so every record keeps them.
         for r in data['solutions']:
             self.assertEqual([len(r['encoding'][side]) for side in 'AB'], [r['modulus'], r['modulus']])
