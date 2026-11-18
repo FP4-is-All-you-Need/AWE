@@ -65,6 +65,8 @@ function FP6Page(){
  const [laneId,setLaneId]=useParameter('fp6_modset_id','',r=>r);
  const [slot,setSlot]=useParameter('fp6_slot',0,r=>{const n=Number(r);return Number.isInteger(n)&&n>=-1?n:0;});
  const lane=lanes.find(l=>l.id===laneId)??[...lanes].sort((a,b)=>(a.bits??0)-(b.bits??0)||a.products-b.products||a.id.localeCompare(b.id))[0];
+ // The set's cards in increasing modulus, as the FP4 sets are drawn; the saved order is kept elsewhere.
+ const cards=useMemo(()=>lane&&{...lane,mods:[...lane.mods].sort((a,b)=>a.modulus-b.modulus)},[lane]);
  // A saved construction replaces a row with the same id, so that it is never left waiting.
  const records=useMemo(()=>[...new Map([...rows.map(r=>full.get(r.id)??rowConstruction(r)),...lanes.flatMap(l=>l.mods)].map(c=>[c.id,c])).values()],[lanes,rows,full]);
  const asked=useRef(new Set<string>());
@@ -77,8 +79,8 @@ function FP6Page(){
  },[rows,index]);
  return <main className="paper-app" data-format-page={valueSet}><PeriodicFormatControl/><h1>FP6 · {valueSet}</h1>
  <p data-no-i18n>{en?'The periodic table, modulo spiral, composite table and construction list all use the selected FP6 value set. The family table also retains source-reported entries that this site’s verifier could not reproduce, with their status shown.':'周期表・法の螺旋表示・分子の表・構成の一覧は、すべて選んだ FP6 の値の集合を使います。系列ごとの表には、この頁の検算器で再現できなかった出所の行も、状態を示して残しています。'}</p>
- {error&&<p role="alert">{error}</p>}{lanes.length>0&&<ModulusSets lanes={lanes} selected={laneId} onSelect={setLaneId}/>}
- {lane&&<details data-section="main" open className="paper-lane" aria-label={`${lane.bits} bit の保存された組`}><summary><h1>{en?`${lane.bits}-bit saved set`:<>{lane.bits} bit　保存された組</>}　{lane.mods.length}法・{lane.products}積 <span>面 A {lane.faces_a} / B {lane.faces_b}　<MathText tex={`K\\le ${lane.k_max}`}/></span></h1></summary><LawRow lane={lane} selected={slot} onSelect={setSlot} detail={lane.mods[slot]&&<Expansion key={lane.mods[slot].id} c={lane.mods[slot]}/>}/><PaperLegend/></details>}
+ {error&&<p role="alert">{error}</p>}{lanes.length>0&&<ModulusSets lanes={lanes} selected={laneId} onSelect={id=>{setLaneId(id);setSlot(0);}}/>}
+ {cards&&<details data-section="main" open className="paper-lane" aria-label={`${cards.bits} bit の保存された組`}><summary><h1>{en?`${cards.bits}-bit saved set`:<>{cards.bits} bit　保存された組</>}　{cards.mods.length}法・{cards.products}積 <span>面 A {cards.faces_a} / B {cards.faces_b}　<MathText tex={`K\\le ${cards.k_max}`}/></span></h1></summary><LawRow lane={cards} selected={slot} onSelect={setSlot} detail={cards.mods[slot]&&<Expansion key={cards.mods[slot].id} c={cards.mods[slot]}/>}/><PaperLegend/></details>}
  <PrimeTable records={records} sets={sets} lane={lane} comparisonLanes={lanes} forms={forms} onInspect={inspect}/><PeriodicViews/><ModularFormsList/>
  <p data-no-i18n>{en?'FP6 data corresponding to the saved FP4 integer-width maps and numerical examples are not included in this collection. The saved FP6 (8×E2M3) modulus sets are listed with the other modulus sets on the FP4 page.':'FP4 の整数幅の地図・数値例に相当する FP6 のデータは、この公開目録には収めていません。保存された FP6 (8×E2M3) の法の組は、FP4 の頁の法の組の一覧に出します。'}</p>
  </main>;
