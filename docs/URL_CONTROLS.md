@@ -22,7 +22,7 @@
 | 整数構成の選択 | visual_actions / integer_id, include_mixed | 同名、include_mixedは1/0 |
 | 構成の選択 | forms_id | 法付きの構成 ID、または joint_旧ID。旧 joint_id は同じ形に転送 |
 | 精度の帯の基準 | 精度選択に連動 | precision_basis（任意bへ変更しても直前の形式を保持） |
-| 周期表の層 | prime_layers / prime_set, prime_forms, prime_holes | 同名。prime_setはfp4/fp6、prime_formsとprime_holesは1/0 |
+| 周期表の層 | prime_layers / prime_set, prime_forms, prime_holes, prime_counts | 同名。prime_setはfp4/fp6、prime_formsとprime_holesは1/0、prime_countsは1/0(1はマスを1行ぶん縦に伸ばして積の数を書く。既定の0は塗りだけ) |
 | 単独の法の構成の一覧 | forms_filters / forms_m, forms_holefree, forms_page | 同名。値の集合は最上部の prime_set と periodic_fp6 に従う。forms_pageは1始まりの表示（URLは0始まり） |
 | 節の開閉 | details / data-section | open.節ID=1または0 |
 
