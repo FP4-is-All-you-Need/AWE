@@ -9,6 +9,9 @@ for(const [page,lang,width] of [['fp4','ja',1440],['fp4','en',390],['fp6','ja',1
  const byBand=new Map<string,Set<string>>();for(const [b,f] of fills){if(!byBand.has(b!))byBand.set(b!,new Set());byBand.get(b!)!.add(f!);}
  expect(byBand.size).toBeGreaterThan(1);for(const s of byBand.values())expect(s.size).toBe(1);expect(new Set([...byBand.values()].map(s=>[...s][0])).size).toBe(byBand.size);
  for(const c of await cells())expect([c.width,c.height]).toEqual([60,60]);
+ // The count is also in the cell title, and the selected-set key is not filled like a one-product cell.
+ const one=p.locator('[data-prime-modulus][data-products]').first();await expect(one.locator('title')).toContainText(`${lang==='en'?'fewest products':'一番少ない積の数'} ${await one.getAttribute('data-products')}`);
+ for(const key of await p.locator('.prime-table-legend .prime-used-key').all())expect(await key.evaluate(e=>getComputedStyle(e).backgroundColor)).toBe('rgb(255, 255, 255)');
  await open('1');
  expect(await p.locator('[data-prime-modulus][data-products] [data-prime-products]').count()).toBe(await p.locator('[data-prime-modulus][data-products]').count());
  const unit=lang==='en'?' prod':'積';
