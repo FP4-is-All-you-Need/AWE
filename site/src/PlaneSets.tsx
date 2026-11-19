@@ -19,8 +19,8 @@ export function PlaneSets({c,side,onSelectPlane}:{c:Construction;side:'A'|'B';on
  const request=JSON.stringify({c,side,excluded:parseExclusions(exclusions),override:choice&&/^-?\d+$/.test(input)?{input:Number(input),tuple:indices.map(original=>Number(choice.split(',')[original]))}:undefined});
  useEffect(()=>{const worker=new Worker(new URL('./planeDistribution.worker.ts',import.meta.url),{type:'module'});worker.onmessage=e=>setState({key:request,result:e.data.result,diff:e.data.diff});worker.onerror=()=>setState({key:request});worker.postMessage(JSON.parse(request));return()=>worker.terminate();},[request]);
  const ready=state?.key===request,result=ready?state?.result:undefined;
- if(!result)return <div data-plane-sets={side} role="status">{ready?(ja?'未計算':'Not computed'):(ja?'計算中':'Computing')}</div>;
- if(result.reason==='limit_or_unknown')return <div data-plane-sets={side}>{ja?'未計算':'Not computed'}</div>;
+ if(!result)return <div data-plane-sets={side} role="status">{ready?'—':(ja?'計算中':'Computing')}</div>;
+ if(result.reason==='limit_or_unknown')return <div data-plane-sets={side}>—</div>;
  const diff=state?.diff;
  const exclude=(plane:number,value:number)=>{setChoice('');const rows=parseExclusions(exclusions);setExclusions((rows.some(e=>e.plane===plane&&e.value===value)?rows.filter(e=>e.plane!==plane||e.value!==value):[...rows,{plane,value}]).map(e=>`${e.plane}:${e.value}`).join(','));};
  const rows=result.alternatives[input]??[],chosen=result.chosen[input],saved=c.saved_encoding?.[side]?.[input]??c.canonical?.encoding[side][Number(input)];
@@ -28,7 +28,7 @@ export function PlaneSets({c,side,onSelectPlane}:{c:Construction;side:'A'|'B';on
  const current=chosen&&c.planes?.[side].map((_,i)=>Number(planeValue(c,side,i,chosen)));
  const chooseInput=(x:string)=>{setInput(x);setChoice('');};
  return <div className="plane-sets" data-plane-sets={side} data-plane-sets-complete={result.complete}>
- <div className="plane-set-summary"><strong>{ja?'面の値の集合':'Plane value sets'}</strong> <MathText tex={`${side}\\in[${result.domain?.join(',')??'?'}]`}/><span>{choice||exclusions?(ja?'選択した表現':'Selected representation'):result.method==='saved_lut'?(ja?'表の採用値':'Table choice'):(ja?'検算に使う符号化':'Encoding used for checking')}</span>{result.holes.length>0&&<span>{ja?'穴':'Holes'} {result.holes.length}</span>}{!result.complete&&<span>{ja?'一部未計算':'Partly computed'}</span>}</div>
+ <div className="plane-set-summary"><strong>{ja?'面の値の集合':'Plane value sets'}</strong> <MathText tex={`${side}\\in[${result.domain?.join(',')??'?'}]`}/><span>{choice||exclusions?(ja?'選択した表現':'Selected representation'):result.method==='saved_lut'?(ja?'表の採用値':'Table choice'):(ja?'検算に使う符号化':'Encoding used for checking')}</span>{result.holes.length>0&&<span>{ja?'穴':'Holes'} {result.holes.length}</span>}</div>
  <div data-alternative-explanation><strong>{ja?'別の符号化':'Alternative encodings'}</strong><p>{ja?`同じ${c.modulus?'剰余':'整数'}を別のリムの組で表すと、いくつもの面の値が同時に変わります。ある面の範囲を狭めると、別の面の範囲が広がることがあります。`:`Representing the same ${c.modulus?'residue':'integer'} with different limb values changes several planes at once. Reducing the range of one plane can increase the range of another.`}</p>
  <span>{ja?'消す値を選ぶ':'Choose a value to remove'}</span>{exclusions&&<button name="plane_diff_reset" onClick={()=>setExclusions('')}>{ja?'元に戻す':'Reset'}</button>}
  {diff?.blocked&&<span role="status">{ja?'この値は消せません':'Cannot remove these values'}</span>}
@@ -55,7 +55,6 @@ export function PlaneSets({c,side,onSelectPlane}:{c:Construction;side:'A'|'B';on
  <form className="plane-set-controls" onSubmit={e=>e.preventDefault()}><label>{ja?'整数':'Integer'} <input name="plane_input" data-url-key={key} type="number" min={result.domain?.[0]} max={result.domain?.[1]} value={input} onChange={e=>chooseInput(e.target.value)}/></label><label>{ja?'符号化表（LUT）':'Encoding table (LUT)'} <select name="plane_choice" value={choice} onChange={e=>setChoice(e.target.value)}><option value="">{result.method==='saved_lut'?(ja?'表の採用値':'Table choice'):(ja?'検算に使う符号化':'Encoding used for checking')}</option>{rows.map(tuple=><option value={storedTuple(tuple)} key={tuple.join(',')}>({tuple.join(',')}){tuple.join()===reference?.join()?` · ${result.method==='saved_lut'?(ja?'表の採用値':'Table choice'):(ja?'検算':'Check')}`:''}</option>)}</select></label><span>{ja?'表現数':'Representations'} {rows.length}</span></form>
  <div className="plane-representations">{rows.map(tuple=><button name="plane_representation" key={tuple.join(',')} value={storedTuple(tuple)} data-reference={tuple.join()===reference?.join()} aria-pressed={tuple.join()===chosen?.join()} onClick={()=>setChoice(storedTuple(tuple))} style={{borderStyle:tuple.join()===reference?.join()?'dashed':'solid'}}><MathText tex={`(${tuple.join(',')})`}/>{tuple.join()===reference?.join()&&<span>{result.method==='saved_lut'?(ja?'表の採用値':'Table choice'):(ja?'検算':'Check')}</span>}</button>)}</div>
  {current&&<div className="plane-set-summary" data-current-plane-values>{current.map((v,i)=><MathText key={i} tex={`F_{${i+1}}=${v}`}/>)}</div>}
- {!result.alternativesComplete&&<span>{ja?'別の符号化：未計算':'Alternative encodings: not computed'}</span>}
- {c.correction&&<div data-plane-correction><span>{ja?'補正':'Correction'}: {correctionLabel(c.correction.kind)}</span> {c.correction.max_abs_shift!==undefined&&<MathText tex={`|\\delta|\\le${c.correction.max_abs_shift}`}/>} <span>{ja?'採用する補正：未収録':'Correction choice: not recorded'}</span></div>}
+ {c.correction&&<div data-plane-correction><span>{ja?'補正':'Correction'}: {correctionLabel(c.correction.kind)}</span> {c.correction.max_abs_shift!==undefined&&<MathText tex={`|\\delta|\\le${c.correction.max_abs_shift}`}/>} <span>{ja?'採用する補正：—':'Correction choice: —'}</span></div>}
  </div>;
 }

@@ -49,8 +49,8 @@ export function StarMap({chosen,costs,savings,colorOf,selected,onSelect,tip,en,s
    {hover!==null&&<pre className="star-tooltip" role="tooltip">{tip(hover)}</pre>}
   </div>
   <div className="star-actions"><button type="button" onClick={()=>setZoom(z=>Math.min(8,z*2))}>{en?'Zoom to selected modulus':'選択した法を拡大'}</button><button type="button" onClick={()=>setZoom(1)}>{en?'Show all':'全体へ'}</button><button type="button" onClick={()=>{setPeriod(4);setGrowth(1);setZoom(1);}}>{en?'Default layout':'既定の配置へ'}</button><span>{zoom}×</span></div>
-  <p className="star-description">{en?'Circle: prime · square: prime power · diamond: composite with distinct prime factors. Larger, brighter marks mean a lower selected cost or product count. Unknown costs use the smallest marks.':'丸：素数・四角：素数べき・ひし形：異なる素因数を持つ合成数。選んだ費用や積が小さい法ほど、大きく濃い点になります。費用未確認は最小の点です。'}</p>
-  <p className="star-description">{en?'Composites are emphasized only when their minimum product count is below the sum for their coprime prime-power components. Grey composites: a component is unrecorded. CRT reconstruction cost is excluded.':'合成数は、素数べきの成分ごとの最少の積の和より、まとめた積が少ない法を強調します。灰色の合成数は成分が未収録で比較未確認です。CRT の復元費は含みません。'}</p>
+  <p className="star-description">{en?'Circle: prime · square: prime power · diamond: composite with distinct prime factors. Larger, brighter marks mean a lower selected cost or product count. Unknown costs use the smallest marks.':'丸：素数・四角：素数べき・ひし形：異なる素因数を持つ合成数。選んだ費用や積が小さい法ほど、大きく濃い点になります。費用の値が無い法は最小の点です。'}</p>
+  <p className="star-description">{en?'Composites are emphasized only when their minimum product count is below the sum for their coprime prime-power components. Grey composites: a component has no construction. CRT reconstruction cost is excluded.':'合成数は、素数べきの成分ごとの最少の積の和より、まとめた積が少ない法を強調します。灰色の合成数は、成分の構成が無く、比較の値がありません。CRT の復元費は含みません。'}</p>
   <p className="star-description">{en?'Clockwise angle follows log₂(m) within each revolution. Radius is constant within a revolution. Close moduli can overlap; select a modulus with the input and zoom to inspect it.':'時計回りの角度は各周の log₂(m) に対応し、同じ周では半径が一定です。近い法は重なることがあります。入力欄で法を選び、拡大して確認できます。'}</p>
  </div>;
 }

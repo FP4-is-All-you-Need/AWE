@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {formCells,fp4Fewest,isFP6Lane,onFP6ValueSet,pendingSource,primeSets,primeTableData,primesThrough,rowConstruction,weightVariants,type PrimeForm} from '../src/primeTable.ts';
+import {formCells,fp4Fewest,isFP6Lane,onFP6ValueSet,setEngines,pendingSource,primeSets,primeTableData,primesThrough,rowConstruction,weightVariants,type PrimeForm} from '../src/primeTable.ts';
 import {connect,pool,factors} from '../src/visual.ts';
 import {mergeModularCatalogs} from '../src/modular.ts';
 import {storedModulusLanes} from '../src/modulusLanes.ts';
@@ -37,14 +37,17 @@ test('every recorded or used prime power is present, without a fixed exponent ce
  const expected=new Set([...records.map(c=>c.modulus),...sets.flatMap(s=>s.moduli)].filter(m=>{const f=factors(m);return f.length===1&&f[0].exponent>1;}));
  const shown=new Set(table.columns.flatMap(c=>c.powers.map(p=>p.modulus)));
  assert.equal(expected.size,16);for(const m of expected)assert.ok(shown.has(m),String(m));
- const future=primeTableData(records,[...sets,{id:'test',bits:1,k:1,products:1,moduli:[8192],solutionIds:[],measured:false}]);
+ const future=primeTableData(records,[...sets,{id:'test',bits:1,k:1,products:1,moduli:[8192],solutionIds:[],engines:[]}]);
  assert.ok(future.columns.find(c=>c.prime===2)!.powers.some(p=>p.modulus===8192&&p.exponent===13));
 });
-test('343 has evidence for the 61-leading measured set, not the 107-leading build-only set',()=>{
- const sets=table.usedIn.get(343)!;
- assert.equal(sets.find(s=>s.moduli[0]===61)!.measured,true);
- assert.equal(sets.find(s=>s.moduli[0]===107)!.measured,false);
- assert.equal(table.usedIn.get(49)!.some(s=>s.measured),false);
+test('a set names the machines whose engines use it, from run records and FP32 engines, and nothing without a device',()=>{
+ const fixture={schema_version:2,solutions:[],sets:[{id:'a',usage:[{state:'build_only'},{state:'measured',device:'NVIDIA GB200'}]},{id:'b',usage:[{state:'build_only'}]},{id:'c'}],fp32_groups:[{id:'g',moduli:[],set_ids:['b'],engines:[{set_id:'b',device:'B300'},{set_id:'b',device:'B200'}]}]} as unknown as Parameters<typeof setEngines>[0];
+ const engines=setEngines(fixture);
+ assert.deepEqual(engines.get('a'),['GB200']);assert.deepEqual(engines.get('b'),['B200','B300']);assert.equal(engines.has('c'),false);
+ const named=(id:string)=>[...new Set((powers.sets.find((s:{id:string})=>s.id===id)?.usage??[]).flatMap((u:{device?:string})=>u.device?[u.device.replace(/^NVIDIA /,'')]:[]))].sort();
+ const sets=table.usedIn.get(343)!;for(const s of sets)assert.deepEqual(s.engines,named(s.id));
+ assert.deepEqual(sets.find(s=>s.moduli[0]===107)!.engines,[]);
+ assert.equal(table.usedIn.get(49)!.some(s=>s.engines.length),false);
 });
 
 const form=(modulus:number,prime:number,exponent:number,value_set:string,kind:PrimeForm['kind'],products:number,holes=0):PrimeForm=>({modulus,prime,exponent,value_set,kind,products,planes:[products,products],id:`awem2_${modulus}_${value_set}_${kind}`,...(kind==='excluded'?{reason:'nonunit_denominator_needs_table'}:{holes:{A:holes,B:holes,exact:true}})});

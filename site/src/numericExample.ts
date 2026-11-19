@@ -35,7 +35,7 @@ export function inverse(n:bigint,p:bigint):bigint{
 }
 export type Plan={id:string;modulus:number;weights:{A:number[];B:number[]};planes:{A:number[][];B:number[][]};products:{a:number;b:number;numerator:number}[];denominator:number;encode:(v:bigint,side:'A'|'B')=>number[]|undefined;faceValue?:(side:'A'|'B',plane:number,t:number[])=>bigint;maxK?:number|null;bounds?:{A:bigint;B:bigint};inputRanges?:{A?:InputRange;B?:InputRange}};
 export function constructionPlan(c:Construction):Plan{
- if(!c.planes||c.products.some(p=>p.numerator===null))throw Error('面・係数未収録');
+ if(!c.planes||c.products.some(p=>p.numerator===null))throw Error('面と係数の値がありません');
  return {...c,inputRanges:{A:constructionInputRange(c,'A'),B:constructionInputRange(c,'B')},planes:c.planes,products:c.products.map(p=>({...p,numerator:p.numerator!})),encode:(v,side)=>encodeConstruction(c,v,side),faceValue:(side,plane,t)=>planeValue(c,side,plane,t),maxK:c.max_k};
 }
 const fixedEncodings=new WeakMap<Construction,Partial<Record<'A'|'B',Representations>>>();
@@ -78,7 +78,7 @@ export function computeMatrix(plan:Plan,a:Matrix,b:Matrix){
   const bound=plan.bounds?.[side],range=plan.inputRanges?.[side]??(bound!==undefined?[-bound,bound] as InputRange:undefined);
   try{
    if(range&&(v<range[0]||v>range[1]))throw Error('範囲外');
-   const t=plan.encode(v,side);if(!t)throw Error(plan.bounds?'穴':'符号化表未収録');
+   const t=plan.encode(v,side);if(!t)throw Error(plan.bounds?'穴':'符号化表がありません');
    const decoded=weightedTuple(t,plan.weights[side]);if(p?modulo(decoded-v,p)!==0n:decoded!==v)throw Error('符号化表と不一致');
    return t;
   }catch(e){throw new MatrixInputError((e as Error).message,side,i,j,v,range);}
@@ -97,7 +97,7 @@ export function computeMatrix(plan:Plan,a:Matrix,b:Matrix){
  return {input:{A:a,B:b},la,lb,fa,fb,products,numerator,reconstructed,reference,expected,residual,matches:residual.every(row=>row.every(v=>v===0n)),k:a[0].length};
 }
 export function crt(residues:bigint[],moduli:bigint[]){
- if(!moduli.length||moduli.length!==residues.length||moduli.some(p=>p<=1n))throw Error('法未収録');
+ if(!moduli.length||moduli.length!==residues.length||moduli.some(p=>p<=1n))throw Error('法がありません');
  const P=moduli.reduce((v,p)=>v*p,1n),coefficients=moduli.map(p=>(P/p)*inverse(P/p,p));
  const nonnegative=modulo(residues.reduce((sum,r,i)=>sum+r*coefficients[i],0n),P),centered=2n*nonnegative>=P?nonnegative-P:nonnegative;
  return {P,coefficients,nonnegative,centered};

@@ -1,9 +1,14 @@
 import {test,expect} from '@playwright/test';
-const id='awems1_9c2e7facfd1d66e7dd39f7f24172717768991f8c76837922c172b3d8ae70d80f';
+import fs from 'node:fs';
+// The saved FP32 set, taken from the data.
+const id:string=JSON.parse(fs.readFileSync('../data/modular/fp32.json','utf8')).sets[0].id;
 for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP32 measured modulus list and details ${width} ${lang}`,async({page})=>{
  test.setTimeout(120000);await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  const data=await (await page.request.get('/modular/fp32.json')).json();const set=data.sets[0];
+ const history=await (await page.request.get('/modular/fp32-history.json')).json();
+ const named=[...new Set(history.fp32_groups.flatMap((g:{engines:{set_id:string;device:string}[]})=>g.engines.filter(e=>e.set_id===set.id).map(e=>e.device)))].sort() as string[];
+ const engines=lang==='en'?`Set used by the ${named.join(' and ')} engine${named.length>1?'s':''}`:`${named.join('・')} で使う組`;
  await page.goto('/?lang='+lang);await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(18);
  await page.locator('[name=precision]').selectOption('fp32');await expect(page.locator('[name=b]')).toHaveValue('24');
  const tiles=page.locator('.paper-lane [data-tile-id]');await expect(tiles).toHaveCount(12);
@@ -11,11 +16,11 @@ for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP32 measured 
  for(const tile of await tiles.all())await expect(tile).toBeVisible();
  await expect(page.locator('.paper-lane h1')).toContainText(lang==='en'?'28 products':'28積');
  await expect(page.locator('.paper-lane h1')).toContainText('A 24 / B 24');
- await expect(page.locator('.paper-lane [data-set-usage]')).toContainText(lang==='en'?'Used in measurements':'測定で使用');
+ await expect(page.locator('.paper-lane [data-set-engines]')).toHaveText(engines);
  await tiles.nth(6).click();await expect(page.locator('.paper-lane [data-expansion]')).toHaveAttribute('data-expansion',set.solution_ids[6]);
  await expect(page.locator('.paper-lane [data-limb-weights]')).toContainText('1,6');
  await expect(page.locator('[data-section=modset-catalog]')).toHaveJSProperty('open',true);
- await expect(page.locator(`[data-saved-modset="${id}"] [data-set-usage]`)).toContainText(lang==='en'?'Used in measurements':'測定で使用');
+ await expect(page.locator(`[data-saved-modset="${id}"] [data-set-engines]`)).toHaveText(engines);
  await page.locator('[name=modset_id]').selectOption(id);await tiles.nth(11).click();
  await page.reload();await expect(page.locator('[name=b]')).toHaveValue('24');await expect(page.locator('[name=crt]')).toHaveValue('1');
  await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(12);

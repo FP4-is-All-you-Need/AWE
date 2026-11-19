@@ -3,7 +3,7 @@ import {base13Alternatives,base13Carry,base13Greedy,transfersTo} from './base13C
 import {Formula,MathText} from './PaperFigures.tsx';
 import {useParameter} from './parameters.ts';
 import {useLanguage} from './i18n.tsx';
-const words={en:{title:'Carry operations and alternative representations',limbs:'Stored limbs',choice:'Representation',figure:'Procedure in the paper figure',greedy:'Greedy encoding',lut:'Table choice',unknown:'Table choice unavailable',count:'Representations',none:'Hole',step:'Transfer',unchanged:'No transfer',higher:'Carry beyond the stored limbs',values:'Result'},ja:{title:'繰り上がりの操作と別の表現',limbs:'格納するリム数',choice:'表現',figure:'論文の図の手順',greedy:'貪欲法の符号化',lut:'表の採用値',unknown:'未収録',count:'表現数',none:'Hole',step:'移動',unchanged:'移動不要',higher:'格納するリムを越える繰り上がり',values:'結果'}};
+const words={en:{title:'Carry operations and alternative representations',limbs:'Stored limbs',choice:'Representation',figure:'Procedure of Figure 1 in arXiv:2609.24519',greedy:'Greedy encoding',lut:'Table choice',unknown:'Table choice unavailable',count:'Representations',none:'Hole',step:'Transfer',unchanged:'No transfer',higher:'Carry beyond the stored limbs',values:'Result'},ja:{title:'繰り上がりの操作と別の表現',limbs:'格納するリム数',choice:'表現',figure:'arXiv:2609.24519 の図1の手順',greedy:'貪欲法の符号化',lut:'表の採用値',unknown:'—',count:'表現数',none:'Hole',step:'移動',unchanged:'移動不要',higher:'格納するリムを越える繰り上がり',values:'結果'}};
 export function Base13CarryChoices({value,saved,onStep}:{value:bigint;saved?:number[];onStep:(exponent:number)=>void}){
  const lang=useLanguage(),t=words[lang];
  const [limbs,setLimbs]=useParameter('encode_limbs',3,r=>[1,2,3,4].includes(Number(r))?Number(r):3);

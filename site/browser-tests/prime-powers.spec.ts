@@ -1,5 +1,8 @@
 import {test,expect} from '@playwright/test';
-const id='awemps2_bcf56be798e6e87fa023964c76889cb177e2b5133d57217eb9cf9d9f66b9c5a1';
+import fs from 'node:fs';
+// The saved prime-power sets led by 61 (with an engine run) and by 107, taken from the data.
+const powerSets:{id:string;verification:{moduli:number[]}}[]=JSON.parse(fs.readFileSync('../data/modular/powers.json','utf8')).sets;
+const id=powerSets.find(s=>s.verification.moduli[0]===61)!.id,other=powerSets.find(s=>s.verification.moduli[0]===107)!.id;
 for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP4 periodic table includes measured cubes ${width} ${lang}`,async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'});
@@ -11,8 +14,10 @@ for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP4 periodic t
  // A click anywhere along the heading reaches the heading, not the weight buttons below it.
  const heading=table.locator('.prime-set-history > summary');await heading.scrollIntoViewIfNeeded();
  expect(await heading.evaluate(s=>{const r=s.getBoundingClientRect();return [.1,.3,.5,.7,.9].filter(f=>!s.contains(document.elementFromPoint(r.left+r.width*f,r.top+r.height/2))).length;})).toBe(0);
- await heading.click();await expect(table.locator(`[data-prime-set="${id}"]`)).toHaveAttribute('data-use','measured');
- await expect(table.locator('[data-prime-set="awemps2_4c16afaa19d827808a3c443104b95481f7fd92f64472802415d76c8e369367f2"]')).toHaveAttribute('data-use','catalog-only');
+ const served=(await (await page.request.get('/modular/powers.json')).json()).sets.find((s:{id:string})=>s.id===id);
+ const named=[...new Set((served.usage??[]).flatMap((u:{device?:string})=>u.device?[u.device.replace(/^NVIDIA /,'')]:[]))].sort().join(',');
+ await heading.click();await expect(table.locator(`[data-prime-set="${id}"]`)).toHaveAttribute('data-engines',named);
+ await expect(table.locator(`[data-prime-set="${other}"]`)).toHaveAttribute('data-engines','');
  const figure=table.locator('.prime-table-figure');expect(await figure.evaluate(n=>n.scrollHeight<=n.clientHeight)).toBe(true);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  if(width===390){await table.locator('[data-prime-modulus="157"]').scrollIntoViewIfNeeded();await figure.evaluate(n=>n.scrollLeft=n.scrollWidth);await expect(table.locator('[data-prime-modulus="157"]')).toBeInViewport();}

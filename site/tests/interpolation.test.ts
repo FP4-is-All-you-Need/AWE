@@ -23,8 +23,8 @@ test('catalogue gaps never pack positions; adjacent cells share endpoints',()=>{
  }}
 });
 test('ribbon tiers reuse candidate precedence and never infer exact coverage from a bound',()=>{
- assert.equal(constructionTier(1,null,true,1),'率未測定');assert.equal(constructionTier(1,0,true,1),'穴・補正あり');assert.equal(constructionTier(1,0,false,1),'積数最少');assert.equal(constructionTier(2,0,false,1),'穴なし');
- assert.equal(ribbonTier({R:1,hA:0,hB:0,exact:false} as PolarRow,1),'率未測定');
+ assert.equal(constructionTier(1,null,true,1),'率の値なし');assert.equal(constructionTier(1,0,true,1),'穴・補正あり');assert.equal(constructionTier(1,0,false,1),'積数最少');assert.equal(constructionTier(2,0,false,1),'穴なし');
+ assert.equal(ribbonTier({R:1,hA:0,hB:0,exact:false} as PolarRow,1),'率の値なし');
  for(let r=1;r<=30;r++){const band=productBand(r);assert(r<=band.max);assert.notEqual(band.color,undefined);}
 });
 

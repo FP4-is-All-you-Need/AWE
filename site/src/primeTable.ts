@@ -18,11 +18,21 @@ export function rowConstruction(r:PolarRow):Construction{
 }
 export function pendingSource(c:Construction){const p=c.additional?.pending;return typeof p==='string'?p:undefined;}
 
-export type PrimeSet={id:string;bits:number;k:number;products:number;moduli:number[];solutionIds:string[];measured:boolean};
+/** The machines whose engines use each saved set: the devices of its run records and of the FP32 engines built for it.
+ Sets without a recorded device are not listed. */
+export function setEngines(catalog?:ModularCatalog):Map<string,string[]>{
+ const out=new Map<string,Set<string>>(),add=(id:string,device?:string)=>{if(device)(out.get(id)??out.set(id,new Set()).get(id)!).add(device.replace(/^NVIDIA /,''));};
+ for(const s of catalog?.sets??[])for(const u of s.usage??[])add(s.id,'device' in u?u.device:undefined);
+ for(const g of catalog?.fp32_groups??[])for(const e of g.engines)add(e.set_id,e.device);
+ return new Map([...out].map(([id,d])=>[id,[...d].sort()]));
+}
+export function engineText(devices:string[],en:boolean){return en?`Set used by the ${devices.join(' and ')} engine${devices.length>1?'s':''}`:`${devices.join('・')} で使う組`;}
+export type PrimeSet={id:string;bits:number;k:number;products:number;moduli:number[];solutionIds:string[];engines:string[]};
 export function primeSets(catalog?:ModularCatalog,saved?:VisualCatalog):PrimeSet[]{
+ const engines=setEngines(catalog);
  return [
-  ...(catalog?.sets??[]).map(s=>({id:s.id,bits:s.magnitude_bits,k:s.k,products:s.verification.products,moduli:s.verification.moduli,solutionIds:s.solution_ids,measured:s.usage?.some(u=>u.state==='measured')??false})),
-  ...(saved?.widths.flatMap(w=>w.rows.map(r=>({id:r.id,bits:w.bits,k:r.plan_k??8192,products:r.products,moduli:r.moduli,solutionIds:r.mods.map(c=>c.id),measured:r.selection_kind==='measured'})))??[]),
+  ...(catalog?.sets??[]).map(s=>({id:s.id,bits:s.magnitude_bits,k:s.k,products:s.verification.products,moduli:s.verification.moduli,solutionIds:s.solution_ids,engines:engines.get(s.id)??[]})),
+  ...(saved?.widths.flatMap(w=>w.rows.map(r=>({id:r.id,bits:w.bits,k:r.plan_k??8192,products:r.products,moduli:r.moduli,solutionIds:r.mods.map(c=>c.id),engines:[]})))??[]),
  ];
 }
 

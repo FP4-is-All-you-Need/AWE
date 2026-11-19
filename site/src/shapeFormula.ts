@@ -11,5 +11,6 @@ export function shapeFormula(c:Construction):string{
  if(c.weights.A.length===1&&c.weights.B.length===1)return '1\\times1';
  if(c.shape==='A'||c.shape==='sum')return '\\text{Karatsuba}';
  if(['three_limbs','limbs3','vanishing_sum','vanishA'].includes(c.shape))return `${c.weights.A.length}\\times${c.weights.B.length}`;
- return ({B:'w^2\\equiv0',vanishing:'w^2\\equiv0',direct:'2\\times2'} as Record<string,string>)[c.shape]??'\\text{'+c.shape+'}';
+ // A shape without its own name (records read from the catalog files) is named by its limb grid, as the direct shapes are.
+ return ({B:'w^2\\equiv0',vanishing:'w^2\\equiv0',direct:'2\\times2'} as Record<string,string>)[c.shape]??`${c.weights.A.length}\\times${c.weights.B.length}`;
 }

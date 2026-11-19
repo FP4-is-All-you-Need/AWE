@@ -13,7 +13,7 @@ import {useLanguage} from './i18n.tsx';
 import {savedPlaneValues,FP4_VALUES} from './encoding.ts';
 export function SavedPlaneValues({c,side,plane}:{c:Construction;side:'A'|'B';plane:number}){
  const en=useLanguage()==='en',values=savedPlaneValues(c,side,plane);
- if(values===null)return <p style={{fontSize:16,margin:'2px 0'}}>未測定</p>;
+ if(values===null)return <p data-plane-values-missing style={{fontSize:16,margin:'2px 0'}}>—</p>;
  const declared=(c.additional?.plane_sets as Record<string,string[]>|undefined)?.[side]?.[plane];
  if(declared&&declared!=='2xE2M1')return <p data-saved-plane-values={side+'.'+plane} style={{overflowWrap:'anywhere'}}>{en?'Stored plane values':'保存表の面の値'} ({declared}): {values.join(', ')}</p>;
  const outside=values.filter(v=>!FP4_VALUES.includes(v));
@@ -32,7 +32,7 @@ export function SavedPlaneValues({c,side,plane}:{c:Construction;side:'A'|'B';pla
 export function PlaneFlow({c,side,selectedProduct,onSelectPlane,showValues}:{c:Construction;side:'A'|'B';selectedProduct:number|null;onSelectPlane:(index:number)=>void;showValues:boolean}){
  const marker=useId().replace(/:/g,'');
  const rows=c.planes?.[side];
- if(!rows)return <p>未収録</p>;
+ if(!rows)return <p>—</p>;
  const symbol=side.toLowerCase(),single=rows.map((row,index)=>({row,index})).filter(p=>nnz(p.row)<=1);
  const groups=[rows.map((row,index)=>({row,index})).filter(p=>nnz(p.row)===2),rows.map((row,index)=>({row,index})).filter(p=>nnz(p.row)>=3)];
  groups.forEach(group=>group.sort((a,b)=>first(a.row)-first(b.row)||a.index-b.index));

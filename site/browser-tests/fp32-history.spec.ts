@@ -8,6 +8,7 @@ for(const width of [1440,390])for(const lang of ['en','ja'])test(`FP32 recorded 
  const id=await row.locator('[name=fp32_set]').getAttribute('value');await expect(page).toHaveURL(new RegExp('modset_id='+id));await page.reload();await expect(page.locator('.paper-lane [data-tile-id]')).toHaveCount(10);await expect(page.locator('input[name=b]')).toHaveValue('21');
  const failures=panel.locator('[data-fp32-failed]');await failures.locator(':scope>summary').click();await expect(failures.locator('li')).toHaveCount(4);await expect(failures).toContainText(lang==='en'?'Failed':'不合格');
  await page.locator('select[name=precision]').selectOption('fp32');await expect(panel.locator('[data-fp32-group]')).toHaveCount(16);
- const gemm=panel.locator('[data-fp32-engine="k96_s23_gemm"]');await panel.locator('[data-fp32-group]:has([data-fp32-engine="k96_s23_gemm"])').locator(':scope>summary').click();await expect(gemm).toContainText(lang==='en'?'Run link unconfirmed':'実行版との対応未確認');
+ // A run without a matched build shows a dash in place of a result.
+ const unmatched=panel.locator('[data-fp32-group]:has([data-fp32-result="unmatched"])').first();await unmatched.locator(':scope>summary').click();await expect(unmatched.locator('[data-fp32-result="unmatched"]').first()).toContainText('—');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await expect(page.locator('.katex-error')).toHaveCount(0);
 });

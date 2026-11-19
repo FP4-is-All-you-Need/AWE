@@ -22,7 +22,7 @@ function MatrixDiagram({plan,a,b,kind,c}:{plan:Plan;a:Matrix;b:Matrix;kind:strin
 }
 function InputBounds({plan,side}:{plan?:Plan;side:'A'|'B'}){
  const range=plan?.inputRanges?.[side];
- return <div data-input-range={side}>{range?<><span>入力の範囲</span> <MathText tex={`[${range[0]},${range[1]}]`}/></>:plan?.modulus?<><MathText tex={`\\operatorname{mod}\\;${plan.modulus}`}/> <span>整数は10進数で、符号を除き100文字までです。</span></>:<span>入力の範囲は未収録</span>}</div>;
+ return <div data-input-range={side}>{range?<><span>入力の範囲</span> <MathText tex={`[${range[0]},${range[1]}]`}/></>:plan?.modulus?<><MathText tex={`\\operatorname{mod}\\;${plan.modulus}`}/> <span>整数は10進数で、符号を除き100文字までです。</span></>:<span>入力の範囲：—</span>}</div>;
 }
 export function NumericExamples({selected}:{selected?:Construction}){
  const [source,setSource]=useState<Example>(),[tables,setTables]=useState<EncodingTable[]>(),[error,setError]=useState('');

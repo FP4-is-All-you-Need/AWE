@@ -18,7 +18,7 @@ test('paper layout keeps all laws and the decomposition horizontal, with bundled
  await page.getByLabel('K 数値').fill('16384');await expect(page.locator('.paper-lane h1')).toContainText('21法・59積');
  await page.reload();await expect(page.locator('.paper-lane h1')).toContainText('21法・59積');expect(page.url()).toContain('K=16384');
  await page.getByLabel('K 数値').fill('65536');await expect(page.locator('.paper-lane [role=status]')).toHaveText('K範囲外');
- await page.getByLabel('b 数値').fill('85');await expect(page.locator('.workspace-main > p, [data-integer-unavailable]').filter({hasText:'未収録'})).toBeVisible();await page.reload();await expect(page.getByLabel('b 数値')).toHaveValue('85');
+ await page.getByLabel('b 数値').fill('85');await expect(page.locator('.workspace-main > p, [data-integer-unavailable]').filter({hasText:'この幅の組の構成はありません'})).toBeVisible();await page.reload();await expect(page.getByLabel('b 数値')).toHaveValue('85');
  await page.getByLabel('K 数値').fill('8192');await page.locator('select[name=precision]').selectOption('fp32');await expect(page.getByLabel('b 数値')).toHaveValue('24');await expect(page.locator('[name=crt]')).toHaveValue('1');await expect(page.locator('.paper-lane [data-tile-id]').first()).toBeVisible();
  });
 
@@ -46,7 +46,7 @@ test('sliders and direct b/K URLs reproduce the saved diagram and totals',async(
  const summary=await page.locator('.paper-lane h1').innerText();await page.reload();await expect(page.locator('.paper-lane h1')).toHaveText(summary);
  await page.goto('/?lang=ja&b=53&K=8192');await page.getByLabel('K スライダー',{exact:true}).focus();for(let i=0;i<4;i++)await page.keyboard.press('ArrowRight');
  await expect(page.getByLabel('K 数値')).toHaveValue('16384');await expect(page.locator('.paper-lane h1')).toContainText('21法・59積');
- await page.goto('/?lang=ja&b=85&K=65536');await expect(page.locator('.workspace-main > p, [data-integer-unavailable]').filter({hasText:'未収録'})).toBeVisible();await expect(page.locator('.paper-lane')).toHaveCount(0);
+ await page.goto('/?lang=ja&b=85&K=65536');await expect(page.locator('.workspace-main > p, [data-integer-unavailable]').filter({hasText:'この幅の組の構成はありません'})).toBeVisible();await expect(page.locator('.paper-lane')).toHaveCount(0);
  await page.goto('/?lang=ja&b=53&K=65536');await expect(page.locator('.paper-lane [role=status]')).toHaveText('K範囲外');
 });
 

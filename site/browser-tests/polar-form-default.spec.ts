@@ -3,10 +3,10 @@ test('the cheapest undominated candidate is the default; a pick moves the list, 
  await page.goto('/?lang=ja&section=polar-periodic&polar_modulus=343&polar_count=400');
  const buttons=page.locator('.polar-candidates button');
  await expect(buttons.first()).toHaveClass(/selected/,{timeout:30000});
- const first=(await buttons.first().getAttribute('title'))!.split(' ')[0];
+ const first=(await buttons.first().getAttribute('data-polar-candidate'))!;
  const zoom=page.getByRole('button',{name:'選択した法を拡大'});await zoom.click();await zoom.click();
  await expect(page.locator('[data-ribbon-option][data-active="true"]')).toHaveAttribute('data-form',first);
- const second=(await buttons.nth(1).getAttribute('title'))!.split(' ')[0];
+ const second=(await buttons.nth(1).getAttribute('data-polar-candidate'))!;
  await buttons.nth(1).click();
  await expect(buttons.nth(1)).toHaveClass(/selected/);
  await expect(page.locator('[data-ribbon-option][data-active="true"]')).toHaveAttribute('data-form',second);

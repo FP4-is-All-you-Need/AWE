@@ -10,7 +10,7 @@ import {Representations} from './Representations.tsx';
 import {base13Spec,representationSpec} from './representations.ts';
 import {useLimbOrder} from './useLimbOrder.ts';
 function AweLine({selected,side,value,zoom,onSelect}:{selected:Construction;side:'A'|'B';value:string;zoom:number;onSelect:(v:string)=>void}){
- const {view:c}=useLimbOrder(selected),n=integer(value);let tuple:number[]|undefined,status='未収録';
+ const {view:c}=useLimbOrder(selected),n=integer(value);let tuple:number[]|undefined,status='—';
  try{tuple=n===null?undefined:encodeConstruction(c,n,side);}catch(e){status=(e as Error).message;}
  return <section data-number-line="awe" data-construction={c.id}><h3>AWE — 選択中の構成 {c.modulus>0&&<MathText tex={`\\operatorname{mod}\\;${c.modulus}`}/>}</h3><p><MathText tex={`w_{${side}}=(${c.weights[side].join(',')})`}/></p><p className="awe-encoding-equation">{tuple?<MathText tex={`${value}${c.modulus?'\\equiv':'='}${tuple.map((v,i)=>`(${v})\\cdot ${c.weights[side][i]}`).join('+')}${c.modulus?`\\pmod{${c.modulus}}`:''}`}/>:c.hole_values?.includes(Number(value))?'Hole':status}</p><Representations key={c.id+side} rangeName="awe_line_" spec={representationSpec(c,side)} value={value} zoom={zoom} onSelect={onSelect} adopted={n=>savedTuple(c,n,side)}/>{tuple&&<p><MathText tex={`\\sum_{i} w_{i} a_{i}=${weightedTuple(tuple,c.weights[side])}`}/></p>}</section>;
 }

@@ -12,16 +12,20 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`FP6 family row
  if(lang==='en')expect(await detail.innerText()).not.toMatch(/リムの並び/);
  const id=new URL(page.url()).searchParams.get('fp6_form');expect(id).toBe(await first.getAttribute('data-fp6-family-row'));
  await page.reload();await expect(section.locator('[data-fp6-selected] details.construction-detail')).toBeVisible({timeout:30000});
- // A row known only from its source report has no construction to draw.
- await section.locator('input[aria-label="FP6 modulus"]').fill('64');const only=section.locator('[data-fp6-family-row][data-status="source_only"]').first();
- await expect(only).toBeVisible();await expect(only.locator('[data-tile-id]')).toHaveCount(0);await only.locator('.molecule-select').click();
- await expect(section.locator('[data-fp6-selected]')).toContainText(lang==='en'?'no construction data':'構成のデータがありません');
+ // Every listed row has a construction to draw; rows that this site could not check are not listed.
+ await section.locator('input[aria-label="FP6 modulus"]').fill('64');await expect(rows.first()).toBeVisible();
+ await expect(section.locator('[data-fp6-family-row][data-status="source_only"]')).toHaveCount(0);
+ for(const row of await rows.all())await expect(row.locator('[data-tile-id]')).toHaveCount(1,{timeout:30000});
  // A row counts the products of the construction it draws, without unused limbs.
  await section.locator('input[aria-label="FP6 modulus"]').fill('4');const p2=section.locator('[data-fp6-family-row][data-family="p2"]').first();
  await expect(p2).toHaveAttribute('data-value-set','8xE2M3');await expect(p2).toHaveAttribute('data-products','1');
  await expect(p2.locator('[data-omitted-limbs]')).toHaveText(lang==='en'?'Unused limbs are omitted.':'使われないリムを省いて表示しています。');
  const summary=section.locator('[data-fp6-summary="4"]');await expect(summary).toContainText(': 1 (');
- await expect(summary.locator('[data-fp6-source-holefree]')).toContainText(lang==='en'?'Source report: 2 products':'出所の報告では 2 積');
+ await expect(summary.locator('[data-fp6-general-weight]')).toHaveCount(0);
+ // A bounded search result is stated with its conditions.
+ await section.locator('input[aria-label="FP6 modulus"]').fill('901');
+ await expect(section.locator('[data-fp6-summary="901"] [data-fp6-general-weight]')).toContainText(lang==='en'?'no hole-free construction has 2 or fewer products':'穴なしで2積以下の構成はありません');
+ await section.locator('input[aria-label="FP6 modulus"]').fill('4');
  await p2.locator('.molecule-select').click();
  const drawn=section.locator('[data-fp6-selected] [data-product-index]');await expect(drawn.first()).toBeAttached();
  expect(await drawn.evaluateAll(n=>new Set(n.map(e=>e.getAttribute('data-product-index'))).size)).toBe(1);

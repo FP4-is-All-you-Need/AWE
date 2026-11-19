@@ -10,8 +10,8 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`periodic table
  const c529=table.locator('[data-prime-modulus="529"]');await expect(c529).toHaveAttribute('data-prime-base','23');await expect(c529).toHaveAttribute('data-exponent','2');
  await expect(c529).toHaveAttribute('data-forms','hole_free');await expect(c529.locator('[data-prime-forms-marker]')).toHaveCount(1);
  for(const m of [512,625])await expect(table.locator(`[data-prime-modulus="${m}"]`)).toHaveAttribute('data-forms-fewer','true');
- // 2401: the published single constructions do not have fewer products; one left out of the published data does
- await expect(table.locator('[data-prime-modulus="2401"]')).toHaveAttribute('data-forms-fewer','false');await expect(table.locator('[data-prime-modulus="2401"]')).toHaveAttribute('data-forms-excluded-fewer','true');
+ // 2401: the single constructions in the catalog do not have fewer products
+ await expect(table.locator('[data-prime-modulus="2401"]')).toHaveAttribute('data-forms-fewer','false');
  await c529.click();await expect(table.locator('[data-prime-forms-detail] [data-kind=hole_free]').first()).toContainText(String(best(529,['2xE2M1'],'hole_free')));
  // primes above the last column are listed after the table; hiding holes removes the ones with holes only
  const beyond=table.locator('[data-prime-beyond-list]');await expect(beyond).not.toHaveAttribute('open','');await beyond.locator(':scope > summary').click();await expect(beyond.locator('[data-prime-beyond="1597"]')).toHaveCount(1);
@@ -19,15 +19,15 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`periodic table
  expect(best(Number(holesOnly),['2xE2M1'],'hole_free')).toBeUndefined();expect(best(Number(holesOnly),['2xE2M1'],'holes')).toBeDefined();
  await table.locator('[name=prime_holes]').uncheck();await expect(beyond.locator(`[data-prime-beyond="${holesOnly}"]`)).toHaveCount(0);
  expect(new URL(page.url()).searchParams.get('prime_holes')).toBe('0');await table.locator('[name=prime_holes]').check();
- // FP6 (8xE2M3): 1024 has fewer products than every FP4 construction and a fewer-product construction outside the published data;
+ // FP6 (8xE2M3): 1024 has fewer products than every FP4 construction;
  // 2048 has no FP4 construction, so it is hole-free only on FP6
  await table.locator('[name=prime_set]').selectOption('fp6');await expect(table.locator(':scope > summary')).toContainText('FP6');
- const c1024=table.locator('[data-prime-modulus="1024"]');await expect(c1024).toHaveAttribute('data-forms-fewer','true');await expect(c1024).toHaveAttribute('data-forms-only-wider','false');await expect(c1024).toHaveAttribute('data-forms-excluded-fewer','true');
+ const c1024=table.locator('[data-prime-modulus="1024"]');await expect(c1024).toHaveAttribute('data-forms-fewer','true');await expect(c1024).toHaveAttribute('data-forms-only-wider','false');
  await expect(table.locator('[data-prime-modulus="2048"]')).toHaveAttribute('data-forms-only-wider','true');
  await expect(table.locator('[data-prime-modulus="529"]')).toHaveAttribute('data-forms','hole_free');
- await c1024.click();await expect(table.locator('[data-prime-form-reason]')).toHaveCount(1);
- // The mark stays once the checked constructions of 1024 are read in full.
- await expect(table.locator('[data-prime-inspection-loading]')).toHaveCount(0);await expect(c1024).toHaveAttribute('data-forms-excluded-fewer','true');
+ await c1024.click();await expect(table.locator('[data-prime-form-reason],[data-prime-excluded-fewer],[data-legend="excluded-fewer"]')).toHaveCount(0);
+ // Only constructions in the catalog are listed.
+ await expect(table.locator('[data-prime-inspection-loading]')).toHaveCount(0);await expect(table.locator('[data-prime-forms-detail] [data-kind=excluded]')).toHaveCount(0);
  await table.screenshot({path:`build/screens/prime-forms-fp6-${lang}-${width}.png`});
  await expect(table.locator('[data-prime-forms-detail] [data-kind=hole_free]').first()).toContainText(String(best(1024,['8xE2M3'],'hole_free')));
  await table.locator('[name=prime_forms]').uncheck();await expect(table.locator('[data-prime-forms-marker]')).toHaveCount(0);await expect(beyond.locator('[data-forms="hole_free"],[data-forms="holes"]')).toHaveCount(0);

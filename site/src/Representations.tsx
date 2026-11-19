@@ -14,7 +14,7 @@ export function Representations({spec,value,zoom,onSelect,adopted,rangeName}:{sp
  const data=useRepresentations(spec),centre=integer(value)??0n;
  if(integer(value)===null)return <div ref={ref}><p role="status">整数のみ</p></div>;
  if(!data)return <div ref={ref}><p role="status">計算中</p></div>;
- if(!data.complete)return <div ref={ref}><p role="status">{data.reason==='limit'?'列挙数の上限':'未計算'}</p></div>;
+ if(!data.complete)return <div ref={ref}><p role="status">{data.reason==='limit'?'列挙数の上限':'—'}</p></div>;
  const candidates=(n:bigint)=>data.values[String(spec?.modulus?modulo(n,BigInt(spec.modulus)):n)]??[];
  const half=Math.max(1,Math.min(20,Math.floor((width-64)/zoom/2))),spacing=Math.max(zoom,Math.max(String(centre-BigInt(half)).length,String(centre+BigInt(half)).length)*9+8);
  const visibleHalf=Math.max(1,Math.min(half,Math.floor((width-64)/spacing/2))),visibleCount=2*visibleHalf+1,left=(width-(visibleCount-1)*spacing)/2;

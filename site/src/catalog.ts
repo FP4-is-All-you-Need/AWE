@@ -7,7 +7,7 @@ export async function read<T>(path:string,sha?:string):Promise<T> {
  if(cache.size>=16)cache.delete(cache.keys().next().value!);
  if(!cache.has(key))cache.set(key,(async()=>{
   const response=await fetch(import.meta.env.BASE_URL+path);if(!response.ok)throw Error(`データ読込失敗 (${response.status})`);
-  if(response.headers.get('content-type')?.includes('text/html'))throw Error('JSON未収録');
+  if(response.headers.get('content-type')?.includes('text/html'))throw Error('JSON がありません');
   const bytes=await response.arrayBuffer();
   if(sha){const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');if(hash!==sha)throw Error('データの検査値が不一致');}
   return JSON.parse(new TextDecoder().decode(bytes));
@@ -24,6 +24,6 @@ export function filterRows(rows:Row[],f:Filters):Row[]{
 }
 export async function solution(c:Catalog,id:string):Promise<Solution>{
  if(!/^awe1_[0-9a-f]{64}$/.test(id))throw Error('ID不正');
- const entry=c.files.find(x=>x.path===`solutions/${id.slice(5,7)}.json`);if(!entry)throw Error('未収録');
- const found=(await read<Solution[]>(entry.path,entry.sha256)).find(x=>x.id===id);if(!found)throw Error('未収録');return found;
+ const entry=c.files.find(x=>x.path===`solutions/${id.slice(5,7)}.json`);if(!entry)throw Error('構成がありません');
+ const found=(await read<Solution[]>(entry.path,entry.sha256)).find(x=>x.id===id);if(!found)throw Error('構成がありません');return found;
 }

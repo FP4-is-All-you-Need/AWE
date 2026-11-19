@@ -104,7 +104,7 @@ export function pool(saved:VisualCatalog,c:ModularCatalog):Construction[]{
 }
 export function conflicts(mods:Construction[],slot:number,candidate:Construction){const primes=factors(candidate.modulus).map(f=>f.prime);return mods.flatMap((c,i)=>i===slot?[]:primes.filter(p=>c.modulus%p===0).map(prime=>({prime,modulus:c.modulus})));}
 export function holePercent(c:Construction):number|null{return c.holes.share!==null?100*c.holes.share:c.holes.count!==null&&c.modulus>0?100*c.holes.count/c.modulus:null;}
-export const holeLabel=(c:Construction)=>holePercent(c)===null?'率未測定':`${Number(holePercent(c)!.toFixed(3))}%`;
+export const holeLabel=(c:Construction)=>holePercent(c)===null?'—':`${Number(holePercent(c)!.toFixed(3))}%`;
 export function inFilter(c:Construction,max:number,unknown=true){const p=holePercent(c);return p===null?unknown:p<=max;}
 export function totals(mods:Construction[],bits:number,k:number,bitsB=bits){
  const P=mods.reduce((p,c)=>p*BigInt(c.modulus),1n),bound=2n*((1n<<BigInt(bits))-1n)*((1n<<BigInt(bitsB))-1n);

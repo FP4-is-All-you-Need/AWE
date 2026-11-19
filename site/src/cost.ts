@@ -15,13 +15,13 @@ export function countedCost(c:CostCounts,dims:{m:number;n:number;k:number},setti
  const a=c.addA,b=c.addB;
  const {m,n,k}=dims,valid=[m,n,k].every(v=>Number.isFinite(v)&&v>0);
  const term=(name:string,count:number|null,unit:string,reason:string):CostTerm=>({name,value:valid&&count!==null&&nonnegative(unit)!==null?finite(count*nonnegative(unit)!):null,reason:!valid?'行列サイズ未設定':count===null?reason:nonnegative(unit)===null?'単価未設定':null});
- const product=term('積',c.products*m*n*k,settings.product,'積数未確認');
- const plane=term('面',c.facesB===null?null:(c.facesA*m+c.facesB*n)*k,settings.plane,'B側の面数未確認');
- const add=term('加減算',settings.additionModel==='naive'&&a!==null&&b!==null?(a*m+b*n)*k:null,settings.add,settings.additionModel==='unknown'?'面の加減算：計算法未設定':'加減算回数は未計算');
+ const product=term('積',c.products*m*n*k,settings.product,'積数の値なし');
+ const plane=term('面',c.facesB===null?null:(c.facesA*m+c.facesB*n)*k,settings.plane,'B側の面数の値なし');
+ const add=term('加減算',settings.additionModel==='naive'&&a!==null&&b!==null?(a*m+b*n)*k:null,settings.add,settings.additionModel==='unknown'?'面の加減算：計算法未設定':'加減算回数の値なし');
  const frequency=nonnegative(settings.frequency);
  const noHoles=!c.needsCorrection;
  const correction:CostTerm=noHoles?{name:'補正',value:0,reason:null}:term('補正',frequency===null?null:frequency*m*n*k,settings.correction,'補正イベント頻度未設定');
- const modulus:CostTerm=!c.modular?{name:'法の固定費',value:0,reason:null}:term('法の固定費',1,settings.modulus,'法の数未確認');
+ const modulus:CostTerm=!c.modular?{name:'法の固定費',value:0,reason:null}:term('法の固定費',1,settings.modulus,'法の数の値なし');
  const output:CostTerm=!c.modular?{name:'法ごとの出力費',value:0,reason:null}:term('法ごとの出力費',m*n,settings.output,'出力費未設定');
  const terms={product,plane,add,correction,modulus,output};
  const unknown=Object.values(terms).filter(t=>t.value===null).map(t=>`${t.name}：${t.reason}`);

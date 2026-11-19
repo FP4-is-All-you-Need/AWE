@@ -5,7 +5,7 @@ for(const width of [1440,390])test(`the spiral detail opens the selected constru
  await page.goto('/?lang=ja&section=polar-periodic&polar_modulus=343&polar_count=400');
  const detail=page.locator('[data-polar-form-detail]');await expect(detail).toHaveCount(1,{timeout:30000});
  const id=(await detail.getAttribute('data-polar-form-detail'))!;
- await expect(page.locator('.polar-candidates button.selected')).toHaveAttribute('title',new RegExp('^'+id));
+ await expect(page.locator('.polar-candidates button.selected')).toHaveAttribute('data-polar-candidate',id);
  const expansion=page.locator(`[data-section="polar.detail.${id}"]`);await expect(expansion).toHaveCount(1);
  await expect(expansion.locator('select[name=expansion_layout]')).toHaveValue('paper');
  const boards=expansion.locator('[data-coverage-figure] [data-coverage-product]');

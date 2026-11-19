@@ -31,6 +31,6 @@ export function HoleControl({percentages,max,onChange}:{percentages:(number|null
  </svg></div>
  <div style={{width:344,maxWidth:'calc(100% - 42px)',marginLeft:42}}><input type="range" name="hole_pct_max_range" aria-label="穴の率の上限を変更" min={0} max={100} step={.1} value={max} onChange={event=>onChange(Number(event.target.value))} style={{width:'100%',margin:0,boxSizing:'border-box'}}/><div style={{display:'flex',justifyContent:'space-between',fontSize:14}}>{[0,25,50,75,100].map(value=><span key={value}>{value}</span>)}</div></div>
  <p style={{margin:'8px 0'}}>表示 {accepted}件 / 非表示 {excluded}件</p>
- <p style={{margin:'8px 0'}}>率未測定 {unknown} 件</p>
+ <p style={{margin:'8px 0'}}>穴の率の値なし {unknown} 件</p>
  </form>;
 }
