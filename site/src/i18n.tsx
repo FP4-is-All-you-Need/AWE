@@ -286,6 +286,7 @@ export const dictionary:Record<string,string>={
  "復元係数":"Reconstruction coefficient",
  "未検証":"Unverified",
  "塊ずらし":"Block shift",
+ "繰り上がり":"Carry",
  "ビット数超過":"Too many bits",
  "仮数":"Fraction",
  "符号":"Sign",
