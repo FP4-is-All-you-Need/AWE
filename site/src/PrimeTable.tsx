@@ -14,6 +14,7 @@ import {useLanguage} from './i18n.tsx';
 import {useMeasuredWidth} from './useMeasuredWidth.ts';
 import {formCells,fp4Fewest,primeTableData,weightVariants,type FormCell,type PrimeForm,type PrimeSet} from './primeTable.ts';
 import {heldOn} from './modularForms.ts';
+import {useInclusion} from './valueSetInclusion.ts';
 import {VALUE_SET_LABEL,pageFormat} from './valueSets.ts';
 import './prime-table.css';
 
@@ -62,8 +63,8 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
  // A page shows the single constructions that hold on its value set, including those checked on a value set it contains.
  // The fewer mark of the FP6 and FP8 pages and the FP6-only mark compare with FP4, so they wait for the FP4 minima.
  const fp4=useFP4Fewest(tab!=='fp4'&&!!forms&&withForms);
- const shownSets=useMemo(()=>heldOn(valueSet),[valueSet]);
- const formsBy=useMemo(()=>forms&&withForms&&(tab==='fp4'||fp4.fewest)?formCells(forms.filter(f=>shownSets.includes(f.value_set)),tab,withHoles,saved,fp4.fewest):new Map<number,FormCell>(),[forms,withForms,tab,withHoles,saved,shownSets,fp4.fewest]);
+ const inclusion=useInclusion(),shownSets=useMemo(()=>inclusion&&heldOn(valueSet,inclusion),[inclusion,valueSet]);
+ const formsBy=useMemo(()=>forms&&shownSets&&withForms&&(tab==='fp4'||fp4.fewest)?formCells(forms,tab,shownSets,withHoles,saved,fp4.fewest):new Map<number,FormCell>(),[forms,withForms,tab,withHoles,saved,shownSets,fp4.fewest]);
  const table=useMemo(()=>primeTableData(all,sets,formsBy,tab!=='fp4'),[all,sets,formsBy,tab]),measured=useMeasuredWidth();
  const shownForm=(m:number)=>{const f=formsBy.get(m);return f&&(f.hole_free||f.holes)?f:undefined;};
  const formTitle=(m:number)=>{const f=shownForm(m);if(!f)return '';const b=f.hole_free??f.holes!;return ` · ${en?'single construction':'単独の法の構成'} ${b.products}${en?' products':'積'}${f.hole_free?'':en?' (holes)':'(穴あり)'}`;};

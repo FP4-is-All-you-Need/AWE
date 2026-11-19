@@ -10,7 +10,8 @@ import {PrimeFactors as FactorBadges} from './PrimeFactors.tsx';
 import {ModulusCostTable} from './ModulusCostTable.tsx';
 import {SpiralDetail} from './PolarFormDetail.tsx';
 import {SideLayout} from './SideLayout.tsx';
-import {factorText,type FormSolution} from './modularForms.ts';
+import {factorText,heldOn,type FormSolution} from './modularForms.ts';
+import {useInclusion} from './valueSetInclusion.ts';
 import type {ModularSolution} from './modular.ts';
 import {withoutUnusedLimbs} from './unusedLimbs.ts';
 import {factors} from './visual.ts';
@@ -96,6 +97,6 @@ export function PeriodicViews(){
  const en=useLanguage()==='en',{tab,valueSet}=usePeriodicFormat(),[needed,setNeeded]=useState(false),[data,setData]=useState<PolarCatalog>(),[error,setError]=useState(''),[s,setS]=useState({...DEFAULT_COEFFICIENTS});
  useEffect(()=>{if(needed&&!data)read<PolarCatalog>('visualization/polar-catalog.json').then(setData).catch(e=>setError(String(e)));},[needed,data]);
  useEffect(()=>{const name=new URLSearchParams(location.search).get('section');if(name!=='polar-periodic'&&name!=='composite-table'&&name!=='modulus-cost')return;const node=document.querySelector<HTMLDetailsElement>('[data-section="'+name+'"]');if(!node)return;node.open=true;setNeeded(true);const timer=setTimeout(()=>node.scrollIntoView({block:'start'}),250);return()=>clearTimeout(timer);},[data]);
- const rows=useMemo(()=>data?.rows.filter(r=>r.m>=2&&r.m<=65536&&r.vs===valueSet)??[],[data,valueSet]);
+ const inclusion=useInclusion(),rows=useMemo(()=>{if(!data||!inclusion)return [];const shown=heldOn(valueSet,inclusion);return data.rows.filter(r=>r.m>=2&&r.m<=65536&&shown.includes(r.vs));},[data,inclusion,valueSet]);
  return <div data-no-i18n className="periodic-views"><div className="paper-controls"><strong>{tab.toUpperCase()} · {valueSet}</strong><span>{en?'The following views use the format at the top.':'以下の表は最上部の形式に切り替わります。'}</span></div>{error&&<p role="alert">{error}</p>}<ModulusCostTable rows={rows} s={s} en={en} onOpen={()=>setNeeded(true)}><CoefficientControls s={s} onChange={setS} en={en}/></ModulusCostTable><MoleculeTable rows={rows} s={s} setS={setS} en={en} onOpen={()=>setNeeded(true)}/><PolarView rows={rows} s={s} setS={setS} en={en} onOpen={()=>setNeeded(true)}/></div>;
 }

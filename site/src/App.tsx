@@ -4,7 +4,7 @@ import {PeriodicFormatProvider,PeriodicFormatControl,usePeriodicFormat} from './
 import {PreviousResearchSection} from './PreviousResearch.tsx';
 import {PrimeTable} from './PrimeTable.tsx';
 import {engineText,isFP6Lane,onFP6ValueSet,primeSets,setEngines,type PrimeForm} from './primeTable.ts';
-import {heldOn} from './modularForms.ts';
+import {heldOn,type FormsIndex} from './modularForms.ts';
 import {storedModulusLanes,modulusComparisonLanes} from './modulusLanes.ts';
 import {SwapDrawer} from './SwapDrawer.tsx';
 import {SameInputsContext} from './SideDetails.tsx';
@@ -52,11 +52,14 @@ function FormatPage(){
 function FP6Page(){
  useAnimatedDetails();useDiagramSizing();
  const en=useLanguage()==='en',{tab,valueSet}=usePeriodicFormat();
- // A single construction checked on a value set that this value set contains also holds here (FP4 on FP6, FP4 and FP6 on FP8).
+ // A construction or set checked on a value set that this value set contains also holds here (FP4 on FP6, FP4 and FP6 on FP8);
+ // the inclusion comes from forms-index.json.
  const [forms,setForms]=useState<PrimeForm[]>(),[error,setError]=useState('');
- useEffect(()=>{const shown=heldOn(valueSet);read<{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>setForms(d.prime_powers.filter(f=>shown.includes(f.value_set)))).catch(e=>setError(String(e)));},[valueSet]);
  const [saved,setSaved]=useState<ModularCatalog>();
- useEffect(()=>{read<ModularCatalog>('modular/fp6-sets.json').then(c=>setSaved({...c,sets:c.sets.filter(s=>s.value_set===valueSet)})).catch(e=>setError(String(e)));},[valueSet]);
+ useEffect(()=>{read<FormsIndex&{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>{
+  const shown=heldOn(valueSet,d.value_set_inclusion);setForms(d.prime_powers.filter(f=>shown.includes(f.value_set)));
+  read<ModularCatalog>('modular/fp6-sets.json').then(c=>setSaved({...c,sets:c.sets.filter(s=>shown.includes(s.value_set??''))})).catch(e=>setError(String(e)));
+ }).catch(e=>setError(String(e)));},[valueSet]);
  const lanes=useMemo(()=>saved?storedModulusLanes(saved):[],[saved]),sets=useMemo(()=>saved?primeSets(saved):[],[saved]);
  const [laneId,setLaneId]=useParameter('fp6_modset_id','',r=>r);
  const [slot,setSlot]=useParameter('fp6_slot',0,r=>{const n=Number(r);return Number.isInteger(n)&&n>=-1?n:0;});
@@ -65,10 +68,10 @@ function FP6Page(){
  const cards=useMemo(()=>lane&&{...lane,mods:[...lane.mods].sort((a,b)=>a.modulus-b.modulus)},[lane]);
  // The set's K is accumulated in segments of at most the FP32 limit of its constructions (k_max).
  const segments=cards?.plan_k&&Number(cards.k_max)>0?Math.ceil(cards.plan_k/Number(cards.k_max)):1;
- // The periodic table's records, as on the FP4 page: the constructions of the saved sets, here the FP6 sets on this value set.
+ // The periodic table's records, as on the FP4 page: the constructions of the saved sets, here those that hold on this value set.
  const records=useMemo(()=>[...new Map(lanes.flatMap(l=>l.mods).map(c=>[c.id,c])).values()],[lanes]);
  return <main className="paper-app" data-format-page={valueSet}><PeriodicFormatControl/>
- {tab==='fp8'&&<p data-no-i18n>{en?'The value set is 512×E4M3: the values of FP8 E4M3 divided by its smallest subnormal. Every value of 2×E2M1, 8×E2M3 and 16×E3M2 is also a value of 512×E4M3, so the periodic table shows the constructions checked on 512×E4M3 and those checked on the FP4 and FP6 value sets. The other views and lists on this page show only constructions checked on 512×E4M3.':'値の集合は、FP8 E4M3 の値を最小の非正規数で割った 512×E4M3 です。2×E2M1・8×E2M3・16×E3M2 の値はどれも 512×E4M3 の値でもあるので、周期表には 512×E4M3 で検算した構成と、FP4・FP6 の値の集合で検算した構成を出します。この頁のほかの図と一覧は、512×E4M3 で検算した構成だけを出します。'}</p>}
+ {tab==='fp8'&&<p data-no-i18n>{en?'Every view on this page shows the constructions that hold on 512×E4M3 (the values of E4M3, the FP8 format with 4 exponent bits and 3 mantissa bits, divided by its smallest subnormal): those checked on it and those checked on 2×E2M1, 8×E2M3 or 16×E3M2, whose values are all values of 512×E4M3.':'この頁の表示はどれも、512×E4M3(指数 4 bit・仮数 3 bit の FP8 形式 E4M3 の値を、最小の非正規数で割った値の集合)で成り立つ構成を出します。512×E4M3 で検算した構成と、値がどれも 512×E4M3 に含まれる 2×E2M1・8×E2M3・16×E3M2 で検算した構成です。'}</p>}
  {error&&<p role="alert">{error}</p>}{lanes.length>0&&<ModulusSets lanes={lanes} engines={setEngines(saved)} selected={laneId} onSelect={id=>{setLaneId(id);setSlot(0);}}/>}
  {cards&&<details data-section="main" open className="paper-lane" aria-label={`${cards.bits} bit の保存された組`}><summary><h1>{en?`${cards.bits}-bit saved set`:<>{cards.bits} bit　保存された組</>}　{cards.mods.length}法・{cards.products}積 <span>面 A {cards.faces_a} / B {cards.faces_b}　<MathText tex={`K\\le ${cards.k_max}`}/></span></h1></summary>{segments>1&&<p data-k-segments={segments}>{en?`This set accumulates K = ${cards.plan_k} in ${segments} segments of at most ${cards.k_max} each.`:`この組は K = ${cards.plan_k} を、${cards.k_max} 以下の ${segments} 区切りに分けて累積します。`}</p>}<LawRow lane={cards} selected={slot} onSelect={setSlot} detail={cards.mods[slot]&&<Expansion key={cards.mods[slot].id} c={cards.mods[slot]}/>}/><PaperLegend/></details>}
  <PrimeTable records={records} sets={sets} lane={lane} comparisonLanes={lanes} forms={forms}/><PeriodicViews/><ModularFormsList/>

@@ -1,6 +1,5 @@
 import {factors,type Construction,type Lane,type VisualCatalog} from './visual.ts';
 import type {ModularCatalog} from './modular.ts';
-import {heldOn} from './modularForms.ts';
 import type {PageFormat} from './valueSets.ts';
 
 export const FP6_VALUE_SETS=['8xE2M3','16xE3M2'];
@@ -39,9 +38,6 @@ export function primesThrough(limit:number):number[]{
  without holes (hole_free), with holes (holes) or left out of the published files (excluded; given without holes). */
 export type PrimeForm={modulus:number;prime:number;exponent:number;value_set:string;kind:'hole_free'|'holes'|'excluded';products:number;planes:number[];holes?:{A:number;B:number;exact:boolean};reason?:string;id:string};
 export type PrimeTab=PageFormat;
-/** The value sets of each tab. A 2xE2M1 construction also holds on both FP6 sets (value_set_inclusion), so FP6 is the union;
- every FP4 and FP6 value set is contained in 512xE4M3, so FP8 takes all of them. */
-export const TAB_SETS:Record<PrimeTab,string[]>={fp4:['2xE2M1'],fp6:['2xE2M1','8xE2M3','16xE3M2'],fp8:heldOn('512xE4M3')};
 export type FormCell={hole_free?:PrimeForm;holes?:PrimeForm;excluded?:PrimeForm;entries:PrimeForm[];fewer:boolean;onlyWider:boolean;excludedFewer:boolean};
 const formOrder=(a:PrimeForm,b:PrimeForm)=>a.products-b.products||a.planes[0]+a.planes[1]-b.planes[0]-b.planes[1]||(a.id<b.id?-1:a.id>b.id?1:0);
 /** FP4's fewest products per prime-power modulus: the saved constructions and the single constructions without holes on 2xE2M1. */
@@ -55,9 +51,10 @@ export function fp4Fewest(records:Construction[],forms:PrimeForm[]):Map<number,n
  fewer: the fewest products without holes is below every saved construction (FP4) or every FP4 construction (FP6);
  onlyWider: on FP6, only FP6 value sets give a construction without holes; excludedFewer: a left-out construction has fewer
  products than every published construction without holes.
+ sets are the value sets whose constructions the tab shows (its value set and those it contains).
  fp4, when given, is the FP4 side of the comparison in place of the saved constructions (an FP6 page saves FP6 constructions). */
-export function formCells(forms:PrimeForm[],tab:PrimeTab,holes:boolean,saved:Map<number,Construction[]>,fp4?:Map<number,number>):Map<number,FormCell>{
- const sets=TAB_SETS[tab],out=new Map<number,FormCell>();
+export function formCells(forms:PrimeForm[],tab:PrimeTab,sets:string[],holes:boolean,saved:Map<number,Construction[]>,fp4?:Map<number,number>):Map<number,FormCell>{
+ const out=new Map<number,FormCell>();
  for(const f of forms){
   if(!sets.includes(f.value_set)||(f.kind==='holes'&&!holes))continue;
   const cell=out.get(f.modulus)??{entries:[],fewer:false,onlyWider:false,excludedFewer:false};

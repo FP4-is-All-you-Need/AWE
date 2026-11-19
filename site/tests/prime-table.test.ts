@@ -5,6 +5,7 @@ import {formCells,fp4Fewest,isFP6Lane,onFP6ValueSet,setEngines,primeSets,primeTa
 import {connect,pool,factors} from '../src/visual.ts';
 import {mergeModularCatalogs} from '../src/modular.ts';
 import {storedModulusLanes} from '../src/modulusLanes.ts';
+const FP6=['2xE2M1','8xE2M3','16xE3M2'];
 const read=(p:string)=>JSON.parse(fs.readFileSync(new URL('../dist/'+p,import.meta.url),'utf8'));
 const catalog=read('modular/catalog.json'),powers=read('modular/powers.json');
 catalog.solutions.push(...powers.solutions);catalog.sets.push(...powers.sets);
@@ -54,17 +55,17 @@ const form=(modulus:number,prime:number,exponent:number,value_set:string,kind:Pr
 const forms:PrimeForm[]=[form(529,23,2,'2xE2M1','hole_free',5),form(512,2,9,'2xE2M1','hole_free',5),form(163,163,1,'2xE2M1','holes',3,4),
  form(1024,2,10,'8xE2M3','hole_free',4),form(1024,2,10,'8xE2M3','excluded',3),form(169,13,2,'8xE2M3','hole_free',2),form(1597,1597,1,'2xE2M1','hole_free',3)];
 test('single constructions add prime powers inside the columns and list larger primes after the table',()=>{
- const cells=formCells(forms,'fp4',true,table.byModulus),t=primeTableData(records,sets,cells);
+ const cells=formCells(forms,'fp4',['2xE2M1'],true,table.byModulus),t=primeTableData(records,sets,cells);
  assert.equal(t.primeMax,157);
  assert.ok(t.columns.find(c=>c.prime===23)!.powers.some(p=>p.modulus===529&&p.exponent===2));
  assert.deepEqual(t.beyond.map(p=>p.modulus),[163,1597]);
  assert.equal(cells.get(512)!.fewer,true);   // fewer products than the saved constructions of 512
  assert.equal(cells.has(1024),false);         // FP6 only
- const free=formCells(forms,'fp4',false,table.byModulus);
+ const free=formCells(forms,'fp4',['2xE2M1'],false,table.byModulus);
  assert.deepEqual(primeTableData(records,sets,free).beyond.map(p=>p.modulus),[1597]);
 });
 test('the FP6 tab is the union with FP4 and marks FP6-only, fewer and left-out constructions',()=>{
- const cells=formCells(forms,'fp6',true,table.byModulus);
+ const cells=formCells(forms,'fp6',FP6,true,table.byModulus);
  assert.ok(cells.has(529)&&cells.has(1024));
  const c1024=cells.get(1024)!;
  assert.equal(c1024.hole_free!.products,4);assert.equal(c1024.onlyWider,true);assert.equal(c1024.excludedFewer,true);
@@ -88,7 +89,7 @@ test('an FP6 page shows one value set, marks against the FP4 minima and runs its
  const shown=[...forms,...[[9,3],[25,5],[49,7],[121,11]].map(([m,p])=>form(m,p,2,'8xE2M3','hole_free',2)),form(251,251,1,'8xE2M3','hole_free',3)].filter(f=>f.value_set==='8xE2M3');
  // The FP6 page's own saved constructions do not stand in for FP4 in the marks.
  const savedFP6=new Map([[169,[{...records.find(c=>c.modulus===169)!,id:'fp6_169',products:[records.find(c=>c.modulus===169)!.products[0]]}]]]);
- const cells=formCells(shown,'fp6',true,savedFP6,fp4),t=primeTableData([],[],cells,true);
+ const cells=formCells(shown,'fp6',FP6,true,savedFP6,fp4),t=primeTableData([],[],cells,true);
  assert.ok(!cells.has(529)&&cells.has(169)&&cells.has(1024));
  assert.equal(cells.get(169)!.fewer,true);assert.equal(cells.get(169)!.onlyWider,false);   // 2 products against the saved FP4 constructions of 169
  assert.equal(cells.get(1024)!.onlyWider,true);
@@ -100,6 +101,6 @@ test('an FP6 page shows one value set, marks against the FP4 minima and runs its
 test('the left-out mark compares only with published constructions without holes',()=>{
  const row=(id:string,R:number,h:number)=>({...records[0],id,modulus:1024,products:Array.from({length:R},()=>records[0].products[0]),holes:{count:h,share:h/1024}});
  const shown=forms.filter(f=>f.modulus===1024),fp4=new Map([[1024,9]]);
- assert.equal(formCells(shown,'fp6',true,new Map([[1024,[row('awem2_holes',2,10)]]]),fp4).get(1024)!.excludedFewer,true);   // 3 products left out, 4 without holes
- assert.equal(formCells(shown,'fp6',true,new Map([[1024,[row('awem2_free',2,0)]]]),fp4).get(1024)!.excludedFewer,false);
+ assert.equal(formCells(shown,'fp6',FP6,true,new Map([[1024,[row('awem2_holes',2,10)]]]),fp4).get(1024)!.excludedFewer,true);   // the excluded entry has 3 products, the one without holes 4
+ assert.equal(formCells(shown,'fp6',FP6,true,new Map([[1024,[row('awem2_free',2,0)]]]),fp4).get(1024)!.excludedFewer,false);
 });

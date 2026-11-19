@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {existsSync,readFileSync} from 'node:fs';
 import {chunksFor,factorText,formRows,parseRange,usableOn,type FormSolution,type FormsIndex,type ModularForms} from '../src/modularForms.ts';
+const INC=JSON.parse(readFileSync(new URL('../../data/modular/forms-index.json',import.meta.url),'utf8')).value_set_inclusion;
 
 const base={schema_version:2,weights:{A:[1,13],B:[1,13]},planes:{A:[[1,0],[0,1],[1,1]],B:[[1,0],[0,1],[1,1]]},products:[{a:0,b:0,numerator:39},{a:1,b:1,numerator:3},{a:2,b:2,numerator:13}],denominator:1};
 const rows:FormSolution[]=[
@@ -20,25 +21,25 @@ test('factor text uses superscript exponents',()=>{
  assert.equal(factorText(1352),'2³·13²');
 });
 test('filters by modulus range, value set and holes, sorted by modulus',()=>{
- assert.deepEqual(formRows(rows,{range:'',set:'',holeFree:false}).map(r=>r.modulus),[51,243,4891]);
- assert.deepEqual(formRows(rows,{range:'4000-6000',set:'',holeFree:false}).map(r=>r.id),['awem2_a']);
- assert.deepEqual(formRows(rows,{range:'',set:'2xE2M1',holeFree:false}).map(r=>r.id),['awem2_b','awem2_a']);
+ assert.deepEqual(formRows(rows,{range:'',set:'',holeFree:false},INC).map(r=>r.modulus),[51,243,4891]);
+ assert.deepEqual(formRows(rows,{range:'4000-6000',set:'',holeFree:false},INC).map(r=>r.id),['awem2_a']);
+ assert.deepEqual(formRows(rows,{range:'',set:'2xE2M1',holeFree:false},INC).map(r=>r.id),['awem2_b','awem2_a']);
  // 2xE2M1 constructions hold on 8xE2M3 too: the FP6 filter keeps them
- assert.deepEqual(formRows(rows,{range:'',set:'8xE2M3',holeFree:false}).map(r=>r.id),['awem2_b','awem2_c','awem2_a']);
- assert.deepEqual(formRows(rows,{range:'',set:'16xE3M2',holeFree:false}).map(r=>r.id),['awem2_b','awem2_a']);
- assert.deepEqual(formRows(rows,{range:'',set:'',holeFree:true}).map(r=>r.modulus),[51,4891]);
- const folded=formRows(rows,{range:'51',set:'',holeFree:false})[0];
+ assert.deepEqual(formRows(rows,{range:'',set:'8xE2M3',holeFree:false},INC).map(r=>r.id),['awem2_b','awem2_c','awem2_a']);
+ assert.deepEqual(formRows(rows,{range:'',set:'16xE3M2',holeFree:false},INC).map(r=>r.id),['awem2_b','awem2_a']);
+ assert.deepEqual(formRows(rows,{range:'',set:'',holeFree:true},INC).map(r=>r.modulus),[51,4891]);
+ const folded=formRows(rows,{range:'51',set:'',holeFree:false},INC)[0];
  assert.equal(folded.folded,true);
- assert.equal(formRows(rows,{range:'243',set:'',holeFree:false})[0].table,true);
+ assert.equal(formRows(rows,{range:'243',set:'',holeFree:false},INC)[0].table,true);
 });
 test('value-set inclusion: FP4 inside both FP6 sets, not the other way',()=>{
- assert.ok(usableOn('2xE2M1','8xE2M3')&&usableOn('2xE2M1','16xE3M2')&&usableOn('8xE2M3','8xE2M3'));
- assert.ok(!usableOn('8xE2M3','2xE2M1')&&!usableOn('8xE2M3','16xE3M2')&&!usableOn('16xE3M2','8xE2M3'));
+ assert.ok(usableOn('2xE2M1','8xE2M3',INC)&&usableOn('2xE2M1','16xE3M2',INC)&&usableOn('8xE2M3','8xE2M3',INC));
+ assert.ok(!usableOn('8xE2M3','2xE2M1',INC)&&!usableOn('8xE2M3','16xE3M2',INC)&&!usableOn('16xE3M2','8xE2M3',INC));
 });
 test('the denominator column marks the divide-by-d1 reconstruction',()=>{
- const r=formRows([{...rows[0],denominator:2,reconstruction:{procedure:'divide_d1_then_multiply_d2_inverse'}}],{range:'',set:'',holeFree:false})[0];
+ const r=formRows([{...rows[0],denominator:2,reconstruction:{procedure:'divide_d1_then_multiply_d2_inverse'}}],{range:'',set:'',holeFree:false},INC)[0];
  assert.equal(r.denominator,2);assert.equal(r.dividesD1,true);
- assert.equal(formRows(rows,{range:'51',set:'',holeFree:false})[0].dividesD1,false);
+ assert.equal(formRows(rows,{range:'51',set:'',holeFree:false},INC)[0].dividesD1,false);
 });
 test('only the files whose modulus range meets the filter are read',()=>{
  const c=(lo:number,hi:number)=>({path:`forms-${lo}-${hi}.json`,sha256:'',solutions:1,modulus_min:lo,modulus_max:hi});

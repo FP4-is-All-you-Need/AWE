@@ -6,7 +6,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {useParameter,bounded} from './parameters.ts';
 import {useLanguage} from './i18n.tsx';
 import {read} from './catalog.ts';
-import {chunksFor,formRows,type FormSolution,type FormsIndex,type ModularForms} from './modularForms.ts';
+import {chunksFor,formRows,usableOn,type FormSolution,type FormsIndex,type ModularForms} from './modularForms.ts';
 
 const SETS=['','2xE2M1','8xE2M3','16xE3M2'];
 const PER=50;
@@ -37,17 +37,17 @@ export function ModularFormsList(){
   }
  },[open,wanted]);
  const waiting=wanted.filter(c=>!loaded[c.path]).length;
- const rows=useMemo(()=>formRows(wanted.flatMap(c=>loaded[c.path]??[]),{range,set,holeFree},{}),[wanted,loaded,range,set,holeFree,index]);
+ const rows=useMemo(()=>index?formRows(wanted.flatMap(c=>loaded[c.path]??[]),{range,set,holeFree},index.value_set_inclusion):[],[wanted,loaded,range,set,holeFree,index]);
  useEffect(()=>{setPage(0);},[set]);
- const selectedRow=Object.values(loaded).flat().find(r=>r.id===selected&&r.plane_sets.A[0]===set);
+ const selectedRow=index&&Object.values(loaded).flat().find(r=>r.id===selected&&usableOn(r.plane_sets.A[0],set,index.value_set_inclusion));
  const selectedPath=Object.entries(loaded).find(([,rs])=>rs.some(r=>r.id===selected))?.[0];
  const select=(id:string)=>{setSelected(id);const q=new URLSearchParams(location.search);q.set('section','modular-forms');q.set('open.modular-forms','1');history.replaceState(null,'','?'+q.toString());};
  const pages=Math.max(1,Math.ceil(rows.length/PER)),current=Math.min(page,pages-1);
  return <details ref={root} data-section="modular-forms" className="modular-forms" onToggle={e=>setOpen((e.currentTarget as HTMLDetailsElement).open)}><summary><span>{t('構成の一覧','Construction list')}{index&&<>{' '}<span data-forms-count={waiting?undefined:rows.length}>{en?`${waiting?"…":rows.length} entries`:`${waiting?"…":rows.length}件`}</span></>}</span></summary>
  <p>{t('組に属さない法の構成です。どれも全部の剰余の組で検算しました。符号化表は法が 256 以下の構成だけに収め、ほかは検算器(verify/modular_forms.py)が作り直します。',
   'Modular constructions outside the saved modulus sets. Each was checked on every pair of residues. Encoding tables are stored only for moduli up to 256; the verifier (verify/modular_forms.py) rebuilds the others.')}
-  {t(' 値の集合は、その構成を確かめた一番小さい集合です。ページ最上部で選んだ集合と一致する構成だけを出します。FP4 と FP6 の収録行は混ぜません。',
-   ' The value set is the smallest set the construction was checked on. Only entries checked on the value set selected at the top of the page are listed. FP4 and FP6 records are kept separate.')}
+  {t(' 値の集合は、その構成を確かめた一番小さい集合です。ページ最上部で選んだ集合で成り立つ構成を出します。その集合で確かめた構成と、その集合に含まれる値の集合で確かめた構成です。',
+   ' The value set is the smallest set the construction was checked on. The list shows the constructions that hold on the value set selected at the top of the page: those checked on it and those checked on a value set it contains.')}
   {t(' 分母が 1 でない構成は、積の和を d1·m を法として持ち、d1 で割ってから d2 の逆数を掛ける手順だけを確かめています(各行の reconstruction)。和を分母·m を法として持ち分母全体で割る手順は、d2 > 1 の時に成り立たない組があり得ます。',
    ' For a denominator above 1, only one reconstruction is checked: keep the sum of the products modulo d1·m, divide by d1, then multiply by the inverse of d2 (reconstruction in each row). Dividing the sum modulo denominator·m by the whole denominator can fail on some residue pairs when d2 > 1.')}</p>
  <form name="forms_filters" className="paper-controls" onSubmit={e=>e.preventDefault()}>
