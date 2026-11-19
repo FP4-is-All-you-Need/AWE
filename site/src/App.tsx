@@ -4,6 +4,7 @@ import {PeriodicFormatProvider,PeriodicFormatControl,usePeriodicFormat} from './
 import {PreviousResearchSection} from './PreviousResearch.tsx';
 import {PrimeTable} from './PrimeTable.tsx';
 import {engineText,isFP6Lane,onFP6ValueSet,primeSets,setEngines,type PrimeForm} from './primeTable.ts';
+import {heldOn} from './modularForms.ts';
 import {storedModulusLanes,modulusComparisonLanes} from './modulusLanes.ts';
 import {SwapDrawer} from './SwapDrawer.tsx';
 import {SameInputsContext} from './SideDetails.tsx';
@@ -51,8 +52,9 @@ function FormatPage(){
 function FP6Page(){
  useAnimatedDetails();useDiagramSizing();
  const en=useLanguage()==='en',{valueSet}=usePeriodicFormat();
+ // A single construction checked on a value set that this value set contains also holds here (FP4 on FP6).
  const [forms,setForms]=useState<PrimeForm[]>(),[error,setError]=useState('');
- useEffect(()=>{read<{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>setForms(d.prime_powers.filter(f=>f.value_set===valueSet))).catch(e=>setError(String(e)));},[valueSet]);
+ useEffect(()=>{const shown=heldOn(valueSet);read<{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>setForms(d.prime_powers.filter(f=>shown.includes(f.value_set)))).catch(e=>setError(String(e)));},[valueSet]);
  const [saved,setSaved]=useState<ModularCatalog>();
  useEffect(()=>{read<ModularCatalog>('modular/fp6-sets.json').then(c=>setSaved({...c,sets:c.sets.filter(s=>s.value_set===valueSet)})).catch(e=>setError(String(e)));},[valueSet]);
  const lanes=useMemo(()=>saved?storedModulusLanes(saved):[],[saved]),sets=useMemo(()=>saved?primeSets(saved):[],[saved]);

@@ -13,6 +13,8 @@ export type FormRow={id:string;modulus:number;factors:string;set:string;products
 export const VALUE_SET_INCLUSION:Record<string,string[]>={'2xE2M1':['8xE2M3','16xE3M2']};
 /** Whether a construction checked on the value set `set` also holds on `target`. */
 export function usableOn(set:string,target:string,inclusion=VALUE_SET_INCLUSION):boolean{return set===target||(inclusion[set]??[]).includes(target);}
+/** The value sets whose constructions hold on `target`: the target and every value set it contains. */
+export function heldOn(target:string,inclusion=VALUE_SET_INCLUSION):string[]{return [target,...Object.keys(inclusion).filter(s=>s!==target&&usableOn(s,target,inclusion))];}
 
 const SUP:Record<string,string>={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
 export function factorText(modulus:number):string{return factors(modulus).map(f=>String(f.prime)+(f.exponent>1?String(f.exponent).split('').map(d=>SUP[d]).join(''):'')).join('·');}
