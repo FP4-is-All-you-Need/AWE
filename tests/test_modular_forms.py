@@ -51,6 +51,16 @@ class ModularFormsTest(unittest.TestCase):
         self.assertEqual(r['plane_sets'], {'A': ['8xE2M3', '8xE2M3'], 'B': ['8xE2M3', '8xE2M3']})
         self.assertTrue(MF.check_record(r)['rebuilt'])
 
+    def test_fp8_value_set(self):
+        # the E4M3 values times 512: 253 integers, the same as 8xE2M3 up to 60, and every smaller value set inside
+        S = MF.ALPHABETS['e4m3']
+        self.assertEqual((len(S), S[-1], [s for s in S if 0 < s <= 9]), (253, 229376, list(range(1, 10))))
+        self.assertEqual({s for s in S if abs(s) <= 60}, set(MF.ALPHABETS['e2m3']))
+        self.assertTrue(all(MF.ALPHSET[a] < MF.ALPHSET['e4m3'] for a in ('e2m1', 'e2m3', 'e3m2')))
+        r = rec(dict(FP6, value_set='512xE4M3'))
+        self.assertEqual(r['plane_sets'], {'A': ['512xE4M3', '512xE4M3'], 'B': ['512xE4M3', '512xE4M3']})
+        self.assertTrue(MF.check_record(r)['rebuilt'])
+
     def test_unknown_value_set(self):
         line = dict(PLAIN, value_set='3xE2M1')
         with self.assertRaises(T.Invalid):
@@ -171,7 +181,8 @@ class ModularFormsTest(unittest.TestCase):
         with self.assertRaises(MF.Fail) as e:
             T.minimal_record(dict(PLAIN, holes=[1, 0], holes_exact=True), DATE)
         self.assertEqual(str(e.exception), 'holes_differ_from_input')
-        self.assertEqual(T.inclusion(), {'2xE2M1': ['8xE2M3', '16xE3M2']})
+        self.assertEqual(T.inclusion(), {'2xE2M1': ['8xE2M3', '16xE3M2', '512xE4M3'], '8xE2M3': ['512xE4M3'],
+                                         '16xE3M2': ['512xE4M3']})
 
     def test_given_holes_as_an_upper_bound(self):
         # HOLES_SMALL has holes [1, 1] on 2xE2M1 (residue 5): an upper bound of [3, 2] admits it, an exact [3, 2] does not

@@ -18,9 +18,9 @@
  "$defs": {
   "int": {"type": "integer", "minimum": -9007199254740991, "maximum": 9007199254740991},
   "count": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
-  "value_set": {"enum": ["2xE2M1", "E4M3_integer", "8xE2M3", "16xE3M2"],
-   "description": "2xE2M1: twice the FP4 E2M1 values; 8xE2M3 and 16xE3M2: the FP6 values scaled to integers (63 values each). A record names the smallest value set it was checked on; 2xE2M1 is contained in 8xE2M3 and in 16xE3M2 (forms-index.json value_set_inclusion), so a 2xE2M1 record also holds on both FP6 sets."},
-  "limb_set": {"enum": ["2xE2M1", "E4M3_integer", "8xE2M3", "16xE3M2", "Z_m"],
+  "value_set": {"enum": ["2xE2M1", "E4M3_integer", "8xE2M3", "16xE3M2", "512xE4M3"],
+   "description": "2xE2M1: twice the FP4 E2M1 values; 8xE2M3 and 16xE3M2: the FP6 values scaled to integers (63 values each); 512xE4M3: the FP8 E4M3 values times 512 (253 values). A record names the smallest value set it was checked on; 2xE2M1 is contained in 8xE2M3 and in 16xE3M2, and all three in 512xE4M3 (forms-index.json value_set_inclusion), so a record also holds on every value set that contains its own."},
+  "limb_set": {"enum": ["2xE2M1", "E4M3_integer", "8xE2M3", "16xE3M2", "512xE4M3", "Z_m"],
    "description": "Z_m: a limb that is not stored; only the planes are stored."},
   "ints": {"type": "array", "items": {"$ref": "#/$defs/int"}, "minItems": 1, "maxItems": 16},
   "side_table": {"type": "array", "maxItems": 4096, "items": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/ints"}]}},

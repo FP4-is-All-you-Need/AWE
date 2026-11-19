@@ -20,6 +20,14 @@ class FormsGenerateTest(unittest.TestCase):
         self.assertEqual(fewest('2xE2M1', 13, ['one_plane']), 1)
         self.assertIsNone(fewest('2xE2M1', 17, ['one_plane']))
         self.assertEqual(fewest('8xE2M3', 47, ['one_plane']), 1)
+        self.assertEqual(fewest('512xE4M3', 149, ['one_plane']), 1)
+        self.assertIsNone(fewest('512xE4M3', 151, ['one_plane']))
+
+    def test_record_on_the_smallest_value_set(self):
+        # proposed on 512xE4M3, one plane modulo 47 is recorded on 8xE2M3, and modulo 53 on 512xE4M3
+        sets = {m: [minimal_record(ln, DATE)['plane_sets']['A'][0] for ln in G.proposals('512xE4M3', [m], ['one_plane'])]
+                for m in (47, 53)}
+        self.assertEqual(sets, {47: ['8xE2M3'], 53: ['512xE4M3']})
 
     def test_two_products_on_fp4(self):
         self.assertEqual(fewest('2xE2M1', 16, ['two_products']), 2)

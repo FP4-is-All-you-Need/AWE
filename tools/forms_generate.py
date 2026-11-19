@@ -1,6 +1,6 @@
 """Propose single modular constructions of fixed families for one value set, as input lines of tools/modular_forms.py build.
 
-The value set is an argument (2xE2M1, 8xE2M3, 16xE3M2); its values are verify/modular_forms.py ALPHABETS.  Every line is
+The value set is an argument (2xE2M1, 8xE2M3, 16xE3M2, 512xE4M3); its values are verify/modular_forms.py ALPHABETS.  Every line is
 verified and recorded by the build (minimal_record), so this file only proposes; a proposal that fails there is dropped.
 
 families (x = a0 + w a1 on both sides, the same table on A and B)

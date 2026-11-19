@@ -41,7 +41,7 @@ INPUT_FIELDS = ('modulus', 'weights', 'planes', 'plane_moduli', 'products', 'den
 
 def construction(line):
     """A construction from one input line: modulus, weights, planes, plane_moduli, products [[a, b, numerator]], denominator,
-    value_set (2xE2M1, 8xE2M3 or 16xE3M2)."""
+    value_set (2xE2M1, 8xE2M3, 16xE3M2 or 512xE4M3)."""
     if line.get('value_set') not in MF.SET_KEY:
         raise Invalid('unsupported_value_set')
     m = line['modulus']

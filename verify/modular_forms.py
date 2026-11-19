@@ -1,4 +1,4 @@
-"""Exact checks of single modular constructions (schema 2), with folded planes, holes and FP6 value sets.
+"""Exact checks of single modular constructions (schema 2), with folded planes, holes and the FP6 and FP8 value sets.
 
 A construction is the modulus m, the limb weights, the planes with their plane moduli, the reconstruction
 coefficients and the denominator.  The checker searches an encoding of every residue (exact witnesses; a residue
@@ -25,19 +25,23 @@ SSET = frozenset(S)
 _E2M3_POS = list(range(1, 16)) + list(range(16, 31, 2)) + list(range(32, 61, 4))
 _E3M2_POS = list(range(1, 8)) + [8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224,
                                  256, 320, 384, 448]
+# FP8 E4M3 values times 512: subnormals m 2^-9 give 1..7, exponent field e >= 1 gives (8 + m) 2^(e-1), up to 448 * 512
+_E4M3_POS = list(range(1, 8)) + [(8 + m) << (e - 1) for e in range(1, 16) for m in range(8) if (e, m) != (15, 7)]
 ALPHABETS = {'e2m1': S,
              'e2m3': tuple(sorted({0} | {v for p in _E2M3_POS for v in (p, -p)})),
-             'e3m2': tuple(sorted({0} | {v for p in _E3M2_POS for v in (p, -p)}))}
+             'e3m2': tuple(sorted({0} | {v for p in _E3M2_POS for v in (p, -p)})),
+             'e4m3': tuple(sorted({0} | {v for p in _E4M3_POS for v in (p, -p)}))}
 ALPHSET = {k: frozenset(v) for k, v in ALPHABETS.items()}
-LIMB_SET_NAME = {'e2m1': '2xE2M1', 'e2m3': '8xE2M3', 'e3m2': '16xE3M2'}
+LIMB_SET_NAME = {'e2m1': '2xE2M1', 'e2m3': '8xE2M3', 'e3m2': '16xE3M2', 'e4m3': '512xE4M3'}
 assert len(ALPHABETS['e2m3']) == 63 and len(ALPHABETS['e3m2']) == 63 and len(ALPHABETS['e2m1']) == 15
+assert len(ALPHABETS['e4m3']) == 253 and max(ALPHABETS['e4m3']) == 448 * 512
 # value set -> the larger value sets that contain it as integers; a construction checked on the smaller set holds on the larger
-INCLUDED_IN = {'e2m1': ('e2m3', 'e3m2'), 'e2m3': (), 'e3m2': ()}
+INCLUDED_IN = {'e2m1': ('e2m3', 'e3m2', 'e4m3'), 'e2m3': ('e4m3',), 'e3m2': ('e4m3',), 'e4m3': ()}
 assert all(ALPHSET[small] <= ALPHSET[big] for small, bigs in INCLUDED_IN.items() for big in bigs)
 AWE_FIELDS = ('schema_version', 'kind', 'modulus', 'weights', 'limb_sets', 'planes', 'plane_sets', 'products',
               'denominator', 'encoding')
 EXT_FIELDS = ('plane_moduli', 'plane_values')
-CAPS = {'literal_pairs': 40_000_000, 'dp_work': 30_000_000, 'literal_limbs': 15 ** 4}
+CAPS = {'literal_pairs': 40_000_000, 'dp_work': 30_000_000, 'literal_limbs': 253 ** 2}
 SIDES = ('A', 'B')
 
 
@@ -232,7 +236,7 @@ _lit_cache = {}
 
 def literal_rows(m, w, P, al='e2m1'):
     """residue -> (limbs in S^L, plane values in S, no folding); the smallest max|plane| then sum|limb| per residue.
-    S is the side's value set; the search runs only when |S|^L fits a fixed budget (15^4)."""
+    S is the side's value set; the search runs only when |S|^L fits a fixed budget (253^2: two limbs on 512xE4M3)."""
     key = (al, m, tuple(w), tuple(map(tuple, P)))
     if key in _lit_cache:
         return _lit_cache[key]
