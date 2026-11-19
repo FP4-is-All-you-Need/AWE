@@ -45,6 +45,18 @@ test('the column weights of a compact card do not run into each other, also with
  expect(overlaps).toEqual([]);
 });
 
+test('the FP8 page says, next to its modulus sets, that each GEMMul8 FP8 encoding can be written in AWE form',async({page})=>{
+ for(const lang of ['en','ja']){
+  await page.goto(`/?prime_set=fp8&lang=${lang}`);
+  const note=page.locator('[data-gemmul8-encodings]');
+  await expect(note).toContainText(lang==='en'?'GEMMul8 (RIKEN-RCCS) defines 66 FP8 encodings':'66 通り');
+  await expect(note).toContainText('08e83eb');
+  await expect(note.locator('a').first()).toHaveAttribute('href','https://github.com/RIKEN-RCCS/GEMMul8');
+  await expect(page.locator('[data-gemmul8-encodings] + details[data-section="modset-catalog"]')).toHaveCount(1);
+ }
+ await expect(page.locator('[data-gemmul8-encodings]')).toBeVisible();
+});
+
 test('the FP8 page lists the GEMMul8 FP8 modulus sets as rows of modulus cards with their source',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/?prime_set=fp8&lang=en');
