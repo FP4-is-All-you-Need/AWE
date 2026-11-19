@@ -1,9 +1,12 @@
 export type JsonlUsage=Omit<RunUsage,'kind'|'association'|'device'|'summary_sha256'|'engine_sha256'>&{kind:'run_jsonl';association:'header_hash_and_engine_manifest';device?:'NVIDIA GB200'|'NVIDIA B200'|'NVIDIA B300';header_sha256:string;binary_sha256:string;output_sha256:string[];processes:number;evidence_sha256:Record<string,string>};
 export type RunUsage={kind:'run_summary';state:'measured';source_sha256:string;summary_sha256:string;reference_sha256:string;engine_sha256:string;association:'reported_table_name';device?:'B200'|'B300';date:string;checks:{shape:number[];output_hash:string;comparison:'expected_and_baseline'|'baseline_only'}[]};
 import type {Pair} from './types.ts';
-export type ModularSolution={provenance?:{source_sha256:string;position?:number}[];id:string;kind:'modular';limb_sets?:Pair<string[]>;modulus:number;weights:Pair<number[]>;planes:Pair<number[][]>;products:{a:number;b:number;numerator:number}[];denominator:number;encoding:Pair<(number[]|null)[]>;plane_moduli?:Pair<number[]>;limbs_stored?:Pair<boolean[]>;measurement?:{bits?:number;holes:Pair<number[]>;plane_values:Pair<number[][]>};correction?:{kind:string;source_cost?:Record<string,number|null>};encoding_origin?:string;plane_sets:Pair<string[]>;verified:{method:string;identity:string;encoding:string;date:string;n_pairs:number;n_residues:Pair<number>;verifier_version:string}};
+import {mergeSources} from './sources.ts';
+export type ModularSolution={provenance?:{source_sha256:string;position?:number}[];sources?:import('./modularForms.ts').FormSource[];id:string;kind:'modular';limb_sets?:Pair<string[]>;modulus:number;weights:Pair<number[]>;planes:Pair<number[][]>;products:{a:number;b:number;numerator:number}[];denominator:number;encoding:Pair<(number[]|null)[]>;plane_moduli?:Pair<number[]>;limbs_stored?:Pair<boolean[]>;measurement?:{bits?:number;holes:Pair<number[]>;plane_values:Pair<number[][]>};correction?:{kind:string;source_cost?:Record<string,number|null>};encoding_origin?:string;plane_sets:Pair<string[]>;verified:{method:string;identity:string;encoding:string;date:string;n_pairs:number;n_residues:Pair<number>;verifier_version:string}};
 export type Usage=JsonlUsage|RunUsage|{state:'measured'|'build_only'|'unknown';header_sha256:string;summary_sha256:string|null};
-export type ModularSet={usage?:Usage[];id:string;magnitude_bits:number;k:number;value_set?:string;solution_ids:string[];verification:{max_k:string;products:number;faces:number;moduli:number[];modulus_product:string;max_abs_operand:string}};
+/** Where the same set of moduli appears outside this catalog: its name there, repository, commit, date and file lines. */
+export type SetSource={name:string;repository:string;commit:string;date:string;path:string;lines?:number[]};
+export type ModularSet={usage?:Usage[];source?:SetSource;id:string;magnitude_bits:number;k:number;value_set?:string;solution_ids:string[];verification:{max_k:string;products:number;faces:number;moduli:number[];modulus_product:string;max_abs_operand:string}};
 export type TableCheck='passed'|'failed'|'unsupported_output_width'|'not_applicable'|'unspecified';
 export type SourceDeclaration={scope_id:string|null;pool:string;table_check:TableCheck;selection:'saved_selection';selection_index_sha256?:string};
 export type Intake={source_sha256:string;copies:number;status:'accepted'|'quarantined';reason:string;declarations:SourceDeclaration[]};
@@ -17,7 +20,7 @@ export function mergeModularCatalogs(parts:ModularCatalog[]):ModularCatalog{
  const unique=<T,>(items:T[])=>[...new Map(items.map(x=>[JSON.stringify(x),x])).values()];
  const solutions=new Map<string,ModularSolution>(),sets=new Map<string,ModularSet>();
  for(const part of parts){
-  for(const s of part.solutions){const old=solutions.get(s.id);solutions.set(s.id,old?{...old,provenance:unique([...(old.provenance??[]),...(s.provenance??[])])}:s);}
+  for(const s of part.solutions){const old=solutions.get(s.id),sources=old&&mergeSources(old.sources??[],s.sources??[]);solutions.set(s.id,old?{...old,provenance:unique([...(old.provenance??[]),...(s.provenance??[])]),...sources?.length?{sources}:{}}:s);}
   for(const s of part.sets){const old=sets.get(s.id);sets.set(s.id,old?{...old,usage:unique([...(old.usage??[]),...(s.usage??[])])}:s);}
  }
  return {fp32_groups:unique(parts.flatMap(p=>p.fp32_groups??[])),schema_version:1,solutions:[...solutions.values()],sets:[...sets.values()],intake:parts.flatMap(p=>p.intake??[]),search_scopes:parts.flatMap(p=>p.search_scopes??[])};

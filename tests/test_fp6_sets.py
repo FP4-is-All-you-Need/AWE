@@ -21,8 +21,24 @@ class FP6SetsTest(unittest.TestCase):
         for r in data['solutions']:
             self.assertEqual([len(r['encoding'][side]) for side in 'AB'], [r['modulus'], r['modulus']])
 
+    def test_fp8_sets_rebuild_from_constructions(self):
+        path = ROOT/'data/modular/gemmul8-fp8-sets.json'
+        self.assertEqual(check(path), {'constructions': 31, 'sets': 19, 'valid': True})
+        data = json.loads(path.read_text())
+        self.assertEqual(data['kind'], 'modular_sets')
+        # one set for each number of moduli 2 to 20, each with the file lines that list its moduli at the recorded commit
+        self.assertEqual(sorted(len(s['solution_ids']) for s in data['sets']), list(range(2, 21)))
+        for s in data['sets']:
+            self.assertEqual((s['value_set'], s['k']), ('512xE4M3', 8192))
+            self.assertEqual((s['source']['name'], s['source']['commit'], s['source']['date']),
+                             ('GEMMul8 FP8', 'd8d390125964c7f1c60d5f1e0e5d9656e5614852', '2026-11-16'))
+        # every construction of these sets names the same source with its commit date
+        self.assertTrue(all(r.get('sources') and all(x['date'] == '2026-11-16' for x in r['sources']) for r in data['solutions']))
+        # only constructions of a modulus up to 256 keep their encoding tables, as in forms-*.json
+        self.assertTrue(all((r['modulus'] <= 256) == ('encoding' in r and 'plane_values' in r) for r in data['solutions']))
+
     def test_public_copy_is_unchanged(self):
-        for name in ('modular/fp6-sets.json', 'schema/modular-fp6-sets.schema.json'):
+        for name in ('modular/fp6-sets.json', 'modular/gemmul8-fp8-sets.json', 'schema/modular-fp6-sets.schema.json'):
             self.assertEqual((ROOT/'build/pages-data'/name).read_bytes(), (ROOT/'data'/name).read_bytes())
 
 

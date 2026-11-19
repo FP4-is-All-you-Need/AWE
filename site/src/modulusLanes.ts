@@ -1,14 +1,16 @@
 import type {ModularCatalog} from './modular.ts';
 import {canonicalLane,type Lane,type VisualCatalog} from './visual.ts';
 import {VALUE_SET_LABEL} from './valueSets.ts';
+import {noteSources} from './sources.ts';
 
 const VALUE_SET_FORMAT:Record<string,string>=Object.fromEntries(Object.entries(VALUE_SET_LABEL).filter(([vs])=>vs!=='2xE2M1'));
 /** Preserve all recorded widths and K values before choosing an input range. A set saved on an FP6 value set keeps that format. */
 export function storedModulusLanes(catalog:ModularCatalog,saved?:VisualCatalog):Lane[]{
  const fp32=new Set(catalog.fp32_groups?.flatMap(g=>g.set_ids)??[]);
+ for(const s of catalog.solutions)if(s.sources?.length)noteSources(s.id,s.sources);
  return catalog.sets.map(s=>{
   const lane=canonicalLane(catalog,s.id,saved)!;
-  return {...lane,format:s.value_set?VALUE_SET_FORMAT[s.value_set]??s.value_set:fp32.has(s.id)?'FP32':s.magnitude_bits===53?'FP64':undefined,
+  return {...lane,source:s.source,format:s.value_set?VALUE_SET_FORMAT[s.value_set]??s.value_set:fp32.has(s.id)?'FP32':s.magnitude_bits===53?'FP64':undefined,
    faces_a:lane.mods.reduce((n,c)=>n+c.faces_a,0),faces_b:lane.mods.reduce((n,c)=>n+(c.faces_b??0),0)};
  });
 }

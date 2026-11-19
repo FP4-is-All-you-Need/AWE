@@ -8,8 +8,9 @@ import {useParameter,bounded} from './parameters.ts';
 import type {Lane} from './visual.ts';
 import {engineText,isFP6Lane} from './primeTable.ts';
 import {useLanguage} from './i18n.tsx';
-// Sets saved on an FP6 value set name it first; FP4 sets keep their label.
-const fp6=(lane:Lane)=>isFP6Lane(lane)?lane.format+' / ':'';
+import {setSourceTitle} from './sources.ts';
+// A set with a source is named by it, and a set saved on an FP6 value set by its value set; FP4 sets keep their label.
+const fp6=(lane:Lane)=>lane.source?setSourceTitle(lane.source)+' / ':isFP6Lane(lane)?lane.format+' / ':'';
 /** engines: the machines whose engines use each set, where the data records them. */
 export function ModulusSets({lanes,engines,selected,onSelect}:{lanes:Lane[];engines?:Map<string,string[]>;selected:string;onSelect:(id:string)=>void}){
  const cost=useContext(CostContext),dims=useContext(DimensionContext),en=useLanguage()==='en';

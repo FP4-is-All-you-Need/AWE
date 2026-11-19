@@ -22,6 +22,11 @@ test('the FP6 sets are saved lanes with their recorded widths, K and constructio
  assert.deepEqual(rows('FP6 (8×E2M3)'),[[53,15,30],[53,16,31],[53,19,29],[53,20,30],[55,16,31],[55,16,32],[57,15,32],[57,17,33],[72,20,42],[72,22,41]]);
  assert.deepEqual(rows('FP6 (16×E3M2)'),[[53,16,40],[53,16,42],[55,16,43],[55,17,42],[57,17,43],[57,17,45],[72,21,56]]);
 });
+test('the GEMMul8 FP8 sets keep tables only up to modulus 256 and still give every construction a card',()=>{
+ const g=read('modular/gemmul8-fp8-sets.json'),lanes=storedModulusLanes(mergeModularCatalogs([g]));
+ assert.equal(lanes.length,19);
+ for(const l of lanes)for(const c of l.mods){assert.equal(Boolean(c.saved_encoding??c.canonical?.encoding),c.modulus<=256);assert.ok(c.products.length>0&&c.planes);}
+});
 test('FP4 sets keep their formats when the FP6 file is added',()=>{
  const without=storedModulusLanes(mergeModularCatalogs(['catalog','powers','fp32','fp32-history'].map(n=>read('modular/'+n+'.json'))),visual);
  for(const l of without)assert.equal(stored.find(s=>s.id===l.id)!.format,l.format);

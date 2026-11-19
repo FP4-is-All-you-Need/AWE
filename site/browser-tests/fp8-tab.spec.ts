@@ -32,3 +32,21 @@ test('every view of the FP8 page shows the constructions that hold on 512×E4M3'
  expect(await rows.count()).toBeGreaterThan(1);
  expect(errors).toEqual([]);
 });
+
+test('the FP8 page lists the GEMMul8 FP8 modulus sets as rows of modulus cards with their source',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/?prime_set=fp8&lang=en');
+ const select=page.locator('[data-section="modset-catalog"] select[name=modset_id]');
+ const options=select.locator('option',{hasText:'GEMMul8 FP8 (d8d3901, 2026-11-16)'});
+ await expect(page.locator('select[name=prime_compare] option',{hasText:'GEMMul8 FP8 (d8d3901, 2026-11-16) · '})).not.toHaveCount(0,{timeout:30000});
+ await expect(options).toHaveCount(19,{timeout:30000});
+ await select.selectOption((await options.first().getAttribute('value'))!);
+ const lane=page.locator('details[data-section="main"]');
+ await expect(lane.locator(':scope > summary h1')).toContainText('GEMMul8 FP8 (d8d3901, 2026-11-16)');
+ await expect(lane.locator('[data-set-source]')).toContainText('d8d3901, 2026-11-16');
+ await expect(lane.locator('[data-set-source] a')).toHaveAttribute('href',/\/blob\/d8d390125964c7f1c60d5f1e0e5d9656e5614852\/src\/oz2\/common\/fp8_plan\.hpp#L\d+/);
+ // The card opened under the set names the source of its construction.
+ await expect(lane.locator('[data-construction-sources]').first()).toBeVisible({timeout:30000});
+ await expect(lane.locator('[data-construction-sources]').first()).toContainText('d8d3901, 2026-11-16');
+ expect(errors).toEqual([]);
+});

@@ -1,6 +1,8 @@
 import type {Pair, Solution} from './types.ts';
 import type {ModularCatalog, ModularSolution} from './modular.ts';
 import {omittedNote,withoutUnusedLimbs} from './unusedLimbs.ts';
+import {formConstruction} from './formConstruction.ts';
+import type {FormSolution} from './modularForms.ts';
 
 export const PAPER_8192='awems1_5b05738257bbabf8901c9dfaa2c8b7d03469ce483316bd6e8f9b0b46197e5757';
 export const PAPER_16384='awems1_a5885349a9a7ded35f1072e1509027c38f41c3e8b6033865068b05d0de7893a0';
@@ -8,7 +10,7 @@ export const INT8='awe1_d323a4454c50d58cb90ee4d3d062025fe616b2f994dfb6d7d579615c
 export type Term={a:number;b:number;group:number|null;numerator:number|null};
 // display_indices belongs to a rendering copy only; canonical records remain unchanged.
 export type Construction={plane_moduli?:Pair<number[]>;limbs_stored?:Pair<boolean[]>;id:string;display_indices?:Pair<number[]>;additional?:Record<string,unknown>;modulus:number;weights:Pair<number[]>;planes:Pair<number[][]>|null;products:Term[];denominator:number;shape:string;faces_a:number;faces_b:number|null;holes:{count:number|null;share:number|null};carry:boolean;block_shift:boolean;source_sha256:string;saved_encoding?:Pair<Record<string,number[]>>;encoding_domain?:number[];hole_values?:number[];correction?:{kind:string;max_abs_shift?:number;chosen_representatives:null};canonical?:ModularSolution;max_k?:number|null;integer?:Solution};
-export type Lane={format?:string;usage?:import('./modular.ts').Usage[];id:string;lane:string;selection_kind:string;tag:string;moduli:number[];products:number;faces_a:number;faces_b:number|null;k_max:string;mods:Construction[];bits?:number;plan_k?:number;original_id?:string};
+export type Lane={format?:string;usage?:import('./modular.ts').Usage[];source?:import('./modular.ts').SetSource;id:string;lane:string;selection_kind:string;tag:string;moduli:number[];products:number;faces_a:number;faces_b:number|null;k_max:string;mods:Construction[];bits?:number;plan_k?:number;original_id?:string};
 export type VisualCatalog={schema_version:number;source_sha256:string;widths:{bits:number;rows:Lane[]}[]};
 export const ACC=['#0288D1','#EF6C00','#6A1B9A'];
 export function factors(n:number):{prime:number;exponent:number}[]{
@@ -21,6 +23,8 @@ export function geometry(c:Pick<Construction,'modulus'|'weights'|'planes'|'produ
  return JSON.stringify([c.modulus,c.weights,c.planes?c.products.map(p=>termKey(c,p)).sort():null]);
 }
 export function fromCanonical(raw:ModularSolution):Construction{
+ // A saved record kept without its tables (a modulus above the table limit of its file) is shown as a single construction.
+ if(!raw.encoding)return formConstruction(raw as unknown as FormSolution);
  const s=withoutUnusedLimbs(raw),extra=s as ModularSolution&{accumulation?:{max_k:number|null}};
  let shape=s.weights.A.length>2||s.weights.B.length>2?`${s.weights.A.length}×${s.weights.B.length}`:'direct';if(s.weights.A.length===1&&s.weights.B.length===1)shape='one';
  else if(s.weights.A.length===2&&s.products.length===3)shape=s.weights.A[1]*s.weights.B[1]%s.modulus===0?'B':'A';

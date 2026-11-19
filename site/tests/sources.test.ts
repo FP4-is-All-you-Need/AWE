@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {mergeSources,sourceLink,sourceName,sourcesOf} from '../src/sources.ts';
 import {formConstruction} from '../src/formConstruction.ts';
+import {mergeModularCatalogs} from '../src/modular.ts';
 
 const s={repository:'https://github.com/example-org/example-lib',commit:'0123456789abcdef0123456789abcdef01234567',path:'src/plan.hpp',lines:[220,229]};
 
@@ -26,4 +27,13 @@ test('a source given with and without its commit date is kept once, with the dat
  assert.deepEqual(mergeSources([s],[dated]),[dated]);
  assert.deepEqual(mergeSources([dated],[s]),[dated]);
  assert.equal(mergeSources([s],[{...s,lines:[1,2]}]).length,2);
+});
+
+test('merging catalogs keeps the sources that any copy of a construction names',()=>{
+ const base={id:'example',kind:'modular' as const,modulus:7,weights:{A:[1],B:[1]},planes:{A:[[1]],B:[[1]]},products:[{a:0,b:0,numerator:1}],denominator:1,encoding:{A:[],B:[]}};
+ const merged=mergeModularCatalogs([{schema_version:2,sets:[],solutions:[{...base,provenance:[{source_sha256:'a'}]}]},
+  {schema_version:2,sets:[],solutions:[{...base,provenance:[{source_sha256:'b'}],sources:[s]}]}]);
+ assert.deepEqual(merged.solutions[0].sources,[s]);
+ assert.equal(merged.solutions[0].provenance?.length,2);
+ assert.equal('sources' in mergeModularCatalogs([{schema_version:2,sets:[],solutions:[base]},{schema_version:2,sets:[],solutions:[base]}]).solutions[0],false);
 });

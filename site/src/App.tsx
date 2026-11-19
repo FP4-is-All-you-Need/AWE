@@ -5,6 +5,7 @@ import {PreviousResearchSection} from './PreviousResearch.tsx';
 import {PrimeTable} from './PrimeTable.tsx';
 import {engineText,isFP6Lane,onFP6ValueSet,primeSets,setEngines,type PrimeForm} from './primeTable.ts';
 import {heldOn,type FormsIndex} from './modularForms.ts';
+import {setSourceTitle,sourceLink,sourceName} from './sources.ts';
 import {storedModulusLanes,modulusComparisonLanes} from './modulusLanes.ts';
 import {SwapDrawer} from './SwapDrawer.tsx';
 import {SameInputsContext} from './SideDetails.tsx';
@@ -58,8 +59,8 @@ function FP6Page(){
  const [saved,setSaved]=useState<ModularCatalog>();
  useEffect(()=>{read<FormsIndex&{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>{
   const shown=heldOn(valueSet,d.value_set_inclusion);setForms(d.prime_powers.filter(f=>shown.includes(f.value_set)));
-  read<ModularCatalog>('modular/fp6-sets.json').then(c=>setSaved({...c,sets:c.sets.filter(s=>shown.includes(s.value_set??''))})).catch(e=>setError(String(e)));
- }).catch(e=>setError(String(e)));},[valueSet]);
+  Promise.all(['fp6-sets',...tab==='fp8'?['gemmul8-fp8-sets']:[]].map(n=>read<ModularCatalog>(`modular/${n}.json`))).then(parts=>{const c=mergeModularCatalogs(parts);setSaved({...c,sets:c.sets.filter(s=>shown.includes(s.value_set??''))});}).catch(e=>setError(String(e)));
+ }).catch(e=>setError(String(e)));},[tab,valueSet]);
  const lanes=useMemo(()=>saved?storedModulusLanes(saved):[],[saved]),sets=useMemo(()=>saved?primeSets(saved):[],[saved]);
  const [laneId,setLaneId]=useParameter('fp6_modset_id','',r=>r);
  const [slot,setSlot]=useParameter('fp6_slot',0,r=>{const n=Number(r);return Number.isInteger(n)&&n>=-1?n:0;});
@@ -73,7 +74,7 @@ function FP6Page(){
  return <main className="paper-app" data-format-page={valueSet}><PeriodicFormatControl/>
  {tab==='fp8'&&<p data-no-i18n>{en?'Every view on this page shows the constructions that hold on 512×E4M3 (the values of E4M3, the FP8 format with 4 exponent bits and 3 mantissa bits, divided by its smallest subnormal): those checked on it and those checked on 2×E2M1, 8×E2M3 or 16×E3M2, whose values are all values of 512×E4M3.':'この頁の表示はどれも、512×E4M3(指数 4 bit・仮数 3 bit の FP8 形式 E4M3 の値を、最小の非正規数で割った値の集合)で成り立つ構成を出します。512×E4M3 で検算した構成と、値がどれも 512×E4M3 に含まれる 2×E2M1・8×E2M3・16×E3M2 で検算した構成です。'}</p>}
  {error&&<p role="alert">{error}</p>}{lanes.length>0&&<ModulusSets lanes={lanes} engines={setEngines(saved)} selected={laneId} onSelect={id=>{setLaneId(id);setSlot(0);}}/>}
- {cards&&<details data-section="main" open className="paper-lane" aria-label={`${cards.bits} bit の保存された組`}><summary><h1>{en?`${cards.bits}-bit saved set`:<>{cards.bits} bit　保存された組</>}　{cards.mods.length}法・{cards.products}積 <span>面 A {cards.faces_a} / B {cards.faces_b}　<MathText tex={`K\\le ${cards.k_max}`}/></span></h1></summary>{segments>1&&<p data-k-segments={segments}>{en?`This set accumulates K = ${cards.plan_k} in ${segments} segments of at most ${cards.k_max} each.`:`この組は K = ${cards.plan_k} を、${cards.k_max} 以下の ${segments} 区切りに分けて累積します。`}</p>}<LawRow lane={cards} selected={slot} onSelect={setSlot} detail={cards.mods[slot]&&<Expansion key={cards.mods[slot].id} c={cards.mods[slot]}/>}/><PaperLegend/></details>}
+ {cards&&<details data-section="main" open className="paper-lane" aria-label={`${cards.bits} bit の保存された組`}><summary><h1>{cards.source?setSourceTitle(cards.source):en?`${cards.bits}-bit saved set`:<>{cards.bits} bit　保存された組</>}　{cards.mods.length}法・{cards.products}積 <span>面 A {cards.faces_a} / B {cards.faces_b}　<MathText tex={`K\\le ${cards.k_max}`}/></span></h1></summary>{cards.source&&<p data-set-source={cards.source.repository} data-no-i18n>{en?'Source':'出所'}: {sourceName(cards.source.repository)} <a href={sourceLink(cards.source)}>{cards.source.path}{cards.source.lines?.length?`:${cards.source.lines.join('–')}`:''}</a> <code>{cards.source.commit.slice(0,7)}</code>, {cards.source.date}</p>}{segments>1&&<p data-k-segments={segments}>{en?`This set accumulates K = ${cards.plan_k} in ${segments} segments of at most ${cards.k_max} each.`:`この組は K = ${cards.plan_k} を、${cards.k_max} 以下の ${segments} 区切りに分けて累積します。`}</p>}<LawRow lane={cards} selected={slot} onSelect={setSlot} detail={cards.mods[slot]&&<Expansion key={cards.mods[slot].id} c={cards.mods[slot]}/>}/><PaperLegend/></details>}
  <PrimeTable records={records} sets={sets} lane={lane} comparisonLanes={lanes} forms={forms}/><PeriodicViews/><ModularFormsList/>
  </main>;
 }

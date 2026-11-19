@@ -91,6 +91,12 @@ python -m tools.fp6_sets build "$INPUTS"/*.json --output data/modular/fp6-sets.j
 python -m tools.fp6_sets check
 ```
 
+`modular/gemmul8-fp8-sets.json` は、GEMMul8 の `src/oz2/common/fp8_plan.hpp`(commit d8d3901)が実数の行列について `modulus(n, i)` に並べる法の組(法の数 n = 2〜20 の 19 組)を、同じ形・同じ道具で保存した物(file の `kind` は値の集合に依らない `modular_sets`)。値の集合は `512xE4M3`。`k` はこの目録が組を測る内積の長さ K で 8192(この目録の値で、GEMMul8 の値ではない)。`magnitude_bits` は、絶対値が 2^b − 1 以下の整数どうしの長さ `k` の内積が、法の積 P について絶対値 (P − 1)/2 以下に収まり、中国剰余定理(CRT)で一意に戻せる最大の b(この目録の決まりで、GEMMul8 の数ではない)。各組の `source` は、出所での名前・repository・commit とその日付・法を並べた行を持ち、ID には入らない。各構成の `sources` も出所の行と commit の日付を持つ。符号化の表(`encoding`・`plane_values`)は単独の法の構成の一覧(`forms-*.json`)と同じく法 256 以下の構成だけが持ち(`build --table-max 256`)、ほかの表は `check` が作り直して確かめる。サイトはその構成を単独の法の構成と同じ形で出す。FP8 の頁だけが読む。`check` はこの file だけを読み、各構成と組を作り直して比べる。
+
+```sh
+python -m tools.fp6_sets check data/modular/gemmul8-fp8-sets.json
+```
+
 ## 検算結果の要約
 
 取り込み時の再検算結果は、整数を `data/verification.json`、法を `data/modular/verification.json` に保存する。schema_version=2の記録は `counts`、`methods`（各方法の件数・verifier_version）、`date`（検算日）、`checks`（成功した検査の範囲）、`files`（対象の相対名・SHA-256）を持つ。機械名・性能値・元データの自由記述は含めない。整数の分割記録にあるcountは全体数なので、分割数倍しない。

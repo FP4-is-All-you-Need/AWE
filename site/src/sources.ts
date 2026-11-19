@@ -1,4 +1,5 @@
 import type {FormSource} from './modularForms.ts';
+import type {SetSource} from './modular.ts';
 
 const known=new Map<string,FormSource[]>();
 const sourceKey=(s:FormSource)=>JSON.stringify([s.repository,s.commit,s.path,s.lines??[],s.scheme??'']);
@@ -24,3 +25,5 @@ export function sourceLink(s:FormSource){
  const lines=first?`#L${first}`+(last&&last!==first?`-L${last}`:''):'';
  return /^https:\/\/github\.com\//.test(s.repository)?`${s.repository.replace(/\.git$|\/$/,'')}/blob/${s.commit}/${s.path}${lines}`:s.repository;
 }
+/** The name of a set at its source, with its short commit and the commit date in parentheses. */
+export function setSourceTitle(s:SetSource){return `${s.name} (${s.commit.slice(0,7)}, ${s.date})`;}

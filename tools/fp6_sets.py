@@ -3,10 +3,16 @@
 Each input file is one saved set: magnitude_bits, k, value_set and its constructions in order (modulus, weights, planes,
 plane_moduli, products [[a, b, numerator]], denominator, value_set).  Every construction is verified with
 verify/modular_forms.py on the smallest value set that keeps its holes, exactly as the single-construction catalog does,
-so a construction already in forms-*.json gets the same awem2_ id.  Unlike forms-*.json, every record keeps its full encoding
-table whatever the modulus, as the records of catalog.json do, because the site reads the tables of a saved set.
+so a construction already in forms-*.json gets the same awem2_ id.  By default every record keeps its full encoding table
+whatever the modulus, as the records of catalog.json do, because the site reads the tables of a saved set; with
+--table-max N only records of a modulus up to N keep them, as in forms-*.json, the checker rebuilds the others and the
+site shows them as it shows the single constructions.  --kind modular_sets gives a file whose sets are not all on FP6
+value sets a kind without a value set in its name.
 A set is kept only when every construction verifies, the moduli are coprime and the CRT range covers k.
-build: write the file.  check: validate the schema and rebuild every record, set and summary from the constructions.
+An input file may name where the same set appears outside this catalog (source: name, repository, commit, date, path,
+lines) and a construction line may name where that construction appears (source); both are kept and are not part of an id.
+build: write the file.  extend: add the sets of more input files to an existing file.  check: validate the schema and
+rebuild every record, set and summary from the constructions.
 """
 import argparse
 from collections import Counter
@@ -17,7 +23,7 @@ from pathlib import Path
 from hashlib import sha256
 import jsonschema
 from tools.ingest import digest, write
-from tools.modular_forms import DATA_VERSION, minimal_record, validator
+from tools.modular_forms import DATA_VERSION, add_source, minimal_record, validator
 import verify.modular_forms as MF
 
 SET_FIELDS = ('schema_version', 'kind', 'magnitude_bits', 'k', 'value_set', 'solution_ids')
@@ -44,24 +50,33 @@ def set_record(definition, rows, source_sha256):
                               'modulus_product': str(prod(moduli)), 'max_abs_operand': str(bound)})
 
 
-def build(paths, verified_date):
+def build(paths, verified_date, base=None, table_max=None, kind='modular_fp6_sets'):
+    """The file for the input paths; with base (a built file), its sets and records come first and the inputs add to them.
+    table_max: keep the encoding tables of a new record only up to this modulus (default: every modulus); kind: the kind
+    of a new file (an extended file keeps its own)."""
     date.fromisoformat(verified_date)
-    records, sets, sources = {}, [], []
+    records = {r['id']: r for r in base['solutions']} if base else {}
+    sets, sources = (list(base['sets']), list(base['sources'])) if base else ([], [])
     for path in paths:
         sha = digest(path)
         raw = json.loads(path.read_text())
         sources.append({'sha256': sha, 'rows': len(raw['constructions'])})
         ids = []
         for position, line in enumerate(raw['constructions'], 1):
-            r = minimal_record(line, verified_date, table_max=line['modulus'])
+            r = minimal_record(line, verified_date, table_max=line['modulus'] if table_max is None else table_max)
             r = records.setdefault(r['id'], dict(r, provenance=[]))
             r['provenance'].append({'source_sha256': sha, 'position': position})
+            if line.get('source'):
+                add_source(r, line['source'])
             ids.append(r['id'])
         definition = {'schema_version': 2, 'kind': 'modular_set', 'magnitude_bits': raw['magnitude_bits'], 'k': raw['k'],
                       'value_set': raw['value_set'], 'solution_ids': ids}
-        sets.append(set_record(definition, [records[i] for i in ids], sha))
+        record = set_record(definition, [records[i] for i in ids], sha)
+        if raw.get('source'):
+            record['source'] = raw['source']
+        sets.append(record)
     solutions = sorted(records.values(), key=lambda r: (r['modulus'], r['id']))
-    return {'schema_version': 2, 'data_version': DATA_VERSION, 'kind': 'modular_fp6_sets', 'solutions': solutions, 'sets': sets,
+    return {'schema_version': 2, 'data_version': DATA_VERSION, 'kind': base['kind'] if base else kind, 'solutions': solutions, 'sets': sets,
             'sources': sources, 'verification': {'date': verified_date, 'verifier_version': MF.VERSION, 'constructions': len(solutions),
                                                   'sets': len(sets), 'methods': dict(Counter(r['verified']['method'] for r in solutions))}}
 
@@ -98,6 +113,8 @@ def check(path):
         if any((sha, n) not in {(o['source_sha256'], o['position']) for o in r['provenance']} for n, r in enumerate(rows, 1)):
             raise ValueError('set_order_mismatch')
         again = set_record({k: s[k] for k in SET_FIELDS}, rows, s['provenance'][0]['source_sha256'])
+        if 'source' in s:
+            again['source'] = s['source']
         if again != s:
             raise ValueError('set_measurement_mismatch')
     v = data['verification']
@@ -114,13 +131,26 @@ if __name__ == '__main__':
     b.add_argument('inputs', type=Path, nargs='+')
     b.add_argument('--output', type=Path, required=True)
     b.add_argument('--date', default=date.today().isoformat())
+    b.add_argument('--table-max', type=int)
+    b.add_argument('--kind', choices=('modular_fp6_sets', 'modular_sets'), default='modular_fp6_sets')
+    e = sub.add_parser('extend')
+    e.add_argument('path', type=Path)
+    e.add_argument('inputs', type=Path, nargs='+')
+    e.add_argument('--date', default=date.today().isoformat())
+    e.add_argument('--table-max', type=int)
     c = sub.add_parser('check')
     c.add_argument('path', type=Path, nargs='?', default=Path('data/modular/fp6-sets.json'))
     a = p.parse_args()
     if a.command == 'build':
         if any(a.output.resolve().is_relative_to(i.resolve().parent) for i in a.inputs):
             raise ValueError('output_inside_input')
-        write(a.output, build(a.inputs, a.date))
+        write(a.output, build(a.inputs, a.date, table_max=a.table_max, kind=a.kind))
         print(json.dumps(check(a.output), sort_keys=True))
+    elif a.command == 'extend':
+        if any(a.path.resolve().is_relative_to(i.resolve().parent) for i in a.inputs):
+            raise ValueError('output_inside_input')
+        check(a.path)
+        write(a.path, build(a.inputs, a.date, base=json.loads(a.path.read_text()), table_max=a.table_max))
+        print(json.dumps(check(a.path), sort_keys=True))
     else:
         print(json.dumps(check(a.path), sort_keys=True))
