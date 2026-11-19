@@ -14,6 +14,7 @@ import {DimensionContext} from './Dimensions.tsx';
 import {Formula,MathText} from './PaperFigures.tsx';
 import {PlaneFlow,SavedPlaneValues} from './PlaneFlow.tsx';
 import {equationTex,holeLabel,residual,type Construction} from './visual.ts';
+import {SourceNote} from './SourceNote.tsx';
 
 export const linear=(v:number[],s:string)=>v.map((n,i)=>n?`${n<0?'-':'+'}${Math.abs(n)===1?'':Math.abs(n)}${s}_{${i}}`:'').join('').replace(/^\+/,'')||'0';
 type Layout='products'|'compact'|'paper';
@@ -35,6 +36,7 @@ export function Expansion({c:stored,scope="",layout:initial}:{c:Construction;sco
  <form name={scope+'limb_order.'+c.id} onSubmit={e=>e.preventDefault()}><label>リムの並び <select name="limb_order" data-url-key={key('limb_order')} value={order} onChange={e=>setOrder(e.target.value as LimbOrder)}><option value="stored">保存順</option><option value="weight">重み順</option><option value="block">ブロック順</option></select></label></form>
  {stored.integer&&<p data-integer-domain>被覆範囲 <MathText tex={`A\\in[${stored.integer.domain.A}],\\quad B\\in[${stored.integer.domain.B}]`}/></p>}
  <p data-limb-weights="true"><MathText tex={`w_{A}=(${c.weights.A.join(',')}),\\quad w_{B}=(${c.weights.B.join(',')})`}/></p>
+ <SourceNote c={stored}/>
  {Number(c.additional?.omitted_limbs)>0&&<p data-omitted-limbs data-no-i18n>{lang==='en'?'Unused limbs are omitted.':'使われないリムを省いて表示しています。'}</p>}
  {zeroWeights.length>0&&<p data-zero-weight={zeroWeights.join(' ')} data-no-i18n>{lang==='en'?<>The weight 0 of <MathText tex={zeroWeights.join(',\\,')}/> stands for a multiple of the modulus. {zeroWeights.length>1?'These limbs do':'This limb does'} not change {zeroSides.join(' or ')} and {zeroWeights.length>1?'are':'is'} used to form planes.</>:<><MathText tex={zeroWeights.join(',\\,')}/> の重み 0 は法の倍数を表します。{zeroWeights.length>1?'これらのリム':'このリム'}は {zeroSides.join('・')} の値を変えず、面を作るのに使います。</>}</p>}
  {blocks?<p data-block-label="true">ブロック Karatsuba：{blocks.A.length*blocks.B.length} 組。<MathText tex={`A:\\;${blocks.A.map(p=>'('+p.map(i=>c.weights.A[i]).join(',')+')').join('\\mid')},\\quad B:\\;${blocks.B.map(p=>'('+p.map(i=>c.weights.B[i]).join(',')+')').join('\\mid')},\\quad ${blocks.A.length*blocks.B.length}\\times3=${c.products.length}`}/></p>:order==='block'&&<p>対応するブロック配置なし</p>}

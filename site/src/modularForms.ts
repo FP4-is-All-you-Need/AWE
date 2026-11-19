@@ -3,7 +3,9 @@ import type {Pair} from './types.ts';
 import {withoutUnusedLimbs} from './unusedLimbs.ts';
 
 /** Single modular constructions (data/modular/forms-*.json listed in forms-index.json, schema 2; schema-1 rows may appear unchanged). */
-export type FormSolution={schema_version:number;id:string;modulus:number;weights:Pair<number[]>;planes:Pair<number[][]>;plane_sets:Pair<string[]>;plane_moduli?:Pair<number[]>;products:{a:number;b:number;numerator:number}[];denominator:number;holes?:{A:number;B:number;exact:boolean;method?:string};reconstruction?:{procedure:string;note?:string};prior_checker_versions?:string[];encoding?:Pair<(number[]|null)[]>;accumulation?:{max_k:number|null}};
+export type FormSolution={schema_version:number;id:string;modulus:number;weights:Pair<number[]>;planes:Pair<number[][]>;plane_sets:Pair<string[]>;plane_moduli?:Pair<number[]>;products:{a:number;b:number;numerator:number}[];denominator:number;holes?:{A:number;B:number;exact:boolean;method?:string};reconstruction?:{procedure:string;note?:string};prior_checker_versions?:string[];encoding?:Pair<(number[]|null)[]>;accumulation?:{max_k:number|null};sources?:FormSource[]};
+/** Where a construction appears outside this catalog: repository, commit, commit date (when given) and file lines. */
+export type FormSource={repository:string;commit:string;date?:string;path:string;lines?:number[];scheme?:string};
 export type ModularForms={schema_version:number;data_version:string;kind:string;solutions:FormSolution[]};
 export type FormsChunk={path:string;sha256:string;solutions:number;modulus_min:number;modulus_max:number};
 export type FormsIndex={schema_version:number;data_version:string;kind:string;solutions:number;chunks:FormsChunk[];excluded:{reason:string;count:number;note:string}[];value_set_inclusion?:Record<string,string[]>};
