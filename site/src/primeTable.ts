@@ -1,6 +1,7 @@
 import {factors,type Construction,type Lane,type VisualCatalog} from './visual.ts';
 import type {ModularCatalog} from './modular.ts';
 import type {PageFormat} from './valueSets.ts';
+import {accumulable} from './accumulation.ts';
 
 export const FP6_VALUE_SETS=['8xE2M3','16xE3M2'];
 /** A set saved on an FP6 value set; its format starts with "FP6 " (FP64 does not match). */
@@ -40,10 +41,11 @@ export type PrimeForm={modulus:number;prime:number;exponent:number;value_set:str
 export type PrimeTab=PageFormat;
 export type FormCell={hole_free?:PrimeForm;holes?:PrimeForm;excluded?:PrimeForm;entries:PrimeForm[];fewer:boolean;onlyWider:boolean;excludedFewer:boolean};
 const formOrder=(a:PrimeForm,b:PrimeForm)=>a.products-b.products||a.planes[0]+a.planes[1]-b.planes[0]-b.planes[1]||(a.id<b.id?-1:a.id>b.id?1:0);
-/** FP4's fewest products per prime-power modulus: the saved constructions and the single constructions without holes on 2xE2M1. */
+/** FP4's fewest products per prime-power modulus: the saved constructions that can be accumulated and the single constructions
+ without holes on 2xE2M1. */
 export function fp4Fewest(records:Construction[],forms:PrimeForm[]):Map<number,number>{
  const out=new Map<number,number>(),add=(m:number,n:number)=>out.set(m,Math.min(out.get(m)??Infinity,n));
- for(const c of records)if(factors(c.modulus).length===1)add(c.modulus,c.products.length);
+ for(const c of records)if(factors(c.modulus).length===1&&accumulable(c.max_k))add(c.modulus,c.products.length);
  for(const f of forms)if(f.value_set==='2xE2M1'&&f.kind==='hole_free')add(f.modulus,f.products);
  return out;
 }
@@ -52,7 +54,8 @@ export function fp4Fewest(records:Construction[],forms:PrimeForm[]):Map<number,n
  onlyWider: on FP6, only FP6 value sets give a construction without holes; excludedFewer: a left-out construction has fewer
  products than every published construction without holes.
  sets are the value sets whose constructions the tab shows (its value set and those it contains).
- fp4, when given, is the FP4 side of the comparison in place of the saved constructions (an FP6 page saves FP6 constructions). */
+ fp4, when given, is the FP4 side of the comparison in place of the saved constructions (an FP6 page saves FP6 constructions).
+ Saved constructions with max_k 1 do not enter these comparisons. */
 export function formCells(forms:PrimeForm[],tab:PrimeTab,sets:string[],holes:boolean,saved:Map<number,Construction[]>,fp4?:Map<number,number>):Map<number,FormCell>{
  const out=new Map<number,FormCell>();
  for(const f of forms){
@@ -63,12 +66,12 @@ export function formCells(forms:PrimeForm[],tab:PrimeTab,sets:string[],holes:boo
  }
  for(const [modulus,cell] of out){
   cell.entries.sort((a,b)=>a.kind.localeCompare(b.kind)||formOrder(a,b));
-  const savedMin=Math.min(...(saved.get(modulus)??[]).map(c=>c.products.length));
+  const counted=(saved.get(modulus)??[]).filter(c=>accumulable(c.max_k)),savedMin=Math.min(...counted.map(c=>c.products.length));
   const fp4Min=Math.min(fp4?fp4.get(modulus)??Infinity:savedMin,...cell.entries.filter(f=>f.kind==='hole_free'&&f.value_set==='2xE2M1').map(f=>f.products));
   const free=cell.hole_free?.products??Infinity;
   cell.fewer=free<(tab==='fp4'?savedMin:fp4Min)&&Number.isFinite(tab==='fp4'?savedMin:fp4Min);
   cell.onlyWider=tab==='fp6'&&Number.isFinite(free)&&!Number.isFinite(fp4Min);
-  const savedFree=Math.min(...(saved.get(modulus)??[]).filter(c=>!c.holes.count).map(c=>c.products.length));
+  const savedFree=Math.min(...counted.filter(c=>!c.holes.count).map(c=>c.products.length));
   cell.excludedFewer=!!cell.excluded&&cell.excluded.products<Math.min(savedFree,free);
   if(!cell.hole_free&&!cell.holes)cell.entries=cell.entries.filter(f=>f.kind!=='excluded');
  }

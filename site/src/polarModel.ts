@@ -1,5 +1,6 @@
 import {factors} from './visual.ts';
 import {vanishingPowers} from './shapeFormula.ts';
+import {accumulable} from './accumulation.ts';
 export type ValueSet='2xE2M1'|'8xE2M3'|'16xE3M2'|'512xE4M3';
 export type PolarModel={E32f:(number|null)[];E32i:(number|null)[];K32f:number|null;K32i:number|null;encA:number;encB:number;mP:number[];L:number|null;shiftLength:number|null};
 export type PolarRow={id:string;m:number;vs:ValueSet;R:number;FA:number;FB:number;hA:number;hB:number;exact:boolean;weights:{A:number[];B:number[]};maxK:number|null;model:PolarModel|null;origin:string|null;inCatalog:boolean;source:string;denominator?:number;recon?:string};
@@ -72,8 +73,9 @@ export function position(m:number,layout:Layout):[number,number]{
 }
 export function kind(m:number){const f=factors(m);return f.length===1?(f[0].exponent===1?'prime':'power'):'composite';}
 export function groupRows(rows:PolarRow[]){const groups=new Map<number,PolarRow[]>();for(const r of rows)groups.set(r.m,[...(groups.get(r.m)??[]),r]);return groups;}
+/** The construction that sets a modulus's count: fewest products or lowest cost, among those that can be accumulated. */
 export function pick(rows:PolarRow[],s:Coefficients,mode:'products'|'cost'){
- return [...rows].filter(r=>mode==='products'||cost(r,s)!==null).sort((a,b)=>mode==='products'?a.R-b.R||(cost(a,s)??Infinity)-(cost(b,s)??Infinity)||a.id.localeCompare(b.id):(cost(a,s)??Infinity)-(cost(b,s)??Infinity)||a.R-b.R||a.id.localeCompare(b.id))[0];
+ return [...rows].filter(r=>accumulable(r.maxK)&&(mode==='products'||cost(r,s)!==null)).sort((a,b)=>mode==='products'?a.R-b.R||(cost(a,s)??Infinity)-(cost(b,s)??Infinity)||a.id.localeCompare(b.id):(cost(a,s)??Infinity)-(cost(b,s)??Infinity)||a.R-b.R||a.id.localeCompare(b.id))[0];
 }
 export function componentComparison(m:number,groups:Map<number,PolarRow[]>,s:Coefficients){
  const components=factors(m).map(f=>f.prime**f.exponent),whole=groups.get(m)??[];
