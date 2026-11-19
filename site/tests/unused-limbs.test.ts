@@ -53,8 +53,8 @@ test('the display indexes count every construction as the site shows it',()=>{
  assert.ok(rows>11000&&powers>600);
  // The list and the polar index leave out the same rows.
  const indexed=new Set(polar.map((r:{id:string})=>r.id));
- const listed=new Set(['2xE2M1','8xE2M3','16xE3M2'].flatMap(set=>formRows(forms.filter(s=>s.plane_sets.A[0]===set),{range:'',set,holeFree:false},{}).map(r=>r.id)));
- assert.deepEqual(forms.filter(s=>listed.has(s.id)!==indexed.has(s.id)).map(s=>s.id),[]);assert.equal(forms.length-listed.size,22);
+ const listed=new Set([...new Set(forms.map(s=>s.plane_sets.A[0]))].flatMap(set=>formRows(forms.filter(s=>s.plane_sets.A[0]===set),{range:'',set,holeFree:false},{}).map(r=>r.id)));
+ assert.deepEqual(forms.filter(s=>listed.has(s.id)!==indexed.has(s.id)).map(s=>s.id),[]);assert.equal(forms.length-listed.size,24);
  assert.ok(index.prime_powers.every((f:{id:string;kind:string})=>f.kind==='excluded'||listed.has(f.id)));
  assert.deepEqual(index.prime_powers.filter((f:{modulus:number;value_set:string})=>f.modulus===4&&f.value_set==='8xE2M3').map((f:{products:number})=>f.products),[1]);
 });

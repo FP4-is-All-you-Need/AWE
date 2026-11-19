@@ -61,6 +61,22 @@ class ModularFormsTest(unittest.TestCase):
         self.assertEqual(r['plane_sets'], {'A': ['512xE4M3', '512xE4M3'], 'B': ['512xE4M3', '512xE4M3']})
         self.assertTrue(MF.check_record(r)['rebuilt'])
 
+    def test_max_k_is_at_least_one(self):
+        # one plane modulo 97 on 512xE4M3 needs values above 4096: the product bound passes 2^24, one product is still exact
+        r = rec({'modulus': 97, 'weights': {'A': [1], 'B': [1]}, 'planes': {'A': [[1]], 'B': [[1]]},
+                 'plane_moduli': {'A': [97], 'B': [97]}, 'products': [[0, 0, 1]], 'denominator': 1, 'value_set': '512xE4M3'})
+        self.assertGreater(r['accumulation']['product_bounds'][0], 2 ** 24 - 1)
+        self.assertEqual(r['accumulation']['max_k'], 1)
+        self.assertEqual([p for p in T.prime_power_summary([r], []) if p['kind'] != 'excluded'], [])
+        # no FP4 or FP6 record reaches that bound: each has max_k >= 2 and counts in the summary
+        root = Path(__file__).resolve().parents[1]/'data/modular'
+        index = json.loads((root/'forms-index.json').read_text())
+        rows = [r for c in index['chunks'] for r in json.loads((root/c['path']).read_text())['solutions']]
+        rows += json.loads((root/'fp6-sets.json').read_text())['solutions']
+        small = [r for r in rows if r['plane_sets']['A'][0] != '512xE4M3']
+        self.assertTrue(all(b < 2 ** 24 for r in small for b in r['accumulation']['product_bounds']))
+        self.assertTrue(all(r['accumulation']['max_k'] >= 2 for r in small))
+
     def test_unknown_value_set(self):
         line = dict(PLAIN, value_set='3xE2M1')
         with self.assertRaises(T.Invalid):

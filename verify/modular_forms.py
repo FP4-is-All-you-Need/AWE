@@ -649,7 +649,8 @@ def verify(c, claims=None, enc_given=None, literal_cap=None, dp_cap=None):
         bounds = [maxA[a] * maxB[b] for a, b, _ in c['prod']]
         nz = [b for b in bounds if b]
         res['product_bounds'] = bounds
-        res['max_k'] = min((2 ** 24 - 1) // b for b in nz) if nz else None
+        # one product of two values of a value set has at most 4 + 4 significant bits and is exact in FP32
+        res['max_k'] = max(1, min((2 ** 24 - 1) // b for b in nz)) if nz else None
         one = sum(abs(sym(num, check_modulus(c))) * bd for (_, _, num), bd in zip(c['prod'], bounds))
         res['k_one_accumulator'] = (2 ** 24 - 1) // one if one else None
         res['alphabet'] = [side_alph(c, 'A'), side_alph(c, 'B')]

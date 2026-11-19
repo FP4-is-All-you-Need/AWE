@@ -167,14 +167,16 @@ def prime_power_summary(rows, excluded):
     left-out construction given without holes (with its reason), ordered by modulus, value set, kind.  Products and planes
     are counted without unused limbs (tools/unused_limbs.py), as the site shows them.  Holes are residues with no
     encoding on a side.  Among records with holes and equal product counts, the smaller maximum of the hole counts of
-    sides A and B comes first, then the smaller sum of the two; then fewer planes, then fewer unused limbs."""
+    sides A and B comes first, then the smaller sum of the two; then fewer planes, then fewer unused limbs.  Only records
+    that can be accumulated are counted: accumulation.max_k >= 2, so that two products sum exactly in FP32 (a record with
+    max_k 1 stays in the chunk files)."""
     best = {}
     def keep(key, entry, rank):
         if key not in best or rank < best[key][0]:
             best[key] = (rank, entry)
     for r in rows:
         pe = prime_power(r['modulus'])
-        if pe is None:
+        if pe is None or (r['accumulation'].get('max_k') or 0) < 2:
             continue
         holey = bool(r['holes']['A'] or r['holes']['B'])
         vs = r['plane_sets']['A'][0]
