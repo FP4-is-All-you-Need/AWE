@@ -48,10 +48,13 @@ export function LawRow({lane:storedLane,other:storedOther,selected=-1,onSelect,g
  const lane=useMemo(()=>project(storedLane),[storedLane,query]),other=useMemo(()=>storedOther&&project(storedOther),[storedOther,query]);
  const english=useLanguage()==='en';
  const cell=25.2,band=selected>=0?24:0,font=14;
+ // The square cells of a card: smaller for more than three limbs on a side, and wider than usual only when a column weight
+ // needs it (7 px a character and a 4 px gap), so that the weights above the columns do not run into each other.
+ const tileCell=(c:Construction)=>{const n=Math.max(c.weights.A.length,c.weights.B.length);return n>3?cell*3/n:Math.max(cell,...c.weights.B.map(w=>String(w).length*7+4));};
  const miniLeft=(c:Construction|undefined)=>!c?42:Math.max(c.weights.A.length,c.weights.B.length)>3?60:c.weights.B.length===1?70:40+Math.max(14,...c.weights.A.map(w=>String(w).length*7))+(c.faces_a>=10?8:0);
  const mods=slots??lane.mods.map(m=>m.modulus);let cursor=0;
- const positions=mods.map(p=>{const c=lane.mods.find(m=>m.modulus===p)??other?.mods.find(m=>m.modulus===p),n=c?.weights.B.length??2,mini=cell*Math.min(1,3/Math.max(c?.weights.A.length??2,n)),width=Math.max(104,miniLeft(c)+n*mini+4);const out={p,x:cursor,width};cursor+=width+8;return out;});
- const tileLayout=(c:Construction)=>{const reduced=Math.max(c.weights.A.length,c.weights.B.length)>3,miniCell=cell*Math.min(1,3/Math.max(c.weights.A.length,c.weights.B.length)),gridTop=band+56,footer=gridTop+c.weights.A.length*miniCell+3;
+ const positions=mods.map(p=>{const c=lane.mods.find(m=>m.modulus===p)??other?.mods.find(m=>m.modulus===p),n=c?.weights.B.length??2,mini=c?tileCell(c):cell,width=Math.max(104,miniLeft(c)+n*mini+4);const out={p,x:cursor,width};cursor+=width+8;return out;});
+ const tileLayout=(c:Construction)=>{const reduced=Math.max(c.weights.A.length,c.weights.B.length)>3,miniCell=tileCell(c),gridTop=band+56,footer=gridTop+c.weights.A.length*miniCell+3;
   return {gridTop,footer,height:footer+(reduced?31:53)};};
  const height=Math.max(...lane.mods.map(c=>tileLayout(c).height));
  const lines:(typeof positions)[]=[];let line:typeof positions=[],used=0;
@@ -62,7 +65,7 @@ export function LawRow({lane:storedLane,other:storedOther,selected=-1,onSelect,g
  if(line.length)lines.push(line);
  return <div ref={measured.ref} className="law-row" data-source-figure={`laws-${lane.bits??53}`} aria-label={`${lane.mods.length}法 ${lane.products}積の一覧`}>
  {lines.map((line,row)=><Fragment key={row}><svg data-law-line={row} viewBox={`0 0 ${Math.max(...line.map(p=>p.x+p.width))} ${height}`} width={Math.max(...line.map(p=>p.x+p.width))} height={height}>
- {line.map(({p,x,width})=>{const i=lane.mods.findIndex(m=>m.modulus===p),c=lane.mods[i];if(!c)return null;const reduced=Math.max(c.weights.A.length,c.weights.B.length)>3,miniCell=cell*Math.min(1,3/Math.max(c.weights.A.length,c.weights.B.length));const {gridTop,footer,height:tileHeight}=tileLayout(c);const cx=x+width/2,gx=x+miniLeft(c);
+ {line.map(({p,x,width})=>{const i=lane.mods.findIndex(m=>m.modulus===p),c=lane.mods[i];if(!c)return null;const reduced=Math.max(c.weights.A.length,c.weights.B.length)>3,miniCell=tileCell(c);const {gridTop,footer,height:tileHeight}=tileLayout(c);const cx=x+width/2,gx=x+miniLeft(c);
  const weight=(w:number,xx:number,yy:number,key:string,ww=cell)=>{const side=key[0]==='a'?'A':'B',index=Number(key.slice(1)),style=miniWeightStyle(c,side,index);return <g key={key} data-weight-label={key} data-weight-ink={style.ink} data-weight-background={style.background}><rect x={xx} y={yy+(side==='B'?4:0)} width={ww} height={side==='B'?14:18} fill={style.background}/><Formula x={xx} y={yy} w={ww} h={21} tex={String(w)} size={font} color={style.ink} background={style.background}/></g>;};
  return <g key={p} data-mini-reduced={reduced} data-tile-id={c.id} data-tile-modulus={p} data-tile-weights-a={c.weights.A.join(',')} data-tile-weights-b={c.weights.B.join(',')} role="button" tabIndex={0} aria-label={`法 ${p} ${c.products.length}積`} aria-pressed={selected===i} onClick={()=>select(i)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(i);}}} className="law-button">
  <title>{`法 ${p}・重み A (${c.weights.A}) B (${c.weights.B})・${c.products.length} 積・面 A ${c.faces_a} B ${c.faces_b??'—'}`}</title>
@@ -70,8 +73,8 @@ export function LawRow({lane:storedLane,other:storedOther,selected=-1,onSelect,g
  {selected===i&&<g data-selection-band="true" data-selection-role={selectionRole}><rect x={x+2.5} y={2.5} width={width-5} height={24} fill={selectionRole==='focus'?'#FFFFFF':'#884499'}/><text x={x+8} y={20} textAnchor="start" fill={selectionRole==='focus'?'#1A1A1A':'#FFFFFF'} fontSize="14">{selectionRole==='focus'?(english?'shown':'表示中'):(english?'selected':'選択中')}</text>{selectionRole==='selected'&&<g role="button" tabIndex={0} aria-label={english?"Swap candidates":"入れ替え候補"} onClick={event=>{event.stopPropagation();window.dispatchEvent(new Event('awe-open-swap'));}} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();window.dispatchEvent(new Event('awe-open-swap'));}}}><rect x={x+width-31} y={3} width={25} height={23} fill="#884499"/><text x={x+width-18} y={24} textAnchor="middle" fill="#FFFFFF" fontSize="18">→</text></g>}</g>}
  <Formula x={x} y={band-2} w={width} h={27} tex={`\\operatorname{mod}\\;${p}`} size={18}/>
  <PlaneHeaders c={c} x={x} gx={gx} gridTop={gridTop} cell={miniCell}/>
- {!reduced&&c.weights.B.map((w,j)=>weight(w,gx+j*cell,gridTop-23,`b${j}`))}
- {!reduced&&c.weights.A.map((w,i)=>weight(w,gx-Math.max(14,String(w).length*7)-4,gridTop+i*cell+(cell-18)/2,`a${i}`,Math.max(14,String(w).length*7)))}
+ {!reduced&&c.weights.B.map((w,j)=>weight(w,gx+j*miniCell,gridTop-23,`b${j}`,miniCell))}
+ {!reduced&&c.weights.A.map((w,i)=>weight(w,gx-Math.max(14,String(w).length*7)-4,gridTop+i*miniCell+(miniCell-18)/2,`a${i}`,Math.max(14,String(w).length*7)))}
  <Lattice c={c} x={gx} y={gridTop} cell={miniCell} groups={groups}/>
  <text data-tile-products x={cx} y={footer+19} textAnchor="middle" fontSize="14"><tspan data-product-count fontSize="18" fontWeight="700">{c.products.length}</tspan>{english?` ${c.products.length===1?'product':'products'}`:'積'}</text>
  {!reduced&&<Formula x={x+5} y={footer+26} w={width-10} h={23} tex={shapeFormula(c)} size={14}/>}

@@ -33,6 +33,18 @@ test('every view of the FP8 page shows the constructions that hold on 512×E4M3'
  expect(errors).toEqual([]);
 });
 
+test('the column weights of a compact card do not run into each other, also with four or five digits',async({page})=>{
+ await page.goto('/?prime_set=fp8&lang=en');
+ const select=page.locator('[data-section="modset-catalog"] select[name=modset_id]');
+ const option=select.locator('option',{hasText:'GEMMul8 FP8'}).first();await option.waitFor({state:'attached',timeout:30000});
+ await select.selectOption((await option.getAttribute('value'))!);
+ const lane=page.locator('details[data-section="main"]');await expect(lane.locator('g[data-tile-modulus="65231"]')).toHaveCount(1,{timeout:30000});
+ const overlaps=await lane.evaluate(root=>[...root.querySelectorAll('g[data-tile-id]')].flatMap(t=>{
+  const r=[...t.querySelectorAll('[data-weight-label^="b"]')].map(g=>(g.querySelector('.katex-html')??g).getBoundingClientRect()).sort((a,b)=>a.left-b.left);
+  return r.slice(1).flatMap((x,i)=>r[i].right>x.left+0.5?[t.getAttribute('data-tile-modulus')]:[]);}));
+ expect(overlaps).toEqual([]);
+});
+
 test('the FP8 page lists the GEMMul8 FP8 modulus sets as rows of modulus cards with their source',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/?prime_set=fp8&lang=en');
