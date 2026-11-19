@@ -1,7 +1,14 @@
 import {test,expect} from '@playwright/test';
-const MOD4='awem2_9fa03837b87f9434b814387179b281d44d91951eaf444ae48f1f34cfe6732435';
-const MOD5='awem2_50b57013f125cde2ff48befffb30ec4fb9e4912029b5561c36f8ee9d45adf909';
-const MOD289='awem2_643f91c4502d4b84a002bd62bc59067a05e1428d003b770e47089314c1faefab';
+import fs from 'node:fs';
+// Constructions on 2xE2M1 taken from the data: mod 4 and mod 5 with limbs of weight 0 that the site leaves out, and mod 289
+// with a limb of weight 0 on side A that a plane uses, so it stays.
+type Form={id:string;modulus:number;weights:{A:number[];B:number[]};plane_sets:{A:string[]}};
+const forms:Form[]=JSON.parse(fs.readFileSync('../data/modular/forms-index.json','utf8')).chunks
+ .flatMap((c:{path:string})=>JSON.parse(fs.readFileSync('../data/modular/'+c.path,'utf8')).solutions);
+const pick=(m:number,zero:(f:Form)=>boolean)=>forms.filter(f=>f.modulus===m&&f.plane_sets.A[0]==='2xE2M1'&&zero(f)).map(f=>f.id).sort()[0];
+const MOD4=pick(4,f=>[...f.weights.A,...f.weights.B].some(w=>w%4===0));
+const MOD5=pick(5,f=>[...f.weights.A,...f.weights.B].some(w=>w%5===0));
+const MOD289=pick(289,f=>f.weights.A[0]%289===0);
 const open=(lang:string,m:number,id:string)=>`/?lang=${lang}&section=modular-forms&open.modular-forms=1&forms_m=${m}&forms_id=${id}`;
 for(const lang of ['en','ja'])test(`a selected construction leaves out unused limbs of weight 0 and notes the kept ones (${lang})`,async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
@@ -45,7 +52,7 @@ for(const lang of ['en','ja'])test(`periodic cells and the spiral count a constr
  }
  // FP4 mod 4: the row that equals another once its unused limbs are left out is not a separate candidate.
  await page.locator('aside.polar-detail input[type=checkbox]').first().check();
- await expect(page.locator('.polar-candidates button[title^="awem2_9fa03837"]')).toHaveCount(0);
+ await expect(page.locator(`.polar-candidates button[data-polar-candidate="${MOD4}"]`)).toHaveCount(0);
  await expect(page.locator('.polar-candidates button')).not.toHaveCount(0);
  expect(errors).toEqual([]);
 });

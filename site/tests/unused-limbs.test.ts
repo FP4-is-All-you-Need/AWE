@@ -23,7 +23,7 @@ test('a limb of weight 0 that never reaches a product is left out with its zero 
  const five=formConstruction(find(small,'awem2_50b57013'));assert.deepEqual(five.weights,{A:[1],B:[1]});assert.equal(five.products.length,1);
 });
 test('a limb of weight 0 that planes use is kept',()=>{
- const raw=find(middle,'awem2_643f91c4');assert.equal(withoutUnusedLimbs(raw),raw);
+ const raw=find(middle,'awem2_a4b935b5');assert.equal(withoutUnusedLimbs(raw),raw);
  const c=formConstruction(raw);assert.deepEqual(c.weights.A,[0,1,16]);assert.equal(c.additional?.omitted_limbs,undefined);
 });
 test('leaving out unused limbs keeps every checked identity',()=>{
@@ -54,7 +54,7 @@ test('the display indexes count every construction as the site shows it',()=>{
  // The list and the polar index leave out the same rows.
  const indexed=new Set(polar.map((r:{id:string})=>r.id));
  const listed=new Set(['2xE2M1','8xE2M3','16xE3M2'].flatMap(set=>formRows(forms.filter(s=>s.plane_sets.A[0]===set),{range:'',set,holeFree:false},{}).map(r=>r.id)));
- assert.deepEqual(forms.filter(s=>listed.has(s.id)!==indexed.has(s.id)).map(s=>s.id),[]);assert.equal(forms.length-listed.size,10);
+ assert.deepEqual(forms.filter(s=>listed.has(s.id)!==indexed.has(s.id)).map(s=>s.id),[]);assert.equal(forms.length-listed.size,22);
  assert.ok(index.prime_powers.every((f:{id:string;kind:string})=>f.kind==='excluded'||listed.has(f.id)));
  assert.deepEqual(index.prime_powers.filter((f:{modulus:number;value_set:string})=>f.modulus===4&&f.value_set==='8xE2M3').map((f:{products:number})=>f.products),[1]);
 });

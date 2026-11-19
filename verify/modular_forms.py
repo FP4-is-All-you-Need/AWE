@@ -670,7 +670,7 @@ ID_FIELDS = ('schema_version', 'kind', 'modulus', 'weights', 'limb_sets', 'plane
              'products', 'denominator')
 TABLE_MAX = 256
 HOLE_SET_MAX = 64
-SOURCE_FIELDS = ('prior_checker_versions',)   # where the construction came from; not rebuilt from the construction
+SOURCE_FIELDS = ('prior_checker_versions', 'sources')   # where the construction came from; not rebuilt from the construction
 RECON_NOTE = ('Only this procedure is checked: keep the sum of the products modulo d1*m (verified.check_modulus), divide by d1, '
               'then multiply by the inverse of d2 modulo m (verified.den_split). Keeping the sum modulo denominator*m and '
               'dividing by the whole denominator is a different procedure; it is not covered by this check and can fail on '

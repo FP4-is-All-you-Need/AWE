@@ -201,6 +201,20 @@ class ModularFormsTest(unittest.TestCase):
             with self.assertRaises(T.Invalid):
                 T.check(out, rebuild=False)
 
+    def test_sources_follow_the_record(self):
+        src = {'repository': 'https://example.org/repo', 'commit': '0' * 40, 'path': 'src/plan.hpp', 'lines': [10, 12],
+               'scheme': 'example'}
+        other = dict(src, path='src/other.hpp')
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d)/'forms'
+            res = T.build([dict(PLAIN, source=src), dict(PLAIN, source=other), dict(PLAIN, source=src)], out, DATE)
+            self.assertEqual((res['solutions'], res['failed']), (1, []))
+            index = json.loads((out/'forms-index.json').read_text())
+            r = json.loads((out/index['chunks'][0]['path']).read_text())['solutions'][0]
+            self.assertEqual(r['sources'], sorted([src, other], key=lambda s: json.dumps(s, sort_keys=True)))
+            self.assertEqual(r['id'], rec(PLAIN)['id'])    # the id does not depend on the sources
+            self.assertEqual(T.check(out)['rebuilt'], 1)
+
     def test_build_drops_broken_identity(self):
         bad = copy.deepcopy(PLAIN)
         bad['products'][1][2] += 1

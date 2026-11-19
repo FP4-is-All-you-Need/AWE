@@ -119,9 +119,19 @@ def minimal_record(line, verified_date, table_max=MF.TABLE_MAX):
     raise MF.Fail(reason)
 
 
+def add_source(record, source):
+    """Add a published source (repository, commit, path, lines, scheme) to the record's sources, once."""
+    sources = record.setdefault('sources', [])
+    if source not in sources:
+        sources.append(source)
+        sources.sort(key=lambda s: json.dumps(s, sort_keys=True))
+    return record
+
+
 def collect(outcomes):
     """(input line, record or Fail reason) pairs -> (records by id, excluded [{reason, construction}]).  Records with the same id
-    are one record; prior_checker_version of the lines becomes the record's sorted prior_checker_versions."""
+    are one record; prior_checker_version of the lines becomes the record's sorted prior_checker_versions, and the source of
+    a line is added to the record's sources."""
     records, excluded = {}, []
     for line, out in outcomes:
         if isinstance(out, str):
@@ -133,6 +143,8 @@ def collect(outcomes):
         r = records.setdefault(out['id'], out)
         if line.get('prior_checker_version'):
             r['prior_checker_versions'] = sorted(set(r.get('prior_checker_versions', [])) | {line['prior_checker_version']})
+        if line.get('source'):
+            add_source(r, line['source'])
     return records, excluded
 
 
@@ -153,8 +165,9 @@ def prime_power(m):
 def prime_power_summary(rows, excluded):
     """Per prime-power modulus and value set: the fewest-product record with holes and without, and the fewest-product
     left-out construction given without holes (with its reason), ordered by modulus, value set, kind.  Products and planes
-    are counted without unused limbs (tools/unused_limbs.py), as the site shows them; among equal counts, fewer unused limbs
-    come first."""
+    are counted without unused limbs (tools/unused_limbs.py), as the site shows them.  Holes are residues with no
+    encoding on a side.  Among records with holes and equal product counts, the smaller maximum of the hole counts of
+    sides A and B comes first, then the smaller sum of the two; then fewer planes, then fewer unused limbs."""
     best = {}
     def keep(key, entry, rank):
         if key not in best or rank < best[key][0]:
@@ -169,7 +182,8 @@ def prime_power_summary(rows, excluded):
         entry = {'modulus': r['modulus'], 'prime': pe[0], 'exponent': pe[1], 'value_set': vs, 'kind': 'holes' if holey else 'hole_free',
                  'products': len(s['products']), 'planes': [len(s['planes']['A']), len(s['planes']['B'])],
                  'holes': {k: r['holes'][k] for k in ('A', 'B', 'exact')}, 'id': r['id']}
-        keep((r['modulus'], vs, entry['kind']), entry, (entry['products'], sum(entry['planes']), omitted_limbs(r, s), r['id']))
+        hole_rank = (max(holes_of(r)), sum(holes_of(r))) if holey else (0, 0)
+        keep((r['modulus'], vs, entry['kind']), entry, (entry['products'], *hole_rank, sum(entry['planes']), omitted_limbs(r, s), r['id']))
     for e in excluded:
         c = e['construction']
         pe = prime_power(c['modulus'])

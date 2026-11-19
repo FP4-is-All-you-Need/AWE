@@ -25,7 +25,7 @@ class DisplayIndexesTest(unittest.TestCase):
         self.assertEqual(s['products'], [{'a': 0, 'b': 0, 'numerator': 1}])
 
     def test_limb_used_in_planes_stays(self):
-        r = record('forms-0000286-0000728.json', 'awem2_643f91c4')
+        r = record('forms-0000286-0000728.json', 'awem2_a4b935b5')
         self.assertIs(without_unused_limbs(r), r)
 
     def test_indexes_rebuild_from_the_published_files(self):
