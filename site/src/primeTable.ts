@@ -1,5 +1,7 @@
 import {factors,type Construction,type Lane,type VisualCatalog} from './visual.ts';
 import type {ModularCatalog} from './modular.ts';
+import {heldOn} from './modularForms.ts';
+import type {PageFormat} from './valueSets.ts';
 
 export const FP6_VALUE_SETS=['8xE2M3','16xE3M2'];
 /** A set saved on an FP6 value set; its format starts with "FP6 " (FP64 does not match). */
@@ -36,9 +38,10 @@ export function primesThrough(limit:number):number[]{
 /** One entry of forms-index.json prime_powers: the fewest-product single construction of a prime-power modulus and value set,
  without holes (hole_free), with holes (holes) or left out of the published files (excluded; given without holes). */
 export type PrimeForm={modulus:number;prime:number;exponent:number;value_set:string;kind:'hole_free'|'holes'|'excluded';products:number;planes:number[];holes?:{A:number;B:number;exact:boolean};reason?:string;id:string};
-export type PrimeTab='fp4'|'fp6';
-/** The value sets of each tab. A 2xE2M1 construction also holds on both FP6 sets (value_set_inclusion), so FP6 is the union. */
-export const TAB_SETS:Record<PrimeTab,string[]>={fp4:['2xE2M1'],fp6:['2xE2M1','8xE2M3','16xE3M2']};
+export type PrimeTab=PageFormat;
+/** The value sets of each tab. A 2xE2M1 construction also holds on both FP6 sets (value_set_inclusion), so FP6 is the union;
+ every FP4 and FP6 value set is contained in 512xE4M3, so FP8 takes all of them. */
+export const TAB_SETS:Record<PrimeTab,string[]>={fp4:['2xE2M1'],fp6:['2xE2M1','8xE2M3','16xE3M2'],fp8:heldOn('512xE4M3')};
 export type FormCell={hole_free?:PrimeForm;holes?:PrimeForm;excluded?:PrimeForm;entries:PrimeForm[];fewer:boolean;onlyWider:boolean;excludedFewer:boolean};
 const formOrder=(a:PrimeForm,b:PrimeForm)=>a.products-b.products||a.planes[0]+a.planes[1]-b.planes[0]-b.planes[1]||(a.id<b.id?-1:a.id>b.id?1:0);
 /** FP4's fewest products per prime-power modulus: the saved constructions and the single constructions without holes on 2xE2M1. */

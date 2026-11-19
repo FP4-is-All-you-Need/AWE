@@ -1,7 +1,8 @@
 import type {ModularCatalog} from './modular.ts';
 import {canonicalLane,type Lane,type VisualCatalog} from './visual.ts';
+import {VALUE_SET_LABEL} from './valueSets.ts';
 
-const VALUE_SET_FORMAT:Record<string,string>={'8xE2M3':'FP6 (8×E2M3)','16xE3M2':'FP6 (16×E3M2)'};
+const VALUE_SET_FORMAT:Record<string,string>=Object.fromEntries(Object.entries(VALUE_SET_LABEL).filter(([vs])=>vs!=='2xE2M1'));
 /** Preserve all recorded widths and K values before choosing an input range. A set saved on an FP6 value set keeps that format. */
 export function storedModulusLanes(catalog:ModularCatalog,saved?:VisualCatalog):Lane[]{
  const fp32=new Set(catalog.fp32_groups?.flatMap(g=>g.set_ids)??[]);

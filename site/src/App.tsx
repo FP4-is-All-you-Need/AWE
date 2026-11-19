@@ -51,8 +51,8 @@ function FormatPage(){
 }
 function FP6Page(){
  useAnimatedDetails();useDiagramSizing();
- const en=useLanguage()==='en',{valueSet}=usePeriodicFormat();
- // A single construction checked on a value set that this value set contains also holds here (FP4 on FP6).
+ const en=useLanguage()==='en',{tab,valueSet}=usePeriodicFormat();
+ // A single construction checked on a value set that this value set contains also holds here (FP4 on FP6, FP4 and FP6 on FP8).
  const [forms,setForms]=useState<PrimeForm[]>(),[error,setError]=useState('');
  useEffect(()=>{const shown=heldOn(valueSet);read<{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>setForms(d.prime_powers.filter(f=>shown.includes(f.value_set)))).catch(e=>setError(String(e)));},[valueSet]);
  const [saved,setSaved]=useState<ModularCatalog>();
@@ -68,6 +68,7 @@ function FP6Page(){
  // The periodic table's records, as on the FP4 page: the constructions of the saved sets, here the FP6 sets on this value set.
  const records=useMemo(()=>[...new Map(lanes.flatMap(l=>l.mods).map(c=>[c.id,c])).values()],[lanes]);
  return <main className="paper-app" data-format-page={valueSet}><PeriodicFormatControl/>
+ {tab==='fp8'&&<p data-no-i18n>{en?'The value set is 512×E4M3: the values of FP8 E4M3 divided by its smallest subnormal. Every value of 2×E2M1, 8×E2M3 and 16×E3M2 is also a value of 512×E4M3, so the periodic table shows the constructions checked on 512×E4M3 and those checked on the FP4 and FP6 value sets. The other views and lists on this page show only constructions checked on 512×E4M3.':'値の集合は、FP8 E4M3 の値を最小の非正規数で割った 512×E4M3 です。2×E2M1・8×E2M3・16×E3M2 の値はどれも 512×E4M3 の値でもあるので、周期表には 512×E4M3 で検算した構成と、FP4・FP6 の値の集合で検算した構成を出します。この頁のほかの図と一覧は、512×E4M3 で検算した構成だけを出します。'}</p>}
  {error&&<p role="alert">{error}</p>}{lanes.length>0&&<ModulusSets lanes={lanes} engines={setEngines(saved)} selected={laneId} onSelect={id=>{setLaneId(id);setSlot(0);}}/>}
  {cards&&<details data-section="main" open className="paper-lane" aria-label={`${cards.bits} bit の保存された組`}><summary><h1>{en?`${cards.bits}-bit saved set`:<>{cards.bits} bit　保存された組</>}　{cards.mods.length}法・{cards.products}積 <span>面 A {cards.faces_a} / B {cards.faces_b}　<MathText tex={`K\\le ${cards.k_max}`}/></span></h1></summary>{segments>1&&<p data-k-segments={segments}>{en?`This set accumulates K = ${cards.plan_k} in ${segments} segments of at most ${cards.k_max} each.`:`この組は K = ${cards.plan_k} を、${cards.k_max} 以下の ${segments} 区切りに分けて累積します。`}</p>}<LawRow lane={cards} selected={slot} onSelect={setSlot} detail={cards.mods[slot]&&<Expansion key={cards.mods[slot].id} c={cards.mods[slot]}/>}/><PaperLegend/></details>}
  <PrimeTable records={records} sets={sets} lane={lane} comparisonLanes={lanes} forms={forms}/><PeriodicViews/><ModularFormsList/>

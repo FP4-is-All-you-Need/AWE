@@ -9,8 +9,9 @@ export type FormsChunk={path:string;sha256:string;solutions:number;modulus_min:n
 export type FormsIndex={schema_version:number;data_version:string;kind:string;solutions:number;chunks:FormsChunk[];excluded:{reason:string;count:number;note:string}[];value_set_inclusion?:Record<string,string[]>};
 export type FormFilters={range:string;set:string;holeFree:boolean};
 export type FormRow={id:string;modulus:number;factors:string;set:string;products:number;facesA:number;facesB:number;folded:boolean;holesA:number;holesB:number;exact:boolean;maxK:number|null;table:boolean;denominator:number;dividesD1:boolean};
-/** 2xE2M1 is contained in both FP6 value sets as integers (forms-index.json value_set_inclusion). */
-export const VALUE_SET_INCLUSION:Record<string,string[]>={'2xE2M1':['8xE2M3','16xE3M2']};
+/** The value sets that contain each value set as integers (forms-index.json value_set_inclusion): 2xE2M1 is in both FP6
+ value sets, and every FP4 and FP6 value is a value of 512xE4M3. */
+export const VALUE_SET_INCLUSION:Record<string,string[]>={'2xE2M1':['8xE2M3','16xE3M2','512xE4M3'],'8xE2M3':['512xE4M3'],'16xE3M2':['512xE4M3']};
 /** Whether a construction checked on the value set `set` also holds on `target`. */
 export function usableOn(set:string,target:string,inclusion=VALUE_SET_INCLUSION):boolean{return set===target||(inclusion[set]??[]).includes(target);}
 /** The value sets whose constructions hold on `target`: the target and every value set it contains. */

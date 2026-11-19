@@ -1,6 +1,6 @@
 import {factors} from './visual.ts';
 import {vanishingPowers} from './shapeFormula.ts';
-export type ValueSet='2xE2M1'|'8xE2M3'|'16xE3M2';
+export type ValueSet='2xE2M1'|'8xE2M3'|'16xE3M2'|'512xE4M3';
 export type PolarModel={E32f:(number|null)[];E32i:(number|null)[];K32f:number|null;K32i:number|null;encA:number;encB:number;mP:number[];L:number|null;shiftLength:number|null};
 export type PolarRow={id:string;m:number;vs:ValueSet;R:number;FA:number;FB:number;hA:number;hB:number;exact:boolean;weights:{A:number[];B:number[]};maxK:number|null;model:PolarModel|null;origin:string|null;inCatalog:boolean;source:string;denominator?:number;recon?:string};
 export type PolarCatalog={schema_version:number;source_commit?:string;base_commit?:string;forms_index_sha256?:string;model_source_sha256:string;model_index_sha256:string;rows:PolarRow[]};
