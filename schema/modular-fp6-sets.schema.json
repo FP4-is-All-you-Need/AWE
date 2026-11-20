@@ -60,11 +60,12 @@
           },
           "source": {
             "type": "object",
-            "description": "Where the same set of moduli appears outside this catalog: its name there, the repository, the commit and its date, and the file lines that list the moduli. Not part of the id.",
+            "description": "Where the same set of moduli appears outside this catalog: its name there, the release tag of the commit when there is one, the repository, the commit and its date, and the file lines that list the moduli. Not part of the id.",
             "required": ["name", "repository", "commit", "date", "path", "lines"],
             "additionalProperties": false,
             "properties": {
               "name": {"type": "string", "minLength": 1},
+              "tag": {"type": "string", "pattern": "^v[0-9]+(\\.[0-9]+)+$"},
               "repository": {"type": "string", "pattern": "^https://"},
               "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
               "date": {"type": "string", "format": "date"},
