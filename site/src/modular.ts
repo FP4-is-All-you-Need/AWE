@@ -6,7 +6,7 @@ export type ModularSolution={provenance?:{source_sha256:string;position?:number}
 export type Usage=JsonlUsage|RunUsage|{state:'measured'|'build_only'|'unknown';header_sha256:string;summary_sha256:string|null};
 /** Where the same set of moduli appears outside this catalog: its name there, repository, commit, date and file lines. */
 export type SetSource={name:string;repository:string;commit:string;date:string;path:string;lines?:number[]};
-export type ModularSet={usage?:Usage[];source?:SetSource;id:string;magnitude_bits:number;k:number;value_set?:string;solution_ids:string[];verification:{max_k:string;products:number;faces:number;moduli:number[];modulus_product:string;max_abs_operand:string}};
+export type ModularSet={usage?:Usage[];source?:SetSource;id:string;magnitude_bits:number;k:number;value_set?:string;solution_ids:string[];verification:{max_k:string;crt_max_k?:string;products:number;faces:number;moduli:number[];modulus_product:string;max_abs_operand:string}};
 export type TableCheck='passed'|'failed'|'unsupported_output_width'|'not_applicable'|'unspecified';
 export type SourceDeclaration={scope_id:string|null;pool:string;table_check:TableCheck;selection:'saved_selection';selection_index_sha256?:string};
 export type Intake={source_sha256:string;copies:number;status:'accepted'|'quarantined';reason:string;declarations:SourceDeclaration[]};

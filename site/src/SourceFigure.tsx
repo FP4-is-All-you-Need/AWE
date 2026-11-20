@@ -5,7 +5,7 @@ import {MathText} from './PaperFigures.tsx';
 export type SourceLabel={gid:string;text:string;anchor_pt:number[];fontsize:number;color:string;ha:string;va:string;rotation:number;fontfamily?:string[];fontweight?:string;fontstyle?:string;painted_box_pt?:number[]};
 export type SourceScene={schema_version:number;source:string;size_pt:number[];graphics:string;labels:SourceLabel[];legend?:{label_gids:string[];bounds_pt:number[]};crops?:Record<string,{viewbox_pt:number[];label_gids:string[]}>;laws?:{modulus:number;id:string;lane:string;bounds_pt:number[]}[];cells?:{bounds_pt:number[];column_width:number;row_width:number;labels:{text:string}[]}[]};
 function expression(text:string){
- const literal:Record<string,string>={'w²≡0':'w^2\\equiv0','4→3':'\\text{Karatsuba}','log2 P':'\\log_{2} P'};if(literal[text])return literal[text];
+ const literal:Record<string,string>={'w²≡0':'w^2\\equiv0','4→3':'4\\to3','log2 P':'\\log_{2} P'};if(literal[text])return literal[text];
  if(/^[MAB]$/.test(text))return text;
  if(!text.includes('$'))return /^[-+\d., ×]+$/.test(text)?text.replaceAll('×','\\times'):null;
   return text.split('$').map((part,i)=>i%2?part.replaceAll('\\mathdefault','\\mathrm').replaceAll('\\mathregular','\\mathrm').replace(/(?<!\\)_([A-Za-z]|\d+)/g,'_{$1}'):part?`\\text{${part.replaceAll('%','\\%').replaceAll('_','\\_')}}`:'').join('');

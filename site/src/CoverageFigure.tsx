@@ -15,8 +15,10 @@ export function CoverageFigure({c,selected,onSelect,en}:{c:Construction;selected
  const shade=(v:number)=>whiteFill('#1A1A1A',.06+.3*scales.indexOf(v)/Math.max(1,scales.length-1));
  const term=([i,j]:[number,number])=>`a${i}b${j}`;
  const latticeW=left+board+4,latticeH=top+rows*cell+20;
+ // A term whose weight is a multiple of the modulus vanishes and needs no product.
+ const needed=c.modulus>1?c.weights.A.reduce((n,a)=>n+c.weights.B.filter(b=>BigInt(a)*BigInt(b)%BigInt(c.modulus)!==0n).length,0):rows*cols;
  return <div className="coverage-figure" data-coverage-figure={c.id}>
-  <p>{en?<>Covering the {rows*cols} terms <MathText tex="a_{i}b_{j}"/> with {c.products.length} products</>:<>{rows*cols} 個の項 <MathText tex="a_{i}b_{j}"/> を {c.products.length} 個の積で覆う</>}</p>
+  <p>{needed<rows*cols?(en?<>Covering the {needed} of {rows*cols} terms <MathText tex="a_{i}b_{j}"/> whose weight is not a multiple of the modulus with {c.products.length} products</>:<>{rows*cols} 個の項 <MathText tex="a_{i}b_{j}"/> のうち、重みが法の倍数でない {needed} 個を {c.products.length} 個の積で覆う</>):(en?<>Covering the {rows*cols} terms <MathText tex="a_{i}b_{j}"/> with {c.products.length} products</>:<>{rows*cols} 個の項 <MathText tex="a_{i}b_{j}"/> を {c.products.length} 個の積で覆う</>)}</p>
   <div className="coverage-boards">
    <svg width={latticeW} height={latticeH} viewBox={`0 0 ${latticeW} ${latticeH}`} aria-label={en?'All terms a_i b_j':'全部の項 a_i b_j'}>
     {c.weights.B.map((w,j)=><text key={j} x={left+(j+.5)*cell} y={top-7} textAnchor="middle" fontSize="10">b{j}·{w}</text>)}

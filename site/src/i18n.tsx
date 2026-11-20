@@ -268,7 +268,7 @@ export const dictionary:Record<string,string>={
  "保存された組の比較":"Compare saved sets",
  "左右のリム数が異なる":"Different limb counts on the two sides",
  "和・差の面の積":"Sum/difference plane products",
- "穴と補正":"Uncovered values and corrections",
+ "穴がある構成":"Constructions with holes",
  "幅の組の地図":"Map of width pairs",
  "正方セルの幅の組の地図":"Width-pair map with square cells",
  "幅ごとの本数の階段":"Product-count staircase by width",
