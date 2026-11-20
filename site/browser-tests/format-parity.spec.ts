@@ -13,3 +13,29 @@ for(const format of ['fp4','fp6'])for(const lang of ['en','ja'])test(`the ${form
  const found=(await screenText(page)).filter(t=>words.some(w=>w.test(t)));expect(found).toEqual([]);
  expect(errors).toEqual([]);
 });
+// Cards come from the saved constructions on both pages: on FP6 the saved sets; on FP4 the saved sets and the catalog files,
+// marked as the fewest products of their modulus where they are.
+// A row of the single constructions opens its expansion with the same parts on both pages.
+for(const format of ['fp4','fp6'])test(`the ${format} periodic table draws cards from saved constructions and opens a single construction from its row`,async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(`/?prime_set=${format}&lang=en`);
+ const table=page.locator('[data-section="prime-table"]'),cells=table.locator('[data-prime-modulus]:not([data-variant-count="0"])');
+ await expect(cells.first()).toBeVisible({timeout:30000});
+ // A cell without a construction is not a button and opens nothing.
+ const empty=table.locator('[data-prime-modulus][data-recorded="false"]');
+ if(await empty.count()){await expect(empty.first()).not.toHaveAttribute('role','button');await empty.first().click({force:true});await expect(page.locator('.prime-inspection')).toHaveCount(0);}
+ const sources=new Set<string>();
+ for(const m of await cells.evaluateAll(n=>n.map(e=>e.getAttribute('data-prime-modulus')!))){
+  const cell=table.locator(`[data-prime-modulus="${m}"]`);await cell.click();
+  const cards=table.locator(`[data-prime-cards="${m}"] [data-prime-weight-card]`);await expect(cards).toHaveCount(Number(await cell.getAttribute('data-variant-count')));
+  for(const s of await cards.evaluateAll(n=>n.map(e=>e.getAttribute('data-card-source')!)))sources.add(s);
+ }
+ expect(sources.size).toBeGreaterThan(0);
+ for(const s of sources)expect(format==='fp6'?['set']:['set','minimum','catalog']).toContain(s);
+ await table.locator('[data-prime-modulus][data-forms="hole_free"]').first().click();
+ const row=table.locator('[data-prime-forms-detail] [data-prime-form]').first(),id=await row.getAttribute('data-prime-form');
+ await row.locator('td').nth(2).click();
+ await expect(row).toHaveAttribute('data-opened','true');await expect(row.locator('button')).toHaveAttribute('aria-pressed','true');
+ await expect(table.locator(`[data-prime-form-expansion="${id}"] [data-section="prime.form.detail.${id}"]`)).toBeVisible({timeout:30000});
+ expect(errors).toEqual([]);
+});

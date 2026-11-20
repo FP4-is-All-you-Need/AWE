@@ -1,5 +1,4 @@
 import {usePeriodicFormat} from './PeriodicFormat.tsx';
-import {FP6Families} from './FP6Families.tsx';
 import {useEffect,useId,useMemo,useState} from 'react';
 import {LawRow,MathText} from './PaperFigures.tsx';
 import {Expansion} from './Expansion.tsx';
@@ -8,23 +7,35 @@ import {PRODUCT_BANDS,productBand} from './ribbonColors.ts';
 import {connect,pool,type Construction,type Lane,type VisualCatalog} from './visual.ts';
 import {mergeModularCatalogs,type ModularCatalog} from './modular.ts';
 import {read} from './catalog.ts';
+import {formConstruction} from './formConstruction.ts';
+import type {FormsIndex,ModularForms} from './modularForms.ts';
 import {useParameter} from './parameters.ts';
 import {useLanguage} from './i18n.tsx';
 import {useMeasuredWidth} from './useMeasuredWidth.ts';
-import {formCells,fp4Fewest,pendingSource,primeTableData,weightVariants,type FormCell,type PrimeForm,type PrimeSet} from './primeTable.ts';
+import {formCells,fp4Fewest,primeTableData,weightVariants,type FormCell,type PrimeForm,type PrimeSet} from './primeTable.ts';
 import './prime-table.css';
 
 const SET_LABEL:Record<string,string>={'2xE2M1':'FP4 (2×E2M1)','8xE2M3':'FP6 (8×E2M3)','16xE3M2':'FP6 (16×E3M2)'};
-/** The single constructions of a modulus in the catalog: value set, holes, products and planes. */
+/** The single constructions of a modulus in the catalog: value set, holes, products and planes. A row opens the expansion of
+ its construction, read from the forms file that holds its modulus. */
 function FormRows({cell,en}:{cell:FormCell;en:boolean}){
  const t=(ja:string,english:string)=>en?english:ja;
- if(!cell.entries.some(f=>f.kind!=='excluded'))return null;
+ const entries=cell.entries.filter(f=>f.kind!=='excluded');
+ const [openedId,setOpenedId]=useState(''),[built,setBuilt]=useState<Construction>(),[error,setError]=useState('');
+ const opened=entries.find(f=>f.id===openedId);
+ useEffect(()=>{if(!opened)return;let alive=true;setError('');
+  read<FormsIndex>('modular/forms-index.json').then(index=>{const chunk=index.chunks.find(c=>c.modulus_min<=opened.modulus&&opened.modulus<=c.modulus_max);if(!chunk)throw Error(t('元の構成が見つかりません','Source construction was not found'));return read<ModularForms>('modular/'+chunk.path,chunk.sha256);})
+   .then(d=>{const s=d.solutions.find(s=>s.id===opened.id);if(!s)throw Error(t('元の構成が見つかりません','Source construction was not found'));if(alive)setBuilt(formConstruction(s));})
+   .catch(e=>{if(alive)setError(e instanceof Error?e.message:String(e));});
+  return()=>{alive=false;};},[opened?.id]);
+ if(!entries.length)return null;
  return <div className="prime-forms" data-prime-forms-detail>
   <h4>{t('単独の法の構成','Single modular constructions')}</h4>
   <table><thead><tr><th>{t('値の集合','Value set')}</th><th>{t('穴','Holes')}</th><th>{t('積','Products')}</th><th>{t('面 A / B','Planes A / B')}</th></tr></thead>
-  <tbody>{cell.entries.filter(f=>f.kind!=='excluded').map(f=><tr key={f.kind+f.id} data-prime-form={f.id} data-kind={f.kind}><td>{SET_LABEL[f.value_set]??f.value_set}</td>
+  <tbody>{entries.map(f=><tr key={f.kind+f.id} data-prime-form={f.id} data-kind={f.kind} data-opened={f.id===openedId} onClick={()=>setOpenedId(f.id)}><td><button type="button" className="molecule-select" aria-pressed={f.id===openedId}>{SET_LABEL[f.value_set]??f.value_set}</button></td>
    <td>{f.holes&&(f.holes.A||f.holes.B)?`${f.holes.A} / ${f.holes.B}${f.holes.exact?'':t('(上限)',' (upper bound)')}`:t('なし','none')}</td>
    <td>{f.products}</td><td>{f.planes[0]} / {f.planes[1]}</td></tr>)}</tbody></table>
+  {opened&&<div data-prime-form-expansion={opened.id}>{error?<p role="alert">{error}</p>:built?.id!==opened.id?<p>{t('読み込み中','Loading')}</p>:<Expansion key={built.id} c={built} scope="prime.form."/>}</div>}
  </div>;
 }
 /** FP4's fewest products per prime-power modulus (the same saved catalogs as the FP4 page, without FP6 sets), for the FP6 marks only. */
@@ -38,8 +49,7 @@ function useFP4Fewest(enabled:boolean){
  return {fewest,error};
 }
 
-/** onInspect is told the modulus whose cards and details are shown, so that constructions known only by their row can be read in full. */
-export function PrimeTable({records,lane,selectedConstruction,sets=[],comparisonLanes=[],forms,onInspect}:{records:Construction[];lane?:Lane;selectedConstruction?:Construction;sets?:PrimeSet[];comparisonLanes?:Lane[];forms?:PrimeForm[];onInspect?:(modulus:number)=>void}){
+export function PrimeTable({records,lane,selectedConstruction,sets=[],comparisonLanes=[],forms}:{records:Construction[];lane?:Lane;selectedConstruction?:Construction;sets?:PrimeSet[];comparisonLanes?:Lane[];forms?:PrimeForm[]}){
  const en=useLanguage()==='en',[openedModulus,setOpenedModulus]=useState<number|null>(null),[openedId,setOpenedId]=useState('');
  const glowId='prime-selected-'+useId().replace(/[^a-zA-Z0-9_-]/g,'');
  const all=useMemo(()=>[...new Map([...records,...(lane?.mods??[])].map(c=>[c.id,c])).values()],[records,lane]);
@@ -59,6 +69,9 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
  const products=(m:number)=>{const n=[...(table.byModulus.get(m)??[]).map(c=>c.products.length),...[shownForm(m)].flatMap(f=>f?[(f.hole_free??f.holes)!.products]:[])];return n.length?Math.min(...n):null;};
  const fp=tab==='fp6'?'FP6':'FP4';
  const used=new Set(lane?.mods.map(c=>c.id)??[]),usedModuli=new Set(lane?.moduli??[]);
+ // A card is marked by what holds its constructions: a saved set (set), the fewest products recorded for the modulus
+ // (minimum), or another entry of the saved catalog files (catalog).
+ const inSets=new Set([...sets.flatMap(s=>s.solutionIds),...[...comparisonLanes,...lane?[lane]:[]].flatMap(l=>l.mods.map(c=>c.id))]);
  const [compareId,setCompareId]=useParameter('prime_compare','auto',r=>r);
  const choices=[...new Map(comparisonLanes.map(l=>[l.id,l])).values()].sort((a,b)=>(a.bits??0)-(b.bits??0)||a.products-b.products||a.id.localeCompare(b.id));
  const different=(l:Lane)=>l.moduli.length!==usedModuli.size||l.moduli.some(m=>!usedModuli.has(m));
@@ -67,9 +80,6 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
  const shownModulus=openedModulus??selectedConstruction?.modulus??lane?.moduli[0];
  const variants=table.byModulus.get(shownModulus??0)??all.filter(c=>c.modulus===shownModulus);
  const inspected=variants.find(c=>c.id===openedId)??variants.find(c=>used.has(c.id))??variants[0];
- useEffect(()=>{if(shownModulus!==undefined)onInspect?.(shownModulus);},[shownModulus,onInspect]);
- // Cards and details wait until every construction of the modulus is read in full.
- const waiting=variants.some(c=>pendingSource(c)!==undefined);
  const cells=table.columns.flatMap(c=>c.powers),shown=new Set(cells.map(p=>p.modulus));
  const other=lane?.moduli.filter(m=>!shown.has(m))??[];
  const otherCompared=comparison?.moduli.filter(m=>!shown.has(m))??[];
@@ -78,13 +88,13 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
  const widths=minima,lefts=widths.map((_,i)=>4+widths.slice(0,i).reduce((a,b)=>a+b,0));
  const square=60,row=counts?square+14:square,width=widths.reduce((a,b)=>a+b,0)+8,height=Math.max(...cells.map(p=>p.exponent))*row+8;
  const usage=openedModulus===null?[]:table.usedIn.get(openedModulus)??[];
- const groups=weightVariants(variants);
+ const groups=weightVariants(variants),fewestShown=Math.min(...variants.map(c=>c.products.length));
  const cardLeft=Math.max(0,...table.columns.flatMap((c,i)=>c.powers.filter(p=>p.exponent>1).map(()=>lefts[i]+widths[i])))+16;
  const cardTop=row+16,cardWidth=Math.min(width,measured.width)-cardLeft-12;
  const inline=measured.width>=720&&cardWidth>=240;
  const cards=<div className="prime-weight-cards" data-prime-cards={shownModulus} data-inline={inline} style={inline?{position:'absolute',left:cardLeft,top:cardTop,width:cardWidth,maxHeight:height-cardTop-8}:undefined}>
-  {waiting?<p data-prime-cards-loading>{en?'Loading':'読み込み中'}</p>:groups.map(v=>{const c=v.items.find(c=>c.id===inspected?.id)??v.items.find(c=>used.has(c.id))??v.items[0];const item:Lane={id:c.id,lane:'candidate',selection_kind:'candidate',tag:'candidate',moduli:[c.modulus],mods:[c],products:c.products.length,faces_a:c.faces_a,faces_b:c.faces_b,k_max:'0'};
-   return <div className="prime-weight-card" key={v.key} data-prime-weight-card={v.key} data-used={v.items.some(c=>used.has(c.id))} data-focused={v.items.some(c=>c.id===inspected?.id)}>
+  {groups.map(v=>{const c=v.items.find(c=>c.id===inspected?.id)??v.items.find(c=>used.has(c.id))??v.items[0];const item:Lane={id:c.id,lane:'candidate',selection_kind:'candidate',tag:'candidate',moduli:[c.modulus],mods:[c],products:c.products.length,faces_a:c.faces_a,faces_b:c.faces_b,k_max:'0'};
+   return <div className="prime-weight-card" key={v.key} data-prime-weight-card={v.key} data-card-source={v.items.some(c=>inSets.has(c.id))?'set':v.items.some(c=>c.products.length===fewestShown)?'minimum':'catalog'} data-used={v.items.some(c=>used.has(c.id))} data-focused={v.items.some(c=>c.id===inspected?.id)}>
     <LawRow lane={item} selectionRole="focus" selected={v.items.some(c=>c.id===inspected?.id)?0:-1} onSelect={()=>{setOpenedModulus(c.modulus);setOpenedId(c.id);}}/>
     {v.items.some(c=>used.has(c.id))&&<span className="prime-card-used" title={en?'Selected: in the current set':'選択中：今の組で使用'} aria-label={en?'In the selected set':'選択中の組'}>✓</span>}
    </div>;
@@ -104,7 +114,7 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
    {formsBy.size>0&&<><span data-legend="forms">◢ {en?'Single modular construction without holes':'単独の法の構成(穴なし)'}</span>{withHoles&&<span data-legend="forms-holes">◿ {en?'Only with holes':'穴のある構成だけ'}</span>}<span data-legend="fewer">● {tab==='fp6'?(en?'Fewer products than every FP4 construction':'FP4のどの構成より積が少ない'):(en?'Fewer products than the saved constructions':'保存された組の構成より積が少ない')}</span>{tab==='fp6'&&<span data-legend="only-wider">6 {en?'Without holes only with FP6 values':'穴なしはFP6の値でだけ'}</span>}</>}</div>
   {!!choices.length&&<label className="prime-compare-control">{en?'Compare with':'比較する組'} <select name="prime_compare" value={compareId==='none'?'none':comparison?.id??'none'} onChange={e=>setCompareId(e.target.value)}><option value="none">{en?'None':'なし'}</option>{choices.map((l,i)=><option key={l.id} value={l.id} data-moduli={l.moduli.join(',')} data-bits={l.bits} data-format={l.format??''}>{i+1}: {l.format?l.format+' · ':''}{l.bits} bit · {l.moduli.length}{en?' moduli':'法'} · {l.products}{en?' products':'積'} · K {l.plan_k??l.k_max}</option>)}</select></label>}
   {tab==='fp4'&&<p className="prime-search-scope">{en?`The recorded search covered moduli 2–225 under fixed conditions with two limbs on both A and B (2×2), and found no constructions for primes above ${table.primeMax} in that range; three-limb constructions and constructions with unequal limb counts were not searched for every modulus.${formsBy.size?' The single modular constructions come from other searches, with their own limb counts, modulus ranges and value sets. A modulus missing here, or an empty cell, does not mean that no construction exists.':''}`:`記録された探索はA・Bとも2リム（2×2）の決まった条件で法2〜225を対象とし、その範囲では${table.primeMax}より大きい素数の構成は見つかっていませんが、3リムやA・Bでリム数が違う構成を全ての法で調べたものではありません。${formsBy.size?'単独の法の構成は別の探索の結果で、リムの数・法の範囲・値の集合はそれぞれ違います。ここに無い法や空いた欄は、構成が無いことを示しません。':''}`}</p>}
-  {tab==='fp6'&&(formsBy.size>0||all.length>0)&&<p className="prime-search-scope">{en?`Columns run from 2 through ${table.primeMax}: every prime up to it has a construction on this value set, and the next prime has none. Moduli of larger primes are listed after the table. The fill gives the fewest products; ×n and cards come from the weights of the saved FP6 sets and of the checked FP6 constructions. Every FP4 (2×E2M1) value is also in the FP6 value set, so FP4 constructions hold on FP6 unchanged. They are not entered in this table; ● and 6 compare with them. A modulus missing here, or an empty cell, does not mean that no construction exists.`:`列は2から、この値の集合で構成のある素数が途切れずに続く${table.primeMax}までです。それより大きい素数の法は表の後に一覧します。塗りは一番少ない積の数、×n・カードは、保存されたFP6の組の構成と、検算済みのFP6の構成の重みから付けます。FP4 (2×E2M1)の値はどれもFP6の値の集合にも含まれるので、FP4の構成はFP6でもそのまま成り立ちます。ただし、この表には入れていません。●と6は、FP4の構成と比べた印です。ここに無い法や空いた欄は、構成が無いことを示しません。`}</p>}
+  {tab==='fp6'&&(formsBy.size>0||all.length>0)&&<p className="prime-search-scope">{en?`Columns run from 2 through ${table.primeMax}: every prime up to it has a construction on this value set, and the next prime has none. Moduli of larger primes are listed after the table. The fill gives the fewest products; ×n and cards come from the constructions of the saved FP6 sets. Every FP4 (2×E2M1) value is also in the FP6 value set, so FP4 constructions hold on FP6 unchanged. They are not entered in this table; ● and 6 compare with them. A modulus missing here, or an empty cell, does not mean that no construction exists.`:`列は2から、この値の集合で構成のある素数が途切れずに続く${table.primeMax}までです。それより大きい素数の法は表の後に一覧します。塗りは一番少ない積の数、×n・カードは保存されたFP6の組の構成から付けます。FP4 (2×E2M1)の値はどれもFP6の値の集合にも含まれるので、FP4の構成はFP6でもそのまま成り立ちます。ただし、この表には入れていません。●と6は、FP4の構成と比べた印です。ここに無い法や空いた欄は、構成が無いことを示しません。`}</p>}
   {fp4.error&&<p role="alert">{fp4.error}</p>}
   <div className="prime-table-figure" ref={measured.ref}>
    <div className="prime-table-surface" style={{width}}><svg data-prime-chart width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-label={en?`${fp} periodic table: prime columns and power rows`:`${fp} の周期表：素数の列と冪の行`}>
@@ -113,7 +123,7 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
      const list=table.byModulus.get(modulus)??[],count=weightVariants(list).length,fc=formsBy.get(modulus),form=shownForm(modulus);
      const selected=usedModuli.has(modulus),cell=widths[col],x=lefts[col],y=4+(exponent-1)*row;
      const R=products(modulus),band=R===null?undefined:productBand(R);
-     return <g key={modulus} data-prime-modulus={modulus} data-products={R??undefined} data-product-band={band?.label} data-prime-base={column.prime} data-exponent={exponent} data-recorded={!!list.length||!!form} data-forms={form?(form.hole_free?'hole_free':'holes'):'none'} data-forms-fewer={!!fc?.fewer} data-forms-only-wider={!!fc?.onlyWider} data-forms-excluded-fewer={!!fc?.excludedFewer} data-in-set={selected} data-in-comparison={compared.has(modulus)} data-variant-count={count} role="button" tabIndex={0} aria-label={`${en?'mod':'法'} ${modulus}`} aria-pressed={openedModulus===modulus} onClick={()=>open(modulus)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(modulus);}}}>
+     return <g key={modulus} data-prime-modulus={modulus} data-products={R??undefined} data-product-band={band?.label} data-prime-base={column.prime} data-exponent={exponent} data-recorded={!!list.length||!!form} data-forms={form?(form.hole_free?'hole_free':'holes'):'none'} data-forms-fewer={!!fc?.fewer} data-forms-only-wider={!!fc?.onlyWider} data-forms-excluded-fewer={!!fc?.excludedFewer} data-in-set={selected} data-in-comparison={compared.has(modulus)} data-variant-count={count} aria-label={`${en?'mod':'法'} ${modulus}`} {...(list.length||form?{role:'button',tabIndex:0,'aria-pressed':openedModulus===modulus,onClick:()=>open(modulus),onKeyDown:(e:{key:string;preventDefault:()=>void})=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(modulus);}}}:{})}>
       <title>{`${modulus}${count>1?` · ×${count}: ${en?'weight candidates (cards shown at lower right)':'重みの候補の数(右下にカードで並ぶ)'}`:''}${formTitle(modulus)}${R!==null?` · ${en?'fewest products':'一番少ない積の数'} ${R}`:''}${selected?' ✓':''}`}</title>
       <rect data-prime-frame x={x} y={y} width={cell} height={row} fill={band?whiteFill(band.color,.30):'#FFFFFF'} stroke={selected?'#C2185B':'#1A1A1A'} strokeWidth={selected?3:.5}/>
       {compared.has(modulus)&&<g pointerEvents="none"><rect data-prime-compare-glow={modulus} x={x+4} y={y+4} width={cell-8} height={row-8} fill="none" stroke="#ED964F" strokeWidth={4} opacity={.35} filter={`url(#${glowId})`}/><rect data-prime-compare-outline={modulus} x={x+4} y={y+4} width={cell-8} height={row-8} fill="none" stroke="#ED964F" strokeWidth={2} opacity={.8}/></g>}
@@ -149,13 +159,12 @@ export function PrimeTable({records,lane,selectedConstruction,sets=[],comparison
    {!!usage.length&&<details className="prime-set-history"><summary>{en?'Sets containing this modulus':'この法を使う組'} ({usage.length})</summary>
     <table><thead><tr>{usage.some(s=>s.engines.length)&&<th>GPU</th>}<th>bit</th><th>K</th><th>{en?'Products':'積'}</th><th>{en?'Moduli':'法'}</th></tr></thead><tbody>{usage.map(s=><tr key={s.id} data-prime-set={s.id} data-engines={s.engines.join(',')}>{usage.some(s=>s.engines.length)&&<td>{s.engines.length?s.engines.join(en?', ':'・'):'—'}</td>}<td>{s.bits}</td><td>{s.k}</td><td>{s.products}</td><td>{s.moduli.join(', ')}</td></tr>)}</tbody></table>
    </details>}
-   {waiting?<p data-prime-inspection-loading>{en?'Loading':'読み込み中'}</p>:inspected?<>
+   {inspected?<>
     <div className="prime-variants">{weightVariants(variants).map(v=>{const c=v.items.find(c=>used.has(c.id))??v.items[0],style=miniWeightStyle(c,'A',Math.min(1,c.weights.A.length-1));return <button key={v.key} type="button" data-weight-variant={v.key} data-used-variant={v.items.some(c=>used.has(c.id))} aria-pressed={v.items.some(c=>c.id===inspected.id)} style={{background:style.background,color:style.ink}} onClick={()=>setOpenedId(c.id)}><MathText tex={`w_{A}=(${c.weights.A.join(',')}),\\;w_{B}=(${c.weights.B.join(',')})`}/>{v.items.some(c=>used.has(c.id))?' ✓':''}</button>;})}</div>
     <label>{en?'Construction':'構成'} <select name="prime_construction" value={inspected.id} onChange={e=>setOpenedId(e.target.value)}>{variants.map((c,i)=><option key={c.id} value={c.id}>{i+1}: A ({c.weights.A.join(',')}) / B ({c.weights.B.join(',')}) · {c.products.length}{en?' products':'積'}{used.has(c.id)?' ✓':''}</option>)}</select></label>
     <Expansion key={inspected.id} c={inspected} scope="prime."/>
-   </>:!shownForm(openedModulus)&&<output>{en?'No construction for this modulus in this catalog':'この目録には、この法の構成はありません'}</output>}
-   {formsBy.get(openedModulus)&&<FormRows cell={formsBy.get(openedModulus)!} en={en}/>}
+   </>:null}
+   {formsBy.get(openedModulus)&&<FormRows key={openedModulus} cell={formsBy.get(openedModulus)!} en={en}/>}
   </div>}
-  {tab==='fp6'&&<FP6Families/>}
  </details>;
 }

@@ -1,6 +1,5 @@
 import {factors,type Construction,type Lane,type VisualCatalog} from './visual.ts';
 import type {ModularCatalog} from './modular.ts';
-import type {PolarRow} from './polarModel.ts';
 
 export const FP6_VALUE_SETS=['8xE2M3','16xE3M2'];
 /** A set saved on an FP6 value set; its format starts with "FP6 " (FP64 does not match). */
@@ -10,13 +9,6 @@ export function onFP6ValueSet(c:Construction){
  const sets=c.canonical?.limb_sets;
  return !!sets&&[...sets.A,...sets.B].some(s=>FP6_VALUE_SETS.includes(s));
 }
-/** A published construction known from its polar-catalog row: weights and counts for the tint, the weight-variant count and
- the order of a cell. Only the number of products is known; the full construction is read from `pending` when its cell opens. */
-export function rowConstruction(r:PolarRow):Construction{
- const count=Math.max(r.hA,r.hB);
- return {id:r.id,modulus:r.m,weights:r.weights,planes:null,products:Array.from({length:r.R},()=>({a:0,b:0,group:null,numerator:null})),denominator:r.denominator??1,shape:'published',faces_a:r.FA,faces_b:r.FB,holes:{count,share:count/r.m},carry:false,block_shift:false,source_sha256:'',max_k:r.maxK,additional:{pending:r.source}};
-}
-export function pendingSource(c:Construction){const p=c.additional?.pending;return typeof p==='string'?p:undefined;}
 
 /** The machines whose engines use each saved set: the devices of its run records and of the FP32 engines built for it.
  Sets without a recorded device are not listed. */

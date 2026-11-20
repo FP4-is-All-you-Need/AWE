@@ -34,8 +34,8 @@ for(const lang of ['en','ja'])test(`periodic cells and the spiral count a constr
  const cell=page.locator('.prime-table [data-prime-modulus="4"]').first();await expect(cell).toHaveCount(1,{timeout:30000});
  await expect(cell.locator('title')).toContainText(lang==='en'?'single construction 1 products':'単独の法の構成 1積');
  await cell.click();
- await expect(page.locator('[data-prime-forms-detail] tr[data-prime-form] td').nth(2)).toHaveText('1');
- await expect(page.locator('[data-section^="prime.detail."]').first().locator('select[name=product_index] option')).toHaveCount(2);
+ const row=page.locator('[data-prime-forms-detail] tr[data-prime-form]').first();await expect(row.locator('td').nth(2)).toHaveText('1');await row.locator('button').click();
+ await expect(page.locator('[data-section^="prime.form.detail."]').first().locator('select[name=product_index] option')).toHaveCount(2);
  const tip=lang==='en'?'Products 1 · Planes A / B 1 / 1':'積 1 · 面 A / B 1 / 1';
  for(const query of ['prime_set=fp6&periodic_fp6=8xE2M3&',''] as const){
   await page.goto(`/?lang=${lang}&${query}section=polar-periodic&polar_modulus=4`);

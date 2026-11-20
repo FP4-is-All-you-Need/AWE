@@ -3,10 +3,7 @@ import {PeriodicViews} from './PolarPeriodic.tsx';
 import {PeriodicFormatProvider,PeriodicFormatControl,usePeriodicFormat} from './PeriodicFormat.tsx';
 import {PreviousResearchSection} from './PreviousResearch.tsx';
 import {PrimeTable} from './PrimeTable.tsx';
-import {engineText,isFP6Lane,onFP6ValueSet,primeSets,rowConstruction,setEngines,type PrimeForm} from './primeTable.ts';
-import {formConstruction} from './formConstruction.ts';
-import type {FormsIndex,ModularForms} from './modularForms.ts';
-import type {PolarCatalog,PolarRow} from './polarModel.ts';
+import {engineText,isFP6Lane,onFP6ValueSet,primeSets,setEngines,type PrimeForm} from './primeTable.ts';
 import {storedModulusLanes,modulusComparisonLanes} from './modulusLanes.ts';
 import {SwapDrawer} from './SwapDrawer.tsx';
 import {SameInputsContext} from './SideDetails.tsx';
@@ -20,12 +17,12 @@ import {CostControls} from './CostControls.tsx';
 import {defaultCostSettings,type CostSettings} from './cost.ts';
 import {useAnimatedDetails} from './AnimatedDetails.tsx';
 import {useLanguage} from './i18n.tsx';
-import {useCallback,useEffect,useRef,useState,useMemo,useReducer} from 'react';
+import {useEffect,useState,useMemo,useReducer} from 'react';
 import {inputReducer,readInputs,writeInputs,mapAction,selectedMapCell} from './InputSelection.ts';
 import {read,catalog,search} from './catalog.ts';
 import type {Group} from './types.ts';
 import {MathText,LawRow,PaperLegend} from './PaperFigures.tsx';
-import {INT8,PRECISIONS,connect,factors,pool,holePercent,inFilter,totals,canonicalLane,PAPER_16384,type VisualCatalog,type Lane,type Construction} from './visual.ts';
+import {INT8,PRECISIONS,connect,pool,holePercent,inFilter,totals,canonicalLane,PAPER_16384,type VisualCatalog,type Lane,type Construction} from './visual.ts';
 import {mergeModularCatalogs,type ModularCatalog} from './modular.ts';
 import './paper.css';
 import {IntegerResults} from './IntegerResults.tsx';
@@ -54,35 +51,24 @@ function FormatPage(){
 function FP6Page(){
  useAnimatedDetails();useDiagramSizing();
  const en=useLanguage()==='en',{valueSet}=usePeriodicFormat();
- const [forms,setForms]=useState<PrimeForm[]>(),[index,setIndex]=useState<FormsIndex>(),[error,setError]=useState('');
- useEffect(()=>{read<FormsIndex&{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>{setIndex(d);setForms(d.prime_powers.filter(f=>f.value_set===valueSet));}).catch(e=>setError(String(e)));},[valueSet]);
- // The periodic table's records, as on the FP4 page: the saved FP6 sets on this value set and the checked constructions of
- // prime-power moduli. A checked construction starts from its polar-catalog row and is read in full when its cell opens.
- const [saved,setSaved]=useState<ModularCatalog>(),[rows,setRows]=useState<PolarRow[]>([]),[full,setFull]=useState(new Map<string,Construction>());
- useEffect(()=>{read<ModularCatalog>('modular/fp6-sets.json').then(c=>setSaved({...c,sets:c.sets.filter(s=>s.value_set===valueSet)})).catch(e=>setError(String(e)));
-  read<PolarCatalog>('visualization/polar-catalog.json').then(c=>setRows(c.rows.filter(r=>r.vs===valueSet&&factors(r.m).length===1))).catch(e=>setError(String(e)));},[valueSet]);
+ const [forms,setForms]=useState<PrimeForm[]>(),[error,setError]=useState('');
+ useEffect(()=>{read<{prime_powers:PrimeForm[]}>('modular/forms-index.json').then(d=>setForms(d.prime_powers.filter(f=>f.value_set===valueSet))).catch(e=>setError(String(e)));},[valueSet]);
+ const [saved,setSaved]=useState<ModularCatalog>();
+ useEffect(()=>{read<ModularCatalog>('modular/fp6-sets.json').then(c=>setSaved({...c,sets:c.sets.filter(s=>s.value_set===valueSet)})).catch(e=>setError(String(e)));},[valueSet]);
  const lanes=useMemo(()=>saved?storedModulusLanes(saved):[],[saved]),sets=useMemo(()=>saved?primeSets(saved):[],[saved]);
  const [laneId,setLaneId]=useParameter('fp6_modset_id','',r=>r);
  const [slot,setSlot]=useParameter('fp6_slot',0,r=>{const n=Number(r);return Number.isInteger(n)&&n>=-1?n:0;});
  const lane=lanes.find(l=>l.id===laneId)??[...lanes].sort((a,b)=>(a.bits??0)-(b.bits??0)||a.products-b.products||a.id.localeCompare(b.id))[0];
  // The set's cards in increasing modulus, as the FP4 sets are drawn; the saved order is kept elsewhere.
  const cards=useMemo(()=>lane&&{...lane,mods:[...lane.mods].sort((a,b)=>a.modulus-b.modulus)},[lane]);
- // A saved construction replaces a row with the same id, so that it is never left waiting.
- const records=useMemo(()=>[...new Map([...rows.map(r=>full.get(r.id)??rowConstruction(r)),...lanes.flatMap(l=>l.mods)].map(c=>[c.id,c])).values()],[lanes,rows,full]);
- const asked=useRef(new Set<string>());
- const inspect=useCallback((m:number)=>{
-  const ids=new Set(rows.map(r=>r.id));
-  for(const path of new Set(rows.filter(r=>r.m===m).map(r=>r.source))){
-   if(asked.current.has(path))continue;asked.current.add(path);
-   read<ModularForms>(path,index?.chunks.find(c=>'modular/'+c.path===path)?.sha256).then(d=>setFull(f=>{const next=new Map(f);for(const s of d.solutions)if(ids.has(s.id))next.set(s.id,formConstruction(s));return next;})).catch(e=>{asked.current.delete(path);setError(String(e));});
-  }
- },[rows,index]);
- return <main className="paper-app" data-format-page={valueSet}><PeriodicFormatControl/><h1>FP6 · {valueSet}</h1>
- <p data-no-i18n>{en?'The periodic table, modulo spiral, composite table and construction list all use the selected FP6 value set.':'周期表・法の螺旋表示・合成数の表・構成の一覧は、すべて選んだ FP6 の値の集合を使います。'}</p>
+ // The set's K is accumulated in segments of at most the FP32 limit of its constructions (k_max).
+ const segments=cards?.plan_k&&Number(cards.k_max)>0?Math.ceil(cards.plan_k/Number(cards.k_max)):1;
+ // The periodic table's records, as on the FP4 page: the constructions of the saved sets, here the FP6 sets on this value set.
+ const records=useMemo(()=>[...new Map(lanes.flatMap(l=>l.mods).map(c=>[c.id,c])).values()],[lanes]);
+ return <main className="paper-app" data-format-page={valueSet}><PeriodicFormatControl/>
  {error&&<p role="alert">{error}</p>}{lanes.length>0&&<ModulusSets lanes={lanes} engines={setEngines(saved)} selected={laneId} onSelect={id=>{setLaneId(id);setSlot(0);}}/>}
- {cards&&<details data-section="main" open className="paper-lane" aria-label={`${cards.bits} bit の保存された組`}><summary><h1>{en?`${cards.bits}-bit saved set`:<>{cards.bits} bit　保存された組</>}　{cards.mods.length}法・{cards.products}積 <span>面 A {cards.faces_a} / B {cards.faces_b}　<MathText tex={`K\\le ${cards.k_max}`}/></span></h1></summary><LawRow lane={cards} selected={slot} onSelect={setSlot} detail={cards.mods[slot]&&<Expansion key={cards.mods[slot].id} c={cards.mods[slot]}/>}/><PaperLegend/></details>}
- <PrimeTable records={records} sets={sets} lane={lane} comparisonLanes={lanes} forms={forms} onInspect={inspect}/><PeriodicViews/><ModularFormsList/>
- <p data-no-i18n>{en?'FP6 data corresponding to the saved FP4 integer-width maps and numerical examples are not included in this collection. The saved FP6 (8×E2M3) modulus sets are listed with the other modulus sets on the FP4 page.':'FP4 の整数幅の地図・数値例に相当する FP6 のデータは、この公開目録には収めていません。保存された FP6 (8×E2M3) の法の組は、FP4 の頁の法の組の一覧に出します。'}</p>
+ {cards&&<details data-section="main" open className="paper-lane" aria-label={`${cards.bits} bit の保存された組`}><summary><h1>{en?`${cards.bits}-bit saved set`:<>{cards.bits} bit　保存された組</>}　{cards.mods.length}法・{cards.products}積 <span>面 A {cards.faces_a} / B {cards.faces_b}　<MathText tex={`K\\le ${cards.k_max}`}/></span></h1></summary>{segments>1&&<p data-k-segments={segments}>{en?`This set accumulates K = ${cards.plan_k} in ${segments} segments of at most ${cards.k_max} each.`:`この組は K = ${cards.plan_k} を、${cards.k_max} 以下の ${segments} 区切りに分けて累積します。`}</p>}<LawRow lane={cards} selected={slot} onSelect={setSlot} detail={cards.mods[slot]&&<Expansion key={cards.mods[slot].id} c={cards.mods[slot]}/>}/><PaperLegend/></details>}
+ <PrimeTable records={records} sets={sets} lane={lane} comparisonLanes={lanes} forms={forms}/><PeriodicViews/><ModularFormsList/>
  </main>;
 }
 function MainApp(){

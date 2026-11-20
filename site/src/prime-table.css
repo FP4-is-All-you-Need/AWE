@@ -3,7 +3,7 @@
 .prime-used-key { border:2px solid #C2185B;padding:0 4px; }
 .prime-table-figure { width:100%;min-width:0;background:#FFFFFF;color:#1A1A1A;overflow-x:auto; }
 .prime-table-figure > svg { display:block;max-width:none;background:#FFFFFF; }
-.prime-table-figure [data-prime-modulus] { cursor:pointer; }
+.prime-table-figure [data-prime-modulus][role=button] { cursor:pointer; }
 .prime-table-figure [data-prime-modulus] text { fill:#1A1A1A; }
 .prime-table-figure [data-prime-used] { fill:#C2185B; }
 .prime-variants { display:flex;flex-wrap:wrap;gap:3px;margin:3px 0; }
@@ -50,7 +50,6 @@
 .prime-forms table{width:100%;table-layout:fixed;font-size:16px}
 .prime-forms th,.prime-forms td{overflow-wrap:anywhere;padding:3px;text-align:left}
 .prime-forms h4{margin:6px 0 2px}
+.prime-forms tbody tr{cursor:pointer}
+.prime-forms tbody tr[data-opened=true]{outline:2px solid #1A1A1A;outline-offset:-2px}
 
-.fp6-families{margin-top:18px}.fp6-families details>summary{white-space:normal!important;overflow-wrap:anywhere}.fp6-families td{max-width:320px;overflow-wrap:anywhere}.fp6-families>p,.fp6-families details p{overflow-wrap:anywhere}
-.fp6-families table{width:100%;min-width:700px;border-collapse:collapse}.fp6-families th,.fp6-families td{text-align:left;vertical-align:top;padding:7px 9px;border-bottom:1px solid #ddd}
-.fp6-families .fp6-family-tile{min-width:120px}.fp6-families .polar-factors{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.fp6-families tr[data-selected=true]>td{background:#F7E5ED}.fp6-family-detail{margin:12px 0;min-width:0}

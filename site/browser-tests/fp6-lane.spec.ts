@@ -8,6 +8,8 @@ for(const lang of ['en','ja'])for(const width of [1440,390])test(`the selected F
  const moduli=await tiles.evaluateAll(n=>n.map(e=>Number(e.getAttribute('data-tile-modulus'))));expect(moduli).toEqual([...moduli].sort((a,b)=>a-b));
  const lefts=await tiles.evaluateAll(n=>new Set(n.map(e=>Math.round(e.getBoundingClientRect().left))).size);expect(lefts).toBeGreaterThan(1);
  await expect(detail).toBeVisible();await expect(detail.locator('summary').first()).toContainText(String(moduli[0]));
+ // K 8192 is accumulated in segments of at most the FP32 limit 4660 of the constructions.
+ await expect(lane.locator('[data-k-segments="2"]')).toContainText(lang==='en'?'accumulates K = 8192 in 2 segments of at most 4660':'K = 8192 を、4660 以下の 2 区切り');
  await tiles.nth(15).click();await expect(page).toHaveURL(/fp6_slot=15/);await expect(detail.locator('summary').first()).toContainText(String(moduli[15]));
  // Choosing another set opens its first card again, as on the FP4 page.
  await page.locator(`[data-saved-modset]:not([data-saved-modset="${set}"]) [name=modset_choice]`).first().click();await expect(page).toHaveURL(/fp6_slot=0/);

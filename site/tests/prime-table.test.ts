@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {formCells,fp4Fewest,isFP6Lane,onFP6ValueSet,setEngines,pendingSource,primeSets,primeTableData,primesThrough,rowConstruction,weightVariants,type PrimeForm} from '../src/primeTable.ts';
+import {formCells,fp4Fewest,isFP6Lane,onFP6ValueSet,setEngines,primeSets,primeTableData,primesThrough,weightVariants,type PrimeForm} from '../src/primeTable.ts';
 import {connect,pool,factors} from '../src/visual.ts';
 import {mergeModularCatalogs} from '../src/modular.ts';
 import {storedModulusLanes} from '../src/modulusLanes.ts';
@@ -97,14 +97,8 @@ test('an FP6 page shows one value set, marks against the FP4 minima and runs its
  assert.deepEqual(t.beyond.map(p=>p.modulus),[251]);
  assert.equal(primeTableData([],[],cells).primeMax,2);   // without contiguous columns, only saved constructions set the range
 });
-test('an FP6 row stands in for its construction until its forms file is read',()=>{
- const c=rowConstruction({id:'awem2_x',m:343,vs:'8xE2M3',R:2,FA:2,FB:2,hA:0,hB:3,exact:true,weights:{A:[1,7],B:[1,49]},maxK:null,model:null,origin:null,inCatalog:true,source:'modular/forms-0000286-0000728.json'});
- assert.equal(c.products.length,2);assert.equal(c.holes.count,3);assert.equal(pendingSource(c),'modular/forms-0000286-0000728.json');
- assert.equal(pendingSource(records[0]),undefined);
- assert.equal(weightVariants([c,{...c,id:'awem2_y'}]).length,1);
-});
 test('the left-out mark compares only with published constructions without holes',()=>{
- const row=(id:string,R:number,h:number)=>rowConstruction({id,m:1024,vs:'8xE2M3',R,FA:2,FB:2,hA:h,hB:h,exact:true,weights:{A:[1,32],B:[1,32]},maxK:null,model:null,origin:null,inCatalog:true,source:'modular/forms-0003077-0010981.json'});
+ const row=(id:string,R:number,h:number)=>({...records[0],id,modulus:1024,products:Array.from({length:R},()=>records[0].products[0]),holes:{count:h,share:h/1024}});
  const shown=forms.filter(f=>f.modulus===1024),fp4=new Map([[1024,9]]);
  assert.equal(formCells(shown,'fp6',true,new Map([[1024,[row('awem2_holes',2,10)]]]),fp4).get(1024)!.excludedFewer,true);   // 3 products left out, 4 without holes
  assert.equal(formCells(shown,'fp6',true,new Map([[1024,[row('awem2_free',2,0)]]]),fp4).get(1024)!.excludedFewer,false);
