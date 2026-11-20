@@ -23,17 +23,24 @@ class FP6SetsTest(unittest.TestCase):
 
     def test_fp8_sets_rebuild_from_constructions(self):
         path = ROOT/'data/modular/gemmul8-fp8-sets.json'
-        self.assertEqual(check(path), {'constructions': 31, 'sets': 19, 'valid': True})
+        self.assertEqual(check(path), {'constructions': 51, 'sets': 38, 'valid': True})
         data = json.loads(path.read_text())
         self.assertEqual(data['kind'], 'modular_sets')
-        # one set for each number of moduli 2 to 20, each with the file lines that list its moduli at the recorded commit
-        self.assertEqual(sorted(len(s['solution_ids']) for s in data['sets']), list(range(2, 21)))
-        for s in data['sets']:
-            self.assertEqual((s['value_set'], s['k']), ('512xE4M3', 8192))
-            self.assertEqual((s['source']['name'], s['source']['commit'], s['source']['date']),
-                             ('GEMMul8 FP8', 'd8d390125964c7f1c60d5f1e0e5d9656e5614852', '2026-11-16'))
-        # every construction of these sets names the same source with its commit date
-        self.assertTrue(all(r.get('sources') and all(x['date'] == '2026-11-16' for x in r['sources']) for r in data['solutions']))
+        # for each of two GEMMul8 releases, one set for each number of moduli 2 to 20, each with the file lines that list
+        # its moduli at the recorded commit
+        commits = {'v3.5.7': ('d8d390125964c7f1c60d5f1e0e5d9656e5614852', '2026-11-16'),
+                   'v3.4.4': ('ce56e4228881df97782804d4d5dad9125d9a6416', '2026-09-18')}
+        for tag, (commit, day) in commits.items():
+            sets = [s for s in data['sets'] if s['source'].get('tag') == tag]
+            self.assertEqual(sorted(len(s['solution_ids']) for s in sets), list(range(2, 21)))
+            for s in sets:
+                self.assertEqual((s['value_set'], s['k']), ('512xE4M3', 8192))
+                self.assertEqual((s['source']['name'], s['source']['commit'], s['source']['date']), ('GEMMul8 FP8', commit, day))
+        self.assertEqual(len(data['sets']), 38)
+        # every construction of these sets names its source with the date of that commit
+        dates = dict(commits.values())
+        self.assertTrue(all(r.get('sources') and all(x['date'] == dates[x['commit']] for x in r['sources'])
+                            for r in data['solutions']))
         # only constructions of a modulus up to 256 keep their encoding tables, as in forms-*.json
         self.assertTrue(all((r['modulus'] <= 256) == ('encoding' in r and 'plane_values' in r) for r in data['solutions']))
 

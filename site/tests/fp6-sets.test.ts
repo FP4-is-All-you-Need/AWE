@@ -24,7 +24,7 @@ test('the FP6 sets are saved lanes with their recorded widths, K and constructio
 });
 test('the GEMMul8 FP8 sets keep tables only up to modulus 256 and still give every construction a card',()=>{
  const g=read('modular/gemmul8-fp8-sets.json'),lanes=storedModulusLanes(mergeModularCatalogs([g]));
- assert.equal(lanes.length,19);
+ assert.equal(lanes.length,38);
  for(const l of lanes)for(const c of l.mods){assert.equal(Boolean(c.saved_encoding??c.canonical?.encoding),c.modulus<=256);assert.ok(c.products.length>0&&c.planes);}
 });
 test('FP4 sets keep their formats when the FP6 file is added',()=>{
