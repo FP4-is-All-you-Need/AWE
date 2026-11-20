@@ -23,7 +23,7 @@
   "value_set_inclusion": {"type": "object", "description": "Value set -> the value sets that contain all of its integers. A record names the smallest value set it was checked on; it also holds on every value set listed here for that set.",
    "additionalProperties": {"type": "array", "items": {"$ref": "modular-forms.schema.json#/$defs/value_set"}},
    "propertyNames": {"$ref": "modular-forms.schema.json#/$defs/value_set"}},
-  "prime_powers": {"type": "array", "description": "For each prime-power modulus and value set: the record with the fewest products without holes (hole_free) and with holes (holes), and the left-out construction given without holes with the fewest products (excluded), ties broken by planes, then id.",
+  "prime_powers": {"type": "array", "description": "For each prime-power modulus and value set: among the records with accumulation max_k >= 2, the record with the fewest products without holes (hole_free) and with holes (holes), and the left-out construction given without holes with the fewest products (excluded), ties broken by planes, then id.",
    "items": {"type": "object", "required": ["modulus", "prime", "exponent", "value_set", "kind", "products", "planes", "id"], "additionalProperties": false,
     "properties": {"modulus": {"$ref": "#/$defs/modulus"}, "prime": {"$ref": "#/$defs/modulus"}, "exponent": {"type": "integer", "minimum": 1},
                    "value_set": {"$ref": "modular-forms.schema.json#/$defs/value_set"}, "kind": {"enum": ["hole_free", "holes", "excluded"]},
